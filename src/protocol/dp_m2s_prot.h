@@ -738,6 +738,7 @@ typedef struct _DP_M2S_ALG_ATTR_S {
  *	stRect		： 窗口位置显示参数，引用 DP_M2S_RECT_S
  *注意：无
  */
+// priority max 64
 typedef struct _DP_M2S_SWMS_ATTR_S {
 	_DP_M2S_SWMS_ATTR_S(DP_S32 voDevId, DP_S32 swmsChn, DP_U32 priority,
 			DP_M2S_RECT_S rect) :

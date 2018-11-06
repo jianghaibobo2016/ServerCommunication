@@ -58,7 +58,8 @@ public:
 	};
 
 	Logger(SourceFile file, int line);
-	Logger(SourceFile file, int line, LogLevel level);
+	Logger(SourceFile file, int line, LogLevel level, const char* func,
+			int nonmean);
 	Logger(SourceFile file, int line, LogLevel level, const char* func);
 	Logger(SourceFile file, int line, bool toAbort);
 	~Logger();
@@ -81,7 +82,8 @@ private:
 	class Impl {
 	public:
 		typedef Logger::LogLevel LogLevel;
-		Impl(LogLevel level, int old_errno, const SourceFile& file, int line);
+		Impl(LogLevel level, int old_errno, const SourceFile& file, int line,
+				const char* func);
 		void formatTime();
 		void finish();
 
@@ -90,6 +92,7 @@ private:
 		LogLevel level_;
 		int line_;
 		SourceFile basename_;
+		const char* _func;
 	};
 
 	Impl impl_;
@@ -122,12 +125,15 @@ inline Logger::LogLevel Logger::logLevel() {
 #define LOG_TRACE if (muduo::Logger::logLevel() <= muduo::Logger::TRACE) \
   muduo::Logger(__FILE__, __LINE__, muduo::Logger::TRACE, __func__).stream()
 #define LOG_DEBUG if (muduo::Logger::logLevel() <= muduo::Logger::DEBUG) \
-  muduo::Logger(__FILE__, __LINE__, muduo::Logger::DEBUG, __func__).stream()
+  muduo::Logger(__FILE__, __LINE__, muduo::Logger::DEBUG, __func__,0).stream()
 #define LOG_INFO if (muduo::Logger::logLevel() <= muduo::Logger::INFO) \
-  muduo::Logger(__FILE__, __LINE__, muduo::Logger::INFO).stream()
-#define LOG_WARN muduo::Logger(__FILE__, __LINE__, muduo::Logger::WARN).stream()
-#define LOG_ERROR muduo::Logger(__FILE__, __LINE__, muduo::Logger::ERROR).stream()
-#define LOG_FATAL muduo::Logger(__FILE__, __LINE__, muduo::Logger::FATAL).stream()
+  muduo::Logger(__FILE__, __LINE__, muduo::Logger::INFO,__func__,0).stream()
+#define LOG_WARN if (muduo::Logger::logLevel() <= muduo::Logger::WARN) \
+  muduo::Logger(__FILE__, __LINE__, muduo::Logger::WARN,__func__,0).stream()
+#define LOG_ERROR if (muduo::Logger::logLevel() <= muduo::Logger::ERROR) \
+  muduo::Logger(__FILE__, __LINE__, muduo::Logger::ERROR,__func__,0).stream()
+#define LOG_FATAL if (muduo::Logger::logLevel() <= muduo::Logger::FATAL) \
+  muduo::Logger(__FILE__, __LINE__, muduo::Logger::FATAL,__func__,0).stream()
 #define LOG_SYSERR muduo::Logger(__FILE__, __LINE__, false).stream()
 #define LOG_SYSFATAL muduo::Logger(__FILE__, __LINE__, true).stream()
 

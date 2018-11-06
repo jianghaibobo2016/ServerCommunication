@@ -19,7 +19,8 @@ NodeInfo::NodeInfo() :
 				new MapOutThirdCodecTaskID), _mSwmsChCodecDecInfo(
 				new MapOutSWMSChCodecDecInfo), _mThirdIDSrcVideoInfo(
 				new MapThirdIDSrcVideoInfo), _mAudioTaskID(new MapServerTaskID), _mVideoTaskID(
-				new MapServerTaskID), _mAuViTaskID(new MapServerTaskID) {
+				new MapServerTaskID), _mAuViTaskID(new MapServerTaskID), _vWindowPriority(
+				new VctrWindowPriority) {
 	initLocalInfo();
 }
 NodeInfo::~NodeInfo() {
@@ -202,6 +203,11 @@ DP_S32 NodeInfo::findNewID(DP_U32 thirdId, VctrOutCodecTaskID TaskID) {
 	LOG_INFO << "findNewID TaskID.size() : " << TaskID.size();
 	LOG_INFO << " _mOutCodecTaskIDBeUsed->operator [](TaskID) "
 			<< _mOutCodecTaskIDBeUsed->operator [](TaskID);
+
+	//check thirdId!
+	if (_mOutThirdCodecTaskID->find(thirdId) != _mOutThirdCodecTaskID->end())
+		return 0;
+
 	if (TaskID.size() <= _mOutCodecTaskIDBeUsed->operator [](TaskID))
 		return -1; //error for full !!!!!!
 	else {
@@ -491,10 +497,10 @@ DP_BOOL NodeInfo::deinitCodec() {
 void NodeInfo::setOutputTaskIDInMap(VctrAVDECGetInfoPtr avDecInfo) {
 	MapOutCodecTaskIDBeUsedPtr mTaskIDUsed = getOutCodecTaskIDBeUsed();
 //	assert(avDecInfo->empty());
-//	DP_U32 swmsChn = 0;
 	vector<DP_S32> vSwmsChn;
-	for (DP_U32 i = 0; i < 16; i++)
+	for (DP_U32 i = 0; i < 64; i++)
 		vSwmsChn.push_back(i);
+
 	for (VctrAVDECGetInfo::iterator it = avDecInfo->begin();
 			it != avDecInfo->end(); it++) {
 		LOG_INFO << "AVDecInfo  in fun setOutputTaskIDInMap size : "
@@ -511,6 +517,8 @@ void NodeInfo::setOutputTaskIDInMap(VctrAVDECGetInfoPtr avDecInfo) {
 			vSwmsChn.erase(
 					find(vSwmsChn.begin(), vSwmsChn.end(),
 							it->stVdec.stSwms.s32SwmsChn));
+
+			_vWindowPriority->push_back(it->stVdec.stSwms.u32Priority);
 		}
 		switch (it->AvBindAttr.enBindType) {
 		case DP_M2S_AVBIND_ADEC2AO:
@@ -541,10 +549,23 @@ void NodeInfo::setOutputTaskIDInMap(VctrAVDECGetInfoPtr avDecInfo) {
 			break;
 		}
 	}
-//	for (VctrAVDECGetInfo::iterator it = avDecInfo->begin();
-//			it != avDecInfo->end(); it++) {
-//		if (it->stVdec.bSwms == DP_TRUE)
-//	}
+
+	sort(_vWindowPriority->begin(), _vWindowPriority->end());
+	for (VctrWindowPriority::iterator it = _vWindowPriority->begin();
+			it != _vWindowPriority->end(); it++)
+		LOG_INFO << "_vWindowPriority: " << *it;
+//	LOG_INFO << "vSwmsChn size: " << vSwmsChn.size() << " vSwmsChn[0]: "
+//			<< *vSwmsChn.begin() << " vSwmsChn[1] " << vSwmsChn[1]
+//			<< " vSwmsChn[2] " << vSwmsChn[2];
+
+	for (VctrAVDECGetInfo::iterator it = avDecInfo->begin();
+			it != avDecInfo->end(); it++) {
+		if (it->stVdec.bSwms != DP_TRUE) {
+			it->stVdec.stSwms.s32SwmsChn = *vSwmsChn.begin();
+			vSwmsChn.erase(vSwmsChn.begin());
+		}
+		LOG_INFO << "after given swms chn " << it->stVdec.stSwms.s32SwmsChn;
+	}
 
 	_mOutCodecTaskIDBeUsed->insert(
 			MapOutCodecTaskIDBeUsed::value_type(_vAudioTaskID, 0));
@@ -560,17 +581,6 @@ void NodeInfo::setOutputTaskIDInMap(VctrAVDECGetInfoPtr avDecInfo) {
 			<< " _mOutCodecTaskIDBeUsed[video]"
 			<< _mOutCodecTaskIDBeUsed->operator [](_vVideoTaskID);
 
-#if 0
-//	MapCodecTaskIDPtr mCodecTaskID = getOutputCodecTaskID();
-//
-//	for (VctrAVDECGetInfo::iterator it = avDecInfo->begin();
-//			it != avDecInfo->end(); it++) {
-//		mCodecTaskID->insert(
-//				MapCodecTaskID::value_type(
-//						it->stStream._rtsp.stRtspClient.au8Url, it->TskId));
-//	}
-//	updateOutputCodecTaskID(mCodecTaskID);
-#endif
 }
 
 DP_BOOL NodeInfo::setAVENCInfoToCodec() {

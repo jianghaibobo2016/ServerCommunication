@@ -32,8 +32,7 @@ public:
 
 	void createWindow(const muduo::net::TcpConnectionPtr connPtr,
 			std::string data);
-	void videoOutput(const muduo::net::TcpConnectionPtr connPtr,
-			std::string data);
+
 	void moveWindow(const muduo::net::TcpConnectionPtr connPtr,
 			std::string data);
 	void closeWindow(const muduo::net::TcpConnectionPtr connPtr,

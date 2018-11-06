@@ -92,30 +92,29 @@ TimeZone g_logTimeZone;
 using namespace muduo;
 
 Logger::Impl::Impl(LogLevel level, int savedErrno, const SourceFile& file,
-		int line) :
+		int line, const char* func) :
 		time_(Timestamp::now()), stream_(), level_(level), line_(line), basename_(
-				file) {
+				file), _func(func) {
 	formatTime();
 	CurrentThread::tid();
 	//tid info
-	if (level == INFO)
+	if (level_ == INFO)
 		stream_ << BOLDGREEN;
-	else if (level == WARN)
-		stream_ << BOLDYELLOW;
-	else if (level == ERROR)
-		stream_ << BOLDRED;
-	else if (level == FATAL)
-		stream_ << BOLDBLUE;
-	else if (level == DEBUG)
-		stream_ << BOLDCYAN;
-	else if (level == TRACE)
+	else if (level_ == WARN)
 		stream_ << BOLDMAGENTA;
+	else if (level_ == ERROR)
+		stream_ << BOLDRED;
+	else if (level_ == FATAL)
+		stream_ << BOLDBLUE;
+	else if (level_ == DEBUG)
+		stream_ << BOLDCYAN;
+	else if (level_ == TRACE)
+		stream_ << BOLDYELLOW;
 
 	stream_ << T(CurrentThread::tidString(), CurrentThread::tidStringLength());
 	stream_ << T(LogLevelName[level], 6);
 	if (savedErrno != 0) {
-		stream_ << strerror_tl(savedErrno) << " (errno=" << savedErrno << ") "
-				;
+		stream_ << strerror_tl(savedErrno) << " (errno=" << savedErrno << ") ";
 	}
 }
 
@@ -143,7 +142,7 @@ void Logger::Impl::formatTime() {
 	if (level_ == INFO)
 		stream_ << BOLDGREEN;
 	else if (level_ == WARN)
-		stream_ << BOLDYELLOW;
+		stream_ << BOLDMAGENTA;
 	else if (level_ == ERROR)
 		stream_ << BOLDRED;
 	else if (level_ == FATAL)
@@ -151,7 +150,7 @@ void Logger::Impl::formatTime() {
 	else if (level_ == DEBUG)
 		stream_ << BOLDCYAN;
 	else if (level_ == TRACE)
-		stream_ << BOLDMAGENTA;
+		stream_ << BOLDYELLOW;
 
 	if (g_logTimeZone.valid()) {
 		Fmt us(".%06d ", microseconds);
@@ -168,7 +167,7 @@ void Logger::Impl::finish() {
 	if (level_ == INFO)
 		stream_ << BOLDGREEN;
 	else if (level_ == WARN)
-		stream_ << BOLDYELLOW;
+		stream_ << BOLDMAGENTA;
 	else if (level_ == ERROR)
 		stream_ << BOLDRED;
 	else if (level_ == FATAL)
@@ -176,26 +175,28 @@ void Logger::Impl::finish() {
 	else if (level_ == DEBUG)
 		stream_ << BOLDCYAN;
 	else if (level_ == TRACE)
-		stream_ << BOLDMAGENTA;
+		stream_ << BOLDYELLOW;
 
-	stream_ << " - " << basename_ << ':' << line_ << '\n' << RESET;
+	stream_ << " - " << _func << "() - " << basename_ << ':' << line_ << '\n'
+			<< RESET;
 }
 
 Logger::Logger(SourceFile file, int line) :
-		impl_(INFO, 0, file, line) {
+		impl_(INFO, 0, file, line, NULL) {
 }
 
 Logger::Logger(SourceFile file, int line, LogLevel level, const char* func) :
-		impl_(level, 0, file, line) {
+		impl_(level, 0, file, line, func) {
 	impl_.stream_ << func << ' ';
 }
 
-Logger::Logger(SourceFile file, int line, LogLevel level) :
-		impl_(level, 0, file, line) {
+Logger::Logger(SourceFile file, int line, LogLevel level, const char* func,
+		int nonmean = 0) :
+		impl_(level, 0, file, line, func) {
 }
 
 Logger::Logger(SourceFile file, int line, bool toAbort) :
-		impl_(toAbort ? FATAL : ERROR, errno, file, line) {
+		impl_(toAbort ? FATAL : ERROR, errno, file, line, NULL) {
 }
 
 Logger::~Logger() {

@@ -8,7 +8,6 @@
 #ifndef SRC_NODEINFO_H_
 #define SRC_NODEINFO_H_
 
-//#include <muduo/net/TcpConnection.h>
 #include <boost/shared_ptr.hpp>
 #include <boost/noncopyable.hpp>
 #include <muduo/base/Mutex.h>
@@ -65,10 +64,10 @@ public:
 	typedef boost::shared_ptr<MapCodecTaskID> MapCodecTaskIDPtr;
 
 	// third id -->url codeID
-	typedef std::map<DP_U32, MapCodecTaskID> MapThirdCodecTaskID;
-	typedef boost::shared_ptr<MapThirdCodecTaskID> MapThirdCodecTaskIDPtr;
+//	typedef std::map<DP_U32, MapCodecTaskID> MapThirdCodecTaskID;
+//	typedef boost::shared_ptr<MapThirdCodecTaskID> MapThirdCodecTaskIDPtr;
 
-	//out node codec task id vector data structure
+//out node codec task id vector data structure
 	typedef std::vector<DP_U32> VctrOutCodecTaskID;
 	//task id & its used
 	typedef std::map<VctrOutCodecTaskID, DP_U32> MapOutCodecTaskIDBeUsed;
@@ -89,6 +88,10 @@ public:
 	// third task id -->  _sSrcVideoInfo
 	typedef std::map<DP_U32, _sSrcVideoInfo> MapThirdIDSrcVideoInfo;
 	typedef boost::shared_ptr<MapThirdIDSrcVideoInfo> MapThirdIDSrcVideoInfoPtr;
+
+	// window present priority (sort)
+	typedef std::vector<DP_U32> VctrWindowPriority;
+	typedef boost::shared_ptr<VctrWindowPriority> VctrWindowPriorityPtr;
 
 #if 0
 	//output node thirdTaskID <<--->>URL
@@ -182,6 +185,9 @@ public:
 	inline const DP_U32 getCodecTaskIDCount() {
 		return _allCodecTaskIDCount;
 	}
+	inline const VctrWindowPriorityPtr getVctrWindowPriority() {
+		return _vWindowPriority;
+	}
 	//----------------------------get --------------------------//
 
 	//----------------------------update --------------------------//
@@ -272,6 +278,12 @@ public:
 			_mThirdIDSrcVideoInfo.swap(newData);
 		}
 	}
+	inline void updateVctrWindowPriority(VctrWindowPriorityPtr newData) {
+		if (newData) {
+			muduo::MutexLockGuard lock(_mutex);
+			_vWindowPriority.swap(newData);
+		}
+	}
 //	inline void updateAllUsedCodecTaskID(VctrAllUsedCodecTaskID newData) {
 //		if (newData) {
 //			muduo::MutexLockGuard lock(_mutex);
@@ -329,7 +341,7 @@ public:
 	DP_S32 getNewCodecTaskID(DP_U32 thirdId, TaskObjectType_E taskType);
 	DP_S32 findNewID(DP_U32 thirdId, VctrOutCodecTaskID TaskID);
 	DP_S32 getUsedCodecTaskID(DP_U32 thirdId);
-	void  removeCodecTaskID(DP_U32 thirdId, TaskObjectType_E taskType);
+	void removeCodecTaskID(DP_U32 thirdId, TaskObjectType_E taskType);
 
 	static int recvCB(void* pData, int len);
 private:
@@ -346,6 +358,9 @@ public:
 	MapServerTaskIDPtr _mAudioTaskID, _mVideoTaskID, _mAuViTaskID;
 	DP_U32 setServerTaskID(DP_U32 taskID, TaskObjectType_E taskType);
 	void removeServerTaskID(DP_U32 taskID, TaskObjectType_E taskType);
+
+private:
+	VctrWindowPriorityPtr _vWindowPriority;
 
 //	MapAOCHTaskIDPtr _mAOCHTaskID;
 	//use in output node
