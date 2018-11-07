@@ -61,7 +61,7 @@ void UDPServerHandle::runUdp() {
 void UDPServerHandle::parserDataRecv(DP_U8 *buff, DP_U32 len) {
 	_sRemote_Search * search = (_sRemote_Search*) buff;
 	if (search->header.stFunctionMsg.u8CommandID == Command_Search){
-		printBufferByHex("UDP recv :", buff, len);
+//		printBufferByHex("UDP recv :", buff, len);
 		devSearchHandle();
 	}
 	else

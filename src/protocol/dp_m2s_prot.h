@@ -1170,6 +1170,9 @@ typedef struct _DP_M2S_AVDEC_GET_INFO_S {
 			TskId(tskId), AvBindAttr(avBindAttr), stStream(stream), stAdec(
 					adec), stVdec(vdec) {
 	}
+	_DP_M2S_AVDEC_GET_INFO_S() :
+			TskId(), AvBindAttr(), stStream(), stAdec(), stVdec() {
+	}
 	DP_M2S_TSK_ID TskId;
 	DP_M2S_AVBIND_ATTR_S AvBindAttr;
 	DP_M2S_STREAM_ATTR_S stStream;
@@ -1264,14 +1267,14 @@ typedef struct _DP_M2S_CMD_ACK_S {
 typedef struct _DP_M2S_CMD_INIT_S {
 #if (OutputDevice)
 	_DP_M2S_CMD_INIT_S() :
-	stHeader(sizeof(struct _DP_M2S_CMD_INIT_S), DP_M2S_CMD_INIT, 0x01), enInfoTYpe(
-			DP_M2S_INFO_TYPE_SET_AVDEC) {
+			stHeader(sizeof(struct _DP_M2S_CMD_INIT_S), DP_M2S_CMD_INIT, 0x01), enInfoTYpe(
+					DP_M2S_INFO_TYPE_SET_AVDEC) {
 	}
 #endif
 #if (InputDevice)
 	_DP_M2S_CMD_INIT_S() :
-			stHeader(sizeof(struct _DP_M2S_CMD_INIT_S), DP_M2S_CMD_INIT, 0x01), enInfoTYpe(
-					DP_M2S_INFO_TYPE_SET_AVENC) {
+	stHeader(sizeof(struct _DP_M2S_CMD_INIT_S), DP_M2S_CMD_INIT, 0x01), enInfoTYpe(
+			DP_M2S_INFO_TYPE_SET_AVENC) {
 	}
 #endif
 	DP_M2S_INF_PROT_HEAD_S stHeader;
@@ -1294,14 +1297,14 @@ typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_INIT_RESPOND_S;
 typedef struct _DP_M2S_CMD_DEINIT_S {
 #if (OutputDevice)
 	_DP_M2S_CMD_DEINIT_S() :
-	stHeader(sizeof(struct _DP_M2S_CMD_DEINIT_S), DP_M2S_CMD_DEINIT,
-			0x01), enInfoTYpe(DP_M2S_INFO_TYPE_SET_AVDEC) {
+			stHeader(sizeof(struct _DP_M2S_CMD_DEINIT_S), DP_M2S_CMD_DEINIT,
+					0x01), enInfoTYpe(DP_M2S_INFO_TYPE_SET_AVDEC) {
 	}
 #endif
 #if (InputDevice)
 	_DP_M2S_CMD_DEINIT_S() :
-			stHeader(sizeof(struct _DP_M2S_CMD_DEINIT_S), DP_M2S_CMD_DEINIT,
-					0x01), enInfoTYpe(DP_M2S_INFO_TYPE_SET_AVENC) {
+	stHeader(sizeof(struct _DP_M2S_CMD_DEINIT_S), DP_M2S_CMD_DEINIT,
+			0x01), enInfoTYpe(DP_M2S_INFO_TYPE_SET_AVENC) {
 	}
 #endif
 	DP_M2S_INF_PROT_HEAD_S stHeader;

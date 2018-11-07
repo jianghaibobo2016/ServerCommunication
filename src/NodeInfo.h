@@ -31,9 +31,6 @@ public:
 
 	typedef boost::shared_ptr<DP_M2S_CMD_INIT_S> InitPtr;
 	typedef boost::shared_ptr<DP_M2S_CMD_DEINIT_S> DeinitPtr;
-	typedef boost::shared_ptr<_sAllAoChnInfo> AllAoChInfoPtr;
-	typedef boost::shared_ptr<_sAllVencChnInfo> AllVencChInfoPtr;
-	typedef boost::shared_ptr<_sAllVoChnInfo> AllVoChInfoPtr;
 
 	//获取音频输入设备信息
 	typedef std::vector<DP_M2S_AI_GET_INFO_S> VctrAIGetInfo;
@@ -63,10 +60,6 @@ public:
 	typedef std::map<DP_U8*, DP_U32> MapCodecTaskID;
 	typedef boost::shared_ptr<MapCodecTaskID> MapCodecTaskIDPtr;
 
-	// third id -->url codeID
-//	typedef std::map<DP_U32, MapCodecTaskID> MapThirdCodecTaskID;
-//	typedef boost::shared_ptr<MapThirdCodecTaskID> MapThirdCodecTaskIDPtr;
-
 //out node codec task id vector data structure
 	typedef std::vector<DP_U32> VctrOutCodecTaskID;
 	//task id & its used
@@ -82,9 +75,6 @@ public:
 	typedef std::map<DP_S32, DP_M2S_AVDEC_GET_INFO_S> MapOutSWMSChCodecDecInfo;
 	typedef boost::shared_ptr<MapOutSWMSChCodecDecInfo> MapOutSWMSChCodecDecInfoPtr;
 
-//	typedef std::map<DP_S32, DP_M2S_AVDEC_GET_INFO_S> MapOutSWMSChCodecDecInfo;
-//	typedef boost::shared_ptr<MapOutSWMSChCodecDecInfo> MapOutSWMSChCodecDecInfoPtr;
-
 	// third task id -->  _sSrcVideoInfo
 	typedef std::map<DP_U32, _sSrcVideoInfo> MapThirdIDSrcVideoInfo;
 	typedef boost::shared_ptr<MapThirdIDSrcVideoInfo> MapThirdIDSrcVideoInfoPtr;
@@ -98,18 +88,6 @@ public:
 	typedef boost::shared_ptr<MapAOChStatus> MapAOChStatusPtr;
 
 	//----------------------------get --------------------------//
-	inline const AllAoChInfoPtr getAllAuChInfo() const {
-		muduo::MutexLockGuard lock(_mutex);
-		return _sAllAoChInfo;
-	}
-	inline const AllVencChInfoPtr getAllVencChStreamInfo() const {
-		muduo::MutexLockGuard lock(_mutex);
-		return _sAllVencChInfo;
-	}
-	inline const AllVoChInfoPtr getAllViChInfo() const {
-		muduo::MutexLockGuard lock(_mutex);
-		return _sAllVoChInfo;
-	}
 	inline const VctrAIGetInfoPtr getAIGetInfo() const {
 		muduo::MutexLockGuard lock(_mutex);
 		return _vAIGetInfo;
@@ -130,14 +108,6 @@ public:
 		muduo::MutexLockGuard lock(_mutex);
 		return _vVOGetInfo;
 	}
-//	inline const MapCodecTaskIDPtr getInputCodecTaskID() const {
-//		muduo::MutexLockGuard lock(_mutex);
-//		return _mInputNodeCodecTaskID;
-//	}
-//	inline const MapCodecTaskIDPtr getOutputCodecTaskID() const {
-//		muduo::MutexLockGuard lock(_mutex);
-//		return _mOutputNodeCodecTaskID;
-//	}
 	inline const MapOutCodecTaskIDBeUsedPtr getOutCodecTaskIDBeUsed() const {
 		muduo::MutexLockGuard lock(_mutex);
 		return _mOutCodecTaskIDBeUsed;
@@ -154,10 +124,6 @@ public:
 		muduo::MutexLockGuard lock(_mutex);
 		return _mThirdIDSrcVideoInfo;
 	}
-//	inline const VctrAllUsedCodecTaskID getAllUsedCodecTaskID() const {
-//		muduo::MutexLockGuard lock(_mutex);
-//		return _vAllUseCodecTaskID;
-//	}
 	inline const MapServerTaskIDPtr getudioTaskIDMap() const {
 		muduo::MutexLockGuard lock(_mutex);
 		return _mAudioTaskID;
@@ -179,24 +145,6 @@ public:
 	//----------------------------get --------------------------//
 
 	//----------------------------update --------------------------//
-	inline void updateAllAuChInfo(AllAoChInfoPtr newData) {
-		if (newData) {
-			muduo::MutexLockGuard lock(_mutex);
-			_sAllAoChInfo.swap(newData);
-		}
-	}
-	inline void updateAllVencChStreamInfo(AllVencChInfoPtr newData) {
-		if (newData) {
-			muduo::MutexLockGuard lock(_mutex);
-			_sAllVencChInfo.swap(newData);
-		}
-	}
-	inline void updateAllViChInfo(AllVoChInfoPtr newData) {
-		if (newData) {
-			muduo::MutexLockGuard lock(_mutex);
-			_sAllVoChInfo.swap(newData);
-		}
-	}
 	inline void updateAIGetInfo(VctrAIGetInfoPtr newData) {
 		if (newData) {
 			muduo::MutexLockGuard lock(_mutex);
@@ -227,18 +175,6 @@ public:
 			_vVOGetInfo.swap(newData);
 		}
 	}
-//	inline void updateInputCodecTaskID(MapCodecTaskIDPtr newData) {
-//		if (newData) {
-//			muduo::MutexLockGuard lock(_mutex);
-//			_mInputNodeCodecTaskID.swap(newData);
-//		}
-//	}
-//	inline void updateOutputCodecTaskID(MapCodecTaskIDPtr newData) {
-//		if (newData) {
-//			muduo::MutexLockGuard lock(_mutex);
-//			_mOutputNodeCodecTaskID.swap(newData);
-//		}
-//	}
 	inline void updateOutCodecTaskIDBeUsed(MapOutCodecTaskIDBeUsedPtr newData) {
 		if (newData) {
 			muduo::MutexLockGuard lock(_mutex);
@@ -272,12 +208,6 @@ public:
 			_vWindowPriority.swap(newData);
 		}
 	}
-//	inline void updateAllUsedCodecTaskID(VctrAllUsedCodecTaskID newData) {
-//		if (newData) {
-//			muduo::MutexLockGuard lock(_mutex);
-//			_vAllUseCodecTaskID.swap(newData);
-//		}
-//	}
 	inline void updateTaskID(MapServerTaskIDPtr newData,
 			TaskObjectType_E taskType) {
 		if (newData) {
@@ -302,9 +232,6 @@ public:
 private:
 	InitPtr _sInit;
 	DeinitPtr _sDeinit;
-	AllAoChInfoPtr _sAllAoChInfo;
-	AllVencChInfoPtr _sAllVencChInfo;
-	AllVoChInfoPtr _sAllVoChInfo;
 	mutable muduo::MutexLock _mutex;
 	muduo::MutexLock _mutexForUsedID;
 	VctrAIGetInfoPtr _vAIGetInfo;
@@ -312,10 +239,6 @@ private:
 	VctrAVENCGetInfoPtr _vAVEncGetInfo;
 	VctrAVDECGetInfoPtr _vAVDecGetInfo;
 	VctrVOGetInfoPtr _vVOGetInfo;
-
-	//new
-//	MapCodecTaskIDPtr _mInputNodeCodecTaskID, _mOutputNodeCodecTaskID;
-//	MapThirdCodecTaskIDPtr _mThirdCodecTaskID;
 
 	VctrOutCodecTaskID _vAudioTaskID, _vVideoTaskID, _vAuViTaskID;
 	DP_U32 _allCodecTaskIDCount;
@@ -325,7 +248,7 @@ private:
 	MapOutSWMSChCodecDecInfoPtr _mSwmsChCodecDecInfo;
 	MapThirdIDSrcVideoInfoPtr _mThirdIDSrcVideoInfo;
 public:
-	//new way
+	//new method
 	DP_S32 getNewCodecTaskID(DP_U32 thirdId, TaskObjectType_E taskType);
 	DP_S32 findNewID(DP_U32 thirdId, VctrOutCodecTaskID TaskID);
 	DP_S32 getUsedCodecTaskID(DP_U32 thirdId);
@@ -350,20 +273,13 @@ public:
 private:
 	VctrWindowPriorityPtr _vWindowPriority;
 
-//	MapAOCHTaskIDPtr _mAOCHTaskID;
 	//use in output node
-//	void setTaskIDInMap(DP_U32 codecTaskID, muduo::string url);
 	void setInputTaskIDInMap(VctrAVENCGetInfoPtr avEncInfo);
 	void setOutputTaskIDInMap(VctrAVDECGetInfoPtr avEncInfo);
-
-//	DP_U32 getNewCodecTaskID(DP_U32 thirdTaskID, muduo::string url);
-//	DP_BOOL removeCodecTaskID(DP_U32 codecTaskID);
 
 	DP_BOOL initCodec();
 	DP_BOOL deinitCodec();
 
-	DP_BOOL setAVENCInfoToCodec();
-	DP_BOOL setAVDECInfoToCodec();
 
 private:
 	DP_U32 setID(MapServerTaskIDPtr mTaskID, DP_U32 taskID, DP_U32 min,
@@ -371,7 +287,6 @@ private:
 	void rmID(DP_U32 taskID, MapServerTaskIDPtr mTaskID,
 			TaskObjectType_E taskType);
 
-	DP_BOOL setInfoToCodec(muduo::net::Buffer setInfo);
 
 	DP_S32 cmd_set_avenc_default_512(DP_VOID*pPtr);
 	DP_S32 cmd_set_avenc_default_513(DP_VOID*pPtr);

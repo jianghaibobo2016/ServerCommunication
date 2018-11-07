@@ -102,12 +102,12 @@ void LogicHandle::getInfo(const muduo::net::TcpConnectionPtr connPtr,
 							it->stVenc.stCrop.s32Y,
 							it->stStream._rtsp.stRtspServer.au8Url,
 							DP_M2S_URL_LEN, 0x00, _sSrcAudioInfo()));
-			LOG_WARN << "check url 1: and len:  "
-					<< it->stStream._rtsp.stRtspServer.au8Url << " "
-					<< strlen((DP_CHAR*) it->stStream._rtsp.stRtspServer.au8Url)
-					<< " Check url 2: and len : "
-					<< singleVencCh->au8PreviewRtspURL << " "
-					<< strlen((DP_CHAR*) singleVencCh->au8PreviewRtspURL);
+//			LOG_WARN << "check url 1: and len:  "
+//					<< it->stStream._rtsp.stRtspServer.au8Url << " "
+//					<< strlen((DP_CHAR*) it->stStream._rtsp.stRtspServer.au8Url)
+//					<< " Check url 2: and len : "
+//					<< singleVencCh->au8PreviewRtspURL << " "
+//					<< strlen((DP_CHAR*) singleVencCh->au8PreviewRtspURL);
 			if (it->AvBindAttr.enBindType == DP_M2S_AVBIND_VI2VENC) //视频输入绑到视频编码
 					{
 				buffSend.append(singleVencCh.get(),
@@ -278,67 +278,78 @@ void LogicHandle::getInfo(const muduo::net::TcpConnectionPtr connPtr,
 		NodeInfo::MapOutThirdCodecTaskID::iterator it_ID;
 		LOG_INFO << "swmsChInfo size :: " << swmsChInfo->size();
 		if (!swmsChInfo->empty())
-			for (NodeInfo::MapOutSWMSChCodecDecInfo::iterator it =
-					swmsChInfo->begin(); it != swmsChInfo->end(); it++) {
-				// without audio
-				if (it->second.AvBindAttr.enBindType == DP_M2S_AVBIND_ADEC2AO)
-					continue;
-				codecTaskID = it->second.TskId;
-				it_ID = std::find_if(thirdCodecID->begin(), thirdCodecID->end(),
-						bind2nd(findThirdIDByCodecID(), codecTaskID));
-				if (it_ID != thirdCodecID->end()) {
-					videoInfo->u32TaskID = it_ID->first;
-				}
-				if (it->second.stVdec.bSwms) {
-					videoInfo->u8VoChnID =
-							it->second.stVdec.stSwms.s32VoDevId == 0x00 ?
-									ID_VO_CHN_VIDEOOUT1 : ID_VO_CHN_VIDEOOUT2;
-					videoInfo->u8WinZIndex =
-							it->second.stVdec.stSwms.u32Priority;
+			//equal task info
+			LOG_INFO << "Video task count: " << swmsChInfo->size();
+		for (NodeInfo::MapOutSWMSChCodecDecInfo::iterator it =
+				swmsChInfo->begin(); it != swmsChInfo->end(); it++) {
+			// without audio
+			if (it->second.AvBindAttr.enBindType == DP_M2S_AVBIND_ADEC2AO)
+				continue;
+			codecTaskID = it->second.TskId;
+			it_ID = std::find_if(thirdCodecID->begin(), thirdCodecID->end(),
+					bind2nd(findThirdIDByCodecID(), codecTaskID));
+			if (it_ID != thirdCodecID->end()) {
+				videoInfo->u32TaskID = it_ID->first;
+				LOG_INFO << " third task ID: " << videoInfo->u32TaskID
+						<< " codec task ID: " << codecTaskID;
+			} else
+			LOG_ERROR << "Can not find third task id by codec task id: "
+					<< codecTaskID;
+			if (it->second.stVdec.bSwms) {
+				videoInfo->u8VoChnID =
+						it->second.stVdec.stSwms.s32VoDevId == 0x00 ?
+								ID_VO_CHN_VIDEOOUT1 : ID_VO_CHN_VIDEOOUT2;
+				videoInfo->u8WinZIndex = it->second.stVdec.stSwms.u32Priority;
 //				videoInfo->u8VStreamStatus  // none
-					videoInfo->dstVideoInfo.u16StartX =
-							it->second.stVdec.stSwms.stRect.s32X;
-					videoInfo->dstVideoInfo.u16StartY =
-							it->second.stVdec.stSwms.stRect.s32Y;
-					videoInfo->dstVideoInfo.u16VideoHeight =
-							it->second.stVdec.stSwms.stRect.u32Height;
-					videoInfo->dstVideoInfo.u16VideoWidth =
-							it->second.stVdec.stSwms.stRect.u32Width;
-				}
-				memset(videoInfo->au8InputRtspURL, 0, DP_URL_LEN);
-				strcpy((DP_CHAR*) videoInfo->au8InputRtspURL,
-						(DP_CHAR*) it->second.stStream._rtsp.stRtspClient.au8Url);
-				LOG_WARN << "check url 1: and len:  "
-						<< it->second.stStream._rtsp.stRtspClient.au8Url << " "
-						<< strlen(
-								(DP_CHAR*) it->second.stStream._rtsp.stRtspClient.au8Url)
-						<< " Check url 2: and len : "
-						<< videoInfo->au8InputRtspURL
-						<< strlen((DP_CHAR*) videoInfo->au8InputRtspURL);
-				LOG_INFO << "videoInfo->au8InputRtspURL: "
-						<< videoInfo->au8InputRtspURL << " from : "
-						<< it->second.stStream._rtsp.stRtspClient.au8Url;
+				videoInfo->dstVideoInfo.u16StartX =
+						it->second.stVdec.stSwms.stRect.s32X;
+				videoInfo->dstVideoInfo.u16StartY =
+						it->second.stVdec.stSwms.stRect.s32Y;
+				videoInfo->dstVideoInfo.u16VideoHeight =
+						it->second.stVdec.stSwms.stRect.u32Height;
+				videoInfo->dstVideoInfo.u16VideoWidth =
+						it->second.stVdec.stSwms.stRect.u32Width;
+				LOG_INFO << "Dst video info:: x: y: H: W: "
+						<< videoInfo->dstVideoInfo.u16StartX << " "
+						<< videoInfo->dstVideoInfo.u16StartY << " "
+						<< videoInfo->dstVideoInfo.u16VideoHeight << " "
+						<< videoInfo->dstVideoInfo.u16VideoWidth;
+			}
+
+			memset(videoInfo->au8InputRtspURL, 0, DP_URL_LEN);
+			strcpy((DP_CHAR*) videoInfo->au8InputRtspURL,
+					(DP_CHAR*) it->second.stStream._rtsp.stRtspClient.au8Url);
+//				LOG_WARN << "check url 1: and len:  "
+//						<< it->second.stStream._rtsp.stRtspClient.au8Url << " "
+//						<< strlen(
+//								(DP_CHAR*) it->second.stStream._rtsp.stRtspClient.au8Url)
+//						<< " Check url 2: and len : "
+//						<< videoInfo->au8InputRtspURL
+//						<< strlen((DP_CHAR*) videoInfo->au8InputRtspURL);
+			LOG_INFO << "videoInfo->au8InputRtspURL: "
+					<< videoInfo->au8InputRtspURL << " from : "
+					<< it->second.stStream._rtsp.stRtspClient.au8Url;
 //				muduo::PrintBuff::printBufferByHex("stRtspClient",
 //						it->second.stStream._rtsp.stRtspClient.au8Url,
 //						DP_M2S_URL_LEN);
 //				muduo::PrintBuff::printBufferByHex("videoInfo",
 //						videoInfo->au8InputRtspURL,
 //						DP_M2S_URL_LEN);
-				if (!muduo::Singleton<NodeInfo>::instance().getThirdIDSrcVideoInfo()->empty())
-					videoInfo->srcVideoInfo =
-							muduo::Singleton<NodeInfo>::instance().getThirdIDSrcVideoInfo()->operator [](
-									videoInfo->u32TaskID);
-				LOG_INFO << "src video infoHeight : "
-						<< videoInfo->srcVideoInfo.u16VideoHeight << " width: "
-						<< videoInfo->srcVideoInfo.u16VideoWidth;
-				LOG_INFO << "src video start: x: y: end: x: y:  "
-						<< videoInfo->srcVideoInfo.u16StartX << " "
-						<< videoInfo->srcVideoInfo.u16StartY << " "
-						<< videoInfo->srcVideoInfo.u16EndX << " "
-						<< videoInfo->srcVideoInfo.u16EndY;
-				buffSend.append(videoInfo.get(), sizeof(_sVideoTaskInfo));
+			if (!muduo::Singleton<NodeInfo>::instance().getThirdIDSrcVideoInfo()->empty())
+				videoInfo->srcVideoInfo =
+						muduo::Singleton<NodeInfo>::instance().getThirdIDSrcVideoInfo()->operator [](
+								videoInfo->u32TaskID);
+			LOG_INFO << "src video infoHeight : "
+					<< videoInfo->srcVideoInfo.u16VideoHeight << " width: "
+					<< videoInfo->srcVideoInfo.u16VideoWidth;
+			LOG_INFO << "src video start: x: y: end: x: y:  "
+					<< videoInfo->srcVideoInfo.u16StartX << " "
+					<< videoInfo->srcVideoInfo.u16StartY << " "
+					<< videoInfo->srcVideoInfo.u16EndX << " "
+					<< videoInfo->srcVideoInfo.u16EndY;
+			buffSend.append(videoInfo.get(), sizeof(_sVideoTaskInfo));
 
-			}
+		}
 		LOG_INFO << "Get info send to remote " << buffSend.readableBytes()
 				<< " bytes !";
 		connPtr->send(&buffSend);
@@ -635,10 +646,18 @@ void LogicHandle::moveWindow(const muduo::net::TcpConnectionPtr connPtr,
 
 	it->stVdec.bCrop = DP_TRUE;
 	it->stVdec.stCrop = crop;
+
 	it->stVdec.stSwms.stRect = rect;
 	DP_U32 originPriority = it->stVdec.stSwms.u32Priority;
 	LOG_INFO << "priority current move task : " << originPriority;
 
+	NodeInfo::MapOutSWMSChCodecDecInfoPtr swmsDecInfo = muduo::Singleton<
+			NodeInfo>::instance().getOutSWMSChCodecDecInfo();
+//	muduo::PrintBuff::printBufferByHex("ittttttturl:::::::: ",
+//			it->stStream._rtsp.stRtspClient.au8Url, 128);
+	swmsDecInfo->operator [](it->stVdec.stSwms.s32SwmsChn) = *it;
+	muduo::Singleton<NodeInfo>::instance().updateMapOutSWMSChCodecDecInfo(
+			swmsDecInfo);
 	//priority
 	NodeInfo::VctrWindowPriorityPtr winPriority =
 			muduo::Singleton<NodeInfo>::instance().getVctrWindowPriority();
@@ -908,11 +927,3 @@ bool LogicHandle::sendAckToCodec(const void *data, DP_S32 dataLen,
 	return true;
 }
 
-//void LogicHandle::GetInputNodeInfoCB(const muduo::net::TcpConnectionPtr& conn,
-//		muduo::net::Buffer* buf, muduo::Timestamp receiveTime) {
-//	DP_M2S_CMD_SETINFO_S setInfo;
-//	_sAllVencChnInfo *streamInfo =
-//			(_sAllVencChnInfo*) buf->toStringPiece().data();
-//
-//	_cond.notify();
-//}

@@ -11,12 +11,11 @@
 #include "interactivepro.h"
 #include "UnixSockClientData.h"
 NodeInfo::NodeInfo() :
-		_sInit(new DP_M2S_CMD_INIT_S()), _sDeinit(new DP_M2S_CMD_DEINIT_S()), _sAllAoChInfo(
-				new _sAllAoChnInfo()), _sAllVencChInfo(new _sAllVencChnInfo()), _sAllVoChInfo(
-				new _sAllVoChnInfo()), _vAIGetInfo(new VctrAIGetInfo), _vVIGetInfo(
-				new VctrVIGetInfo), _vAVEncGetInfo(new VctrAVENCGetInfo), _vAVDecGetInfo(
-				new VctrAVDECGetInfo), _vVOGetInfo(new VctrVOGetInfo), _allCodecTaskIDCount(
-				0), _mOutCodecTaskIDBeUsed(new MapOutCodecTaskIDBeUsed), _mOutThirdCodecTaskID(
+		_sInit(new DP_M2S_CMD_INIT_S()), _sDeinit(new DP_M2S_CMD_DEINIT_S()), _vAIGetInfo(
+				new VctrAIGetInfo), _vVIGetInfo(new VctrVIGetInfo), _vAVEncGetInfo(
+				new VctrAVENCGetInfo), _vAVDecGetInfo(new VctrAVDECGetInfo), _vVOGetInfo(
+				new VctrVOGetInfo), _allCodecTaskIDCount(0), _mOutCodecTaskIDBeUsed(
+				new MapOutCodecTaskIDBeUsed), _mOutThirdCodecTaskID(
 				new MapOutThirdCodecTaskID), _mSwmsChCodecDecInfo(
 				new MapOutSWMSChCodecDecInfo), _mThirdIDSrcVideoInfo(
 				new MapThirdIDSrcVideoInfo), _mAudioTaskID(new MapServerTaskID), _mVideoTaskID(
@@ -269,83 +268,6 @@ void NodeInfo::removeCodecTaskID(DP_U32 thirdId, TaskObjectType_E taskType) {
 	}
 
 }
-//_vViGetInfo
-//DP_S32 NodeInfo::getViDevInfo() {
-//	DP_M2S_CMD_GETINFO_S getInfo(sizeof(DP_M2S_CMD_GETINFO_S),
-//			DP_M2S_CMD_GETINFO, 0x01, DP_M2S_INFO_TYPE_GET_VI);
-//	UnixSocketClient client;
-//	client.clientConnect();
-//	client.clientSend(&getInfo, sizeof(DP_M2S_CMD_GETINFO_S));
-//	DP_U32 offset = sizeof(DP_M2S_INF_PROT_HEAD_S) + sizeof(DP_M2S_INFO_TYPE_E)
-//			+ sizeof(DP_U32) + sizeof(DP_U32);
-//	DP_U32 dataLen = offset + DP_M2S_VI_DEV_MAX * sizeof(DP_M2S_VI_GET_INFO_S);
-//	boost::shared_ptr<DP_S8> recvFromCodec(new DP_S8[dataLen]);
-//
-//	if (client.clientRecv(recvFromCodec.get(), dataLen, 1) == -1)
-//		return -1;
-//	DP_M2S_CMD_GETINFO_RESPOND_S *getCodecRespond =
-//			(DP_M2S_CMD_GETINFO_RESPOND_S*) recvFromCodec.get();
-//	if (DP_M2S_INFO_TYPE_GET_VI != getCodecRespond->enInfoTYpe
-//			|| getCodecRespond->u32Success != 0) {
-//		return -1;
-//	}
-//	DP_U32 numOfVencCh = 0;
-//	numOfVencCh = getCodecRespond->u32InfoLen / sizeof(DP_M2S_VI_GET_INFO_S);
-//
-//	for (DP_U32 i = 0; i < numOfVencCh; i++) {
-//		DP_M2S_VI_GET_INFO_S tmp =
-//				*(DP_M2S_VI_GET_INFO_S *) (recvFromCodec.get() + offset
-//						+ i * sizeof(DP_M2S_VI_GET_INFO_S));
-//		_vViGetInfo.push_back(tmp);
-//	}
-//
-//}
-
-//DP_BOOL NodeInfo::getAVInfoFromCodecInfo() {
-//	DP_M2S_CMD_GETINFO_S getInfo(sizeof(DP_M2S_CMD_GETINFO_S),
-//			DP_M2S_CMD_GETINFO, 0x01, DP_M2S_INFO_TYPE_GET_AVENC);
-//	UnixSocketClient client;
-//	client.clientConnect();
-//	client.clientSend(&getInfo, sizeof(DP_M2S_CMD_GETINFO_S));
-//	DP_U32 offset = sizeof(DP_M2S_INF_PROT_HEAD_S) + sizeof(DP_M2S_INFO_TYPE_E)
-//			+ sizeof(DP_U32) + sizeof(DP_U32);
-//	DP_U32 dataLen = offset + DP_M2S_VI_DEV_MAX * sizeof(DP_M2S_VI_GET_INFO_S);
-//	boost::shared_ptr<DP_S8> recvFromCodec(new DP_S8[dataLen]);
-//
-//	client.clientRecv(recvFromCodec.get(), dataLen, 1);
-//	DP_M2S_CMD_GETINFO_RESPOND_S *getCodecRespond =
-//			(DP_M2S_CMD_GETINFO_RESPOND_S*) recvFromCodec.get();
-//	if (DP_M2S_INFO_TYPE_GET_AVENC != getCodecRespond->enInfoTYpe
-//			|| getCodecRespond->u32Success != 0) {
-//		return DP_FALSE;
-//	}
-//	DP_U32 numOfVencCh = 0;
-//	numOfVencCh = getCodecRespond->u32InfoLen / sizeof(DP_M2S_VI_GET_INFO_S);
-//
-//	for (DP_U32 i = 0; i < numOfVencCh; i++) {
-//		DP_M2S_VI_GET_INFO_S tmp =
-//				*(DP_M2S_VI_GET_INFO_S *) (recvFromCodec.get() + offset
-//						+ i * sizeof(DP_M2S_VI_GET_INFO_S));
-//		_vViGetInfo.push_back(tmp);
-//	}
-//}
-
-//void NodeInfo::getAVEncInfo() {
-//
-//}
-//
-//bool NodeInfo::getNodeInfoHandle(const muduo::net::TcpConnectionPtr &connPtr,
-//		muduo::string &data) {
-//	_sRemote_GetInfo * sGet = (_sRemote_GetInfo *) data.c_str();
-//	switch (sGet->u32Proterty) {
-//	case Property_Get_OutputVideoChnInfo:
-//
-//		break;
-//	default:
-//		break;
-//	}
-//	return true;
-//}
 
 /*
  * 范围定义：
@@ -361,22 +283,6 @@ DP_U32 NodeInfo::setServerTaskID(DP_U32 taskID, TaskObjectType_E taskType) {
 		return thirdCodecID->operator [](taskID);
 	}
 
-//	MapServerTaskIDPtr mTaskID;
-//	switch (taskType) {
-//	case _eAudioTask:
-//		mTaskID = getudioTaskIDMap();
-//		return setID(mTaskID, taskID, 0, 255, taskType);
-//	case _eVideoTask:
-//		mTaskID = getVideoTaskIDMap();
-//		return setID(mTaskID, taskID, 256, 511, taskType);
-//	case _eAudioAndVideoTask:
-//		mTaskID = getAuViTaskIDMap();
-//		return setID(mTaskID, taskID, 512, 767, taskType);
-//	case _eTaskObjectTypeButt:
-//		break;
-//	default:
-//		break;
-//	}
 	return 0xffff;
 }
 
@@ -409,18 +315,6 @@ DP_U32 NodeInfo::setID(MapServerTaskIDPtr mTaskID, DP_U32 taskID, DP_U32 min,
 	}
 	if (finded)
 		return 0xffff;
-//	for (DP_U32 i = min; i <= max + 1; i++) {
-//		if (mTaskID->find(i) != mTaskID->end()) {
-//			continue;
-//		} else {
-//			if (i == max + 1)
-//				return 0xffff;
-//			mTaskID->insert(MapServerTaskID::value_type(i, taskID));
-////			efficientAddOrUpdate(*mTaskID.get(), i, taskID);
-//			updateTaskID(mTaskID, taskType);
-//			return i;
-//		}
-//	}
 	return 0xffff;
 }
 
@@ -478,22 +372,6 @@ DP_BOOL NodeInfo::deinitCodec() {
 	else
 		return DP_FALSE;
 }
-
-//void NodeInfo::setTaskIDInMap(DP_U32 codecTaskID, muduo::string url) {
-//	MapCodecTaskIDPtr mCodecTaskID = getCodecTaskID();
-//	mCodecTaskID->insert(MapCodecTaskID::value_type(url, codecTaskID));
-//	updateCodecTaskID(mCodecTaskID);
-//}
-//void NodeInfo::setInputTaskIDInMap(VctrAVENCGetInfoPtr avEncInfo) {
-//	MapCodecTaskIDPtr mCodecTaskID = getInputCodecTaskID();
-//	for (VctrAVENCGetInfo::iterator it = avEncInfo->begin();
-//			it != avEncInfo->end(); it++) {
-//		mCodecTaskID->insert(
-//				MapCodecTaskID::value_type(
-//						it->stStream._rtsp.stRtspClient.au8Url, it->TskId));
-//	}
-//	updateInputCodecTaskID(mCodecTaskID);
-//}
 
 void NodeInfo::setOutputTaskIDInMap(VctrAVDECGetInfoPtr avDecInfo) {
 	MapOutCodecTaskIDBeUsedPtr mTaskIDUsed = getOutCodecTaskIDBeUsed();
@@ -584,32 +462,6 @@ void NodeInfo::setOutputTaskIDInMap(VctrAVDECGetInfoPtr avDecInfo) {
 
 }
 
-DP_BOOL NodeInfo::setAVENCInfoToCodec() {
-	muduo::net::Buffer setInfo;
-
-	setInfoToCodec(setInfo);
-	return DP_TRUE;
-}
-
-DP_BOOL NodeInfo::setAVDECInfoToCodec() {
-	muduo::net::Buffer setInfo;
-
-	setInfoToCodec(setInfo);
-	return DP_TRUE;
-}
-
-DP_BOOL NodeInfo::setInfoToCodec(muduo::net::Buffer setInfo) {
-//	UnixSocketClient client;
-//	client.clientConnect();
-//	client.clientSend(const_cast<char *>(setInfo.toStringPiece().data()),
-//			setInfo.toStringPiece().size());
-//	DP_M2S_CMD_ACK_S ack;
-//	client.clientRecv(&ack, sizeof(DP_M2S_CMD_ACK_S), 1);
-//	if (ack.u32Success == 0) {
-//	} else {
-//	}
-	return DP_TRUE;
-}
 int NodeInfo::recvCB(void* pData, int len) {
 	DP_M2S_CMD_ACK_S *ack = (DP_M2S_CMD_ACK_S*) pData;
 	if (ack->u32Success == 0) {
@@ -654,6 +506,8 @@ DP_S32 NodeInfo::cmd_set_avenc_default_512(DP_VOID*pPtr) {
 	stCrop.s32Y = 0;
 	stCrop.u32Width = 1920;
 	stCrop.u32Height = 1080;
+//	stCrop.u32Width = 3840; //4K
+//	stCrop.u32Height = 2160;
 	memcpy(&stAttr.stVenc.stCrop, &stCrop, sizeof(DP_M2S_CROP_ATTR_S));
 
 	DP_M2S_ZOOM_ATTR_S stZoom;
@@ -662,6 +516,8 @@ DP_S32 NodeInfo::cmd_set_avenc_default_512(DP_VOID*pPtr) {
 	stZoom.stRect.s32Y = 0;
 	stZoom.stRect.u32Width = 1920;
 	stZoom.stRect.u32Height = 1080;
+//	stZoom.stRect.u32Width = 3840; //4K
+//	stZoom.stRect.u32Height = 2160;
 	memcpy(&stAttr.stVenc.stZoom, &stZoom, sizeof(DP_M2S_ZOOM_ATTR_S));
 
 	/*
