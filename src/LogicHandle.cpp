@@ -10,8 +10,6 @@
 #include <muduo/base/Logging.h>
 #include <string.h>
 //
-//#include <algorithm>
-//#include <iostream>
 #include <functional>
 
 #include "LogicHandle.h"
@@ -104,6 +102,12 @@ void LogicHandle::getInfo(const muduo::net::TcpConnectionPtr connPtr,
 							it->stVenc.stCrop.s32Y,
 							it->stStream._rtsp.stRtspServer.au8Url,
 							DP_M2S_URL_LEN, 0x00, _sSrcAudioInfo()));
+			LOG_WARN << "check url 1: and len:  "
+					<< it->stStream._rtsp.stRtspServer.au8Url << " "
+					<< strlen((DP_CHAR*) it->stStream._rtsp.stRtspServer.au8Url)
+					<< " Check url 2: and len : "
+					<< singleVencCh->au8PreviewRtspURL << " "
+					<< strlen((DP_CHAR*) singleVencCh->au8PreviewRtspURL);
 			if (it->AvBindAttr.enBindType == DP_M2S_AVBIND_VI2VENC) //视频输入绑到视频编码
 					{
 				buffSend.append(singleVencCh.get(),
@@ -223,9 +227,18 @@ void LogicHandle::getInfo(const muduo::net::TcpConnectionPtr connPtr,
 						new _sSingleVoChnInfo(it->bEnable, ID_VO_CHN_VIDEOOUT1,
 						NULL, 0, 0, 0, 0)); /////////////////// null
 				if (iter_AVEnc != AVEncInfo->end()) {
-					memcpy(singleVoInfo->au8PreviewRtspURL,
-							iter_AVEnc->stStream._rtsp.stRtspServer.au8Url,
-							DP_M2S_URL_LEN);
+					memset(singleVoInfo->au8PreviewRtspURL, 0, DP_URL_LEN);
+					strcpy((DP_CHAR*) singleVoInfo->au8PreviewRtspURL,
+							(DP_CHAR*) iter_AVEnc->stStream._rtsp.stRtspServer.au8Url);
+//					LOG_WARN << "check url 1 and len: "
+//							<< iter_AVEnc->stStream._rtsp.stRtspServer.au8Url
+//							<< " "
+//							<< strlen(
+//									(DP_CHAR*) iter_AVEnc->stStream._rtsp.stRtspServer.au8Url)
+//							<< " Check url 2: and len :"
+//							<< singleVoInfo->au8PreviewRtspURL << " "
+//							<< strlen(
+//									(DP_CHAR*) singleVoInfo->au8PreviewRtspURL);
 				}
 				buffSend.append(singleVoInfo.get(), sizeof(_sSingleVoChnInfo));
 				LOG_INFO << "singleVoInfo attr: u8VoChnOpenStatus: "
@@ -240,9 +253,18 @@ void LogicHandle::getInfo(const muduo::net::TcpConnectionPtr connPtr,
 						new _sSingleVoChnInfo(it->bEnable, ID_VO_CHN_VIDEOOUT2,
 						NULL, 0, 0, 0, 0)); /////////////////// null
 				if (iter_AVEnc != AVEncInfo->end()) {
-					memcpy(singleVoInfo->au8PreviewRtspURL,
-							iter_AVEnc->stStream._rtsp.stRtspServer.au8Url,
-							DP_M2S_URL_LEN);
+					memset(singleVoInfo->au8PreviewRtspURL, 0, DP_URL_LEN);
+					strcpy((DP_CHAR*) singleVoInfo->au8PreviewRtspURL,
+							(DP_CHAR*) iter_AVEnc->stStream._rtsp.stRtspServer.au8Url);
+//					LOG_WARN << "check url 1: and len:  "
+//							<< iter_AVEnc->stStream._rtsp.stRtspServer.au8Url
+//							<< " "
+//							<< strlen(
+//									(DP_CHAR*) iter_AVEnc->stStream._rtsp.stRtspServer.au8Url)
+//							<< " Check url 2: and len : "
+//							<< singleVoInfo->au8PreviewRtspURL
+//							<< strlen(
+//									(DP_CHAR*) singleVoInfo->au8PreviewRtspURL);
 				}
 				buffSend.append(singleVoInfo.get(), sizeof(_sSingleVoChnInfo));
 			}
@@ -283,9 +305,16 @@ void LogicHandle::getInfo(const muduo::net::TcpConnectionPtr connPtr,
 					videoInfo->dstVideoInfo.u16VideoWidth =
 							it->second.stVdec.stSwms.stRect.u32Width;
 				}
-				memcpy(videoInfo->au8InputRtspURL,
-						it->second.stStream._rtsp.stRtspClient.au8Url,
-						DP_M2S_URL_LEN);
+				memset(videoInfo->au8InputRtspURL, 0, DP_URL_LEN);
+				strcpy((DP_CHAR*) videoInfo->au8InputRtspURL,
+						(DP_CHAR*) it->second.stStream._rtsp.stRtspClient.au8Url);
+				LOG_WARN << "check url 1: and len:  "
+						<< it->second.stStream._rtsp.stRtspClient.au8Url << " "
+						<< strlen(
+								(DP_CHAR*) it->second.stStream._rtsp.stRtspClient.au8Url)
+						<< " Check url 2: and len : "
+						<< videoInfo->au8InputRtspURL
+						<< strlen((DP_CHAR*) videoInfo->au8InputRtspURL);
 				LOG_INFO << "videoInfo->au8InputRtspURL: "
 						<< videoInfo->au8InputRtspURL << " from : "
 						<< it->second.stStream._rtsp.stRtspClient.au8Url;
@@ -302,9 +331,11 @@ void LogicHandle::getInfo(const muduo::net::TcpConnectionPtr connPtr,
 				LOG_INFO << "src video infoHeight : "
 						<< videoInfo->srcVideoInfo.u16VideoHeight << " width: "
 						<< videoInfo->srcVideoInfo.u16VideoWidth;
-				LOG_INFO << "src video x: y: "
+				LOG_INFO << "src video start: x: y: end: x: y:  "
 						<< videoInfo->srcVideoInfo.u16StartX << " "
-						<< videoInfo->srcVideoInfo.u16StartY;
+						<< videoInfo->srcVideoInfo.u16StartY << " "
+						<< videoInfo->srcVideoInfo.u16EndX << " "
+						<< videoInfo->srcVideoInfo.u16EndY;
 				buffSend.append(videoInfo.get(), sizeof(_sVideoTaskInfo));
 
 			}
@@ -327,7 +358,6 @@ void LogicHandle::getInfo(const muduo::net::TcpConnectionPtr connPtr,
 
 void LogicHandle::setInfo(const muduo::net::TcpConnectionPtr connPtr,
 		std::string data) {
-
 }
 
 void LogicHandle::createWindow(const muduo::net::TcpConnectionPtr connPtr,
@@ -380,16 +410,15 @@ void LogicHandle::createWindow(const muduo::net::TcpConnectionPtr connPtr,
 	it->stStream.enType = DP_M2S_STREAM_RTSP_CLIENT;
 //	memcpy(it->stStream._rtsp.stRtspClient.au8Url, "rtsp://172.16.10.199:554/chn1",
 //	DP_M2S_URL_LEN);
-	memcpy(it->stStream._rtsp.stRtspClient.au8Url, createWinData->au8RtspURL,
-	DP_M2S_URL_LEN);
+	memset(it->stStream._rtsp.stRtspClient.au8Url, 0, DP_M2S_URL_LEN);
+	strcpy((DP_CHAR*) it->stStream._rtsp.stRtspClient.au8Url,
+			(DP_CHAR*) createWinData->au8RtspURL);
 	it->stStream._rtsp.stRtspClient.bMulticast = DP_FALSE;
 	it->stStream._rtsp.stRtspClient.s32TransType = 1;
 	it->stStream._rtsp.stRtspClient.s8Open = 2;
 
 	///////////////////////////////
 
-	memcpy(clientAttr.au8Url, "rtsp://172.16.10.199:554/chn1",
-	DP_M2S_URL_LEN);
 	clientAttr.bMulticast = DP_FALSE;
 	clientAttr.s32TransType = 1;
 //一般 0位禁用 1为启用
@@ -454,11 +483,12 @@ void LogicHandle::createWindow(const muduo::net::TcpConnectionPtr connPtr,
 	DP_M2S_CROP_ATTR_S crop;
 	crop.s32X = srcVideo.u16StartX;
 	crop.s32Y = srcVideo.u16StartY;
-	crop.u32Height = srcVideo.u16VideoHeight;
-	crop.u32Width = srcVideo.u16VideoWidth;
+	crop.u32Height = srcVideo.u16EndX - srcVideo.u16StartX;
+	crop.u32Width = srcVideo.u16EndY - srcVideo.u16StartY;
 
-	LOG_INFO << "corp x: y: hei: Wid: " << srcVideo.u16StartX << " "
-			<< srcVideo.u16StartY << " " << srcVideo.u16VideoHeight << " "
+	LOG_INFO << "corp start x: y: end x: y: hei: Wid: " << srcVideo.u16StartX
+			<< " " << srcVideo.u16StartY << " " << srcVideo.u16EndX << " "
+			<< srcVideo.u16EndY << " " << srcVideo.u16VideoHeight << " "
 			<< srcVideo.u16VideoWidth;
 	it->stVdec.bCrop = DP_TRUE;
 	it->stVdec.stCrop = crop;
@@ -554,6 +584,7 @@ void LogicHandle::moveWindow(const muduo::net::TcpConnectionPtr connPtr,
 		std::string data) {
 	LOG_WARN << "Move win cmd.....";
 	_sRemote_MoveWindow *moveWinData = (_sRemote_MoveWindow*) data.c_str();
+//	LOG_WARN<<"src:: "<<moveWinData->srcVideoInfo.u16VideoHeight;
 	DP_U32 id = muduo::Singleton<NodeInfo>::instance().setServerTaskID(
 			moveWinData->u32TaskID, _eVideoTask);
 	if (id == 0xffff) {
@@ -594,12 +625,14 @@ void LogicHandle::moveWindow(const muduo::net::TcpConnectionPtr connPtr,
 	DP_M2S_CROP_ATTR_S crop;
 	crop.s32X = srcVideo.u16StartX;
 	crop.s32Y = srcVideo.u16StartY;
-	crop.u32Height = srcVideo.u16VideoHeight;
-	crop.u32Width = srcVideo.u16VideoWidth;
+	crop.u32Height = srcVideo.u16EndX - srcVideo.u16StartX;
+	crop.u32Width = srcVideo.u16EndY - srcVideo.u16StartY;
 
-	LOG_INFO << "corp x: y: hei: Wid: " << srcVideo.u16StartX << " "
-			<< srcVideo.u16StartY << " " << srcVideo.u16VideoHeight << " "
+	LOG_INFO << "corp start x: y: end x: y: hei: Wid: " << srcVideo.u16StartX
+			<< " " << srcVideo.u16StartY << " " << srcVideo.u16EndX << " "
+			<< srcVideo.u16EndY << " " << srcVideo.u16VideoHeight << " "
 			<< srcVideo.u16VideoWidth;
+
 	it->stVdec.bCrop = DP_TRUE;
 	it->stVdec.stCrop = crop;
 	it->stVdec.stSwms.stRect = rect;
@@ -763,11 +796,9 @@ void LogicHandle::closeWindow(const muduo::net::TcpConnectionPtr connPtr,
 	//update avdec
 	muduo::Singleton<NodeInfo>::instance().updateAVDecGetInfo(vAVDecInfo);
 
-//	if (closeWinData->hedader.u8PackageType == 0x01) {
 	muduo::net::Buffer buff;
 	buff.append(&reply, reply.header.u16PackageLen);
 	connPtr->send(&buff);
-//	}
 }
 
 void LogicHandle::openAudio(const muduo::net::TcpConnectionPtr connPtr,

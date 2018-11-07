@@ -6,6 +6,7 @@
  */
 
 #include <assert.h>
+#include <string.h>
 #include "NodeInfo.h"
 #include "interactivepro.h"
 #include "UnixSockClientData.h"
@@ -65,7 +66,7 @@ void NodeInfo::initLocalInfo() {
 	updateAIGetInfo(aiInfo);
 //
 	LOG_INFO << "########################  2  ####################";
-	VctrVIGetInfoPtr viInfo = getVIGetInfo();//获取输入节点的视频采集通道信息
+	VctrVIGetInfoPtr viInfo = getVIGetInfo(); //获取输入节点的视频采集通道信息
 	getAVInfoFromCodecInfo<VctrVIGetInfoPtr, DP_M2S_VI_GET_INFO_S>(viInfo,
 			DP_M2S_INFO_TYPE_GET_VI,
 			DP_M2S_VI_DEV_MAX);
@@ -95,7 +96,7 @@ void NodeInfo::initLocalInfo() {
 			DP_VI_DEV_MAX);
 	for (VctrAVENCGetInfo::iterator it = AVEncInfo->begin();
 			it != AVEncInfo->end(); it++) {
-		LOG_INFO<<"print ------------------";
+		LOG_INFO << "print ------------------";
 		print_avenc_get_attr(*it);
 	}
 #endif
@@ -121,8 +122,8 @@ void NodeInfo::initLocalInfo() {
 		it->stStream._rtsp.stRtspServer.bOpen = DP_TRUE;
 	}
 	LOG_INFO
-			<< "########################  2  #################### AVEncInfo size:: "
-			<< AVEncInfo->size();
+	<< "########################  2  #################### AVEncInfo size:: "
+	<< AVEncInfo->size();
 	setAVInfoToCodec<VctrAVENCGetInfo, DP_M2S_AVENC_SET_INFO_S>(
 			*AVEncInfo.get(), DP_M2S_INFO_TYPE_SET_AVENC);
 
@@ -143,8 +144,8 @@ void NodeInfo::initLocalInfo() {
 	//取音视频解码通道信息
 	VctrAVDECGetInfoPtr AVDecInfo = getAVDecGetInfo();
 	LOG_INFO
-			<< "########################  4  #################### AVDecInfo size: "
-			<< AVDecInfo->size();
+	<< "########################  4  #################### AVDecInfo size: "
+	<< AVDecInfo->size();
 	getAVInfoFromCodecInfo<VctrAVDECGetInfoPtr, DP_M2S_AVDEC_GET_INFO_S>(
 			AVDecInfo, DP_M2S_INFO_TYPE_GET_AVDEC,
 			DP_VO_DEV_MAX);
@@ -826,6 +827,8 @@ DP_S32 NodeInfo::print_avenc_get_attr(DP_M2S_AVENC_SET_INFO_S info) {
 			info.stStream._rtsp.stRtspServer.s32ConnNums);
 	printf("stream rtsp server au8url :%s\n",
 			info.stStream._rtsp.stRtspServer.au8Url);
+	LOG_INFO << "url length: "
+			<< strlen((DP_CHAR*) info.stStream._rtsp.stRtspServer.au8Url);
 	printf("-------------------------stAenc\n");
 	printf("aenc alg :%d \n", info.stAenc.enAlg);
 	printf("aenc s32bitrate :%d\n", info.stAenc.s32Bitrate);

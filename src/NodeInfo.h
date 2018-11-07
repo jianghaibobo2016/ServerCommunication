@@ -93,18 +93,6 @@ public:
 	typedef std::vector<DP_U32> VctrWindowPriority;
 	typedef boost::shared_ptr<VctrWindowPriority> VctrWindowPriorityPtr;
 
-#if 0
-	//output node thirdTaskID <<--->>URL
-	typedef std::map<DP_U32, muduo::string> MapThirdTaskID;
-//	typedef boost::shared_ptr<MapThirdTaskID> MapThirdTaskIDPtr;
-	//union third id & codec task id
-	typedef std::map<MapThirdTaskID, DP_U32> MapThirdCodecTaskID;
-	typedef boost::shared_ptr<MapThirdCodecTaskID> MapThirdCodecTaskIDPtr;
-	//output node thirdTaskID-->AOCh-->URL
-	typedef std::map<eDeviceAudioChannelID, DP_U32> MapAOCHTaskID;
-	typedef boost::shared_ptr<MapAOCHTaskID> MapAOCHTaskIDPtr;
-#endif
-
 	//AOCh status
 	typedef std::map<eDeviceAudioChannelID, DP_BOOL> MapAOChStatus;
 	typedef boost::shared_ptr<MapAOChStatus> MapAOChStatusPtr;

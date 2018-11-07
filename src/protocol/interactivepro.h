@@ -24,6 +24,8 @@
 #ifndef _INTERACTIVEPRO_H
 #define _INTERACTIVEPRO_H
 #include <string.h>
+#include <iostream>
+#include "dp_sd_type.h"
 typedef unsigned char DP_U8;   ///<u8数据类型
 typedef unsigned short DP_U16; ///<u16数据类型
 typedef unsigned int DP_U32;   ///<u32数据类型
@@ -285,8 +287,10 @@ typedef struct _sSingleVoChnInfo_tag {
 			u8VoChnOpenStatus(voChnOpenStatus), u8VoChnID(voChnID), u8RelateAoChnID(
 					relateAoChnID), u8AoChnMute(aoChnMute), u8AoChnVolume(
 					aoChnVolume) {
+		memset(au8PreviewRtspURL, 0, DP_URL_LEN);
 		if (urlLen)
-			memcpy(au8PreviewRtspURL, previewRtspURL, urlLen);
+			strcpy((DP_CHAR*) au8PreviewRtspURL, (DP_CHAR*) previewRtspURL);
+//			memcpy(au8PreviewRtspURL, previewRtspURL, urlLen);
 	}
 	DP_U8 u8VoChnOpenStatus;			 ///<显示输出的开关状态
 	DP_U8 u8VoChnID;					 ///<显示通道ID @see eDeviceVideoChannelID
@@ -360,7 +364,9 @@ typedef struct _sAllAiChnInfo_tag {
 				DP_U8 aencType) :
 				u8AiSignalStatus(), srcAudioInfo(aiDevIntfSampleRate,
 						aiDevIntfBitwidth, aiDevIntfSoundMode, aencType) {
-			memcpy(au8PreviewRtspURL, RtspURL, urlLen);
+			memset(au8PreviewRtspURL, 0, DP_URL_LEN);
+			strcpy((DP_CHAR*) au8PreviewRtspURL, (DP_CHAR*) RtspURL);
+//			memcpy(au8PreviewRtspURL, RtspURL, urlLen);
 		}
 		DP_U8 u8AiSignalStatus;		 ///<接入信号有无
 		DP_U8 au8PreviewRtspURL[DP_URL_LEN]; ///<预览流RTSP地址
@@ -424,7 +430,11 @@ typedef struct _sAllVencChnInfo_tag //edit 2018.10.23
 						u8VencType), u16VideoWidth(videoWidth), u16VideoHeight(
 						videoHeight), u16StartX(startX), u16StartY(startY), u8AudioIn(
 						audioIn), srcAudioInfo(audioInfo) {
-			memcpy(au8PreviewRtspURL, previewRtspURL, urlLen);
+			memset(au8PreviewRtspURL, 0, DP_URL_LEN);
+			strcpy((DP_CHAR*) au8PreviewRtspURL, (DP_CHAR*) previewRtspURL);
+//			std::cout << "URL LENgth===========================: "
+//					<< strlen((DP_CHAR*) au8PreviewRtspURL) << std::endl;
+//			memcpy(au8PreviewRtspURL, previewRtspURL, urlLen);
 		}
 		DP_U8 u8ViChnID;								///<关联的视频输入通道ID
 		DP_U8 u8VencChnID;///<流ID，对应音视频输入通道RTSP通道号， @see eInputDeviceChannelVencID
@@ -518,8 +528,12 @@ typedef struct _sRemote_Reply_Search_tag {
 					u8DevType), u8DevNum(devNum), u32DevIP(DevIP), u16DevSoftVersion(
 					devSoftVersion), u16DevHardVersion(DevHardVersion), u16ExtendDataLen(
 					extendDataLen) {
-		memcpy(au8DevID, devID, devIDLen);
-		memcpy(au8DevName, devName, devNameLen);
+		memset(au8DevID, 0, devIDLen);
+		memset(au8DevName, 0, devNameLen);
+		strcpy((DP_CHAR*) au8DevID, (DP_CHAR*) devID);
+//		memcpy(au8DevID, devID, devIDLen);
+		strcpy((DP_CHAR*) au8DevName, (DP_CHAR*) devName);
+//		memcpy(au8DevName, devName, devNameLen);
 	}
 	_sRemote_Reply_Search_tag() :
 			header(), au8DevID(), u8DevType(), u8DevNum(), au8DevName(), u32DevIP(), u16DevSoftVersion(), u16DevHardVersion(), u16ExtendDataLen() {
@@ -605,7 +619,9 @@ typedef struct _sRemote_Reply_GetInfo_tag {
 			DP_U16 propertyLen) :
 			header(u32IP, devType, packageType, packageLen, cmdID, cmdLen), u32Proterty(
 					proterty), u32Success(success), u16PropertyLen(propertyLen), pProperty() {
-		memcpy(au8DevID, devID, DP_DEV_ID_LEN);
+		memset(au8DevID, 0, DP_DEV_ID_LEN);
+		strcpy((DP_CHAR*) au8DevID, (DP_CHAR*) devID);
+//		memcpy(au8DevID, devID, DP_DEV_ID_LEN);
 	}
 	_sRemote_Reply_GetInfo_tag() :
 			header(), u32Proterty(), u32Success(), u16PropertyLen(), pProperty() {
@@ -690,7 +706,9 @@ typedef struct _sRemote_Reply_CreateWindow_tag {
 	_sRemote_Reply_CreateWindow_tag(_sRemote_Header head, DP_U8 *devID,
 			DP_U32 taskID, DP_U32 success) :
 			header(head), u32TaskID(taskID), u32Success(success) {
-		memcpy(au8DevID, devID, DP_DEV_ID_LEN);
+		memset(au8DevID, 0, DP_DEV_ID_LEN);
+		strcpy((DP_CHAR*) au8DevID, (DP_CHAR*) devID);
+//		memcpy(au8DevID, devID, DP_DEV_ID_LEN);
 	}
 	_sRemote_Reply_CreateWindow_tag() :
 			header(), au8DevID(), u32TaskID(), u32Success() {
@@ -718,7 +736,8 @@ typedef struct _sRemote_Reply_MoveWindow_tag {
 	_sRemote_Reply_MoveWindow_tag(_sRemote_Header head, DP_U8 *devID,
 			DP_U32 taskID, DP_U32 success) :
 			header(head), u32TaskID(taskID), u32Success(success) {
-		memcpy(au8DevID, devID, DP_DEV_ID_LEN);
+		strcpy((DP_CHAR*) au8DevID, (DP_CHAR*) au8DevID);
+//		memcpy(au8DevID, devID, DP_DEV_ID_LEN);
 	}
 	_sRemote_Header header;
 	DP_U8 au8DevID[DP_DEV_ID_LEN]; ///<节点ID
@@ -742,7 +761,9 @@ typedef struct _sRemote_Reply_CloseWindow_tag {
 	_sRemote_Reply_CloseWindow_tag(_sRemote_Header head, DP_U8 *devID,
 			DP_U32 taskID, DP_U32 success) :
 			header(head), u32TaskID(taskID), u32Success(success) {
-		memcpy(au8DevID, devID, DP_DEV_ID_LEN);
+		memset(au8DevID, 0, DP_DEV_ID_LEN);
+		strcpy((DP_CHAR*) au8DevID, (DP_CHAR*) devID);
+//		memcpy(au8DevID, devID, DP_DEV_ID_LEN);
 	}
 	_sRemote_Header header;
 	DP_U8 au8DevID[DP_DEV_ID_LEN]; ///<节点ID
