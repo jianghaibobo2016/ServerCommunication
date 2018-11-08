@@ -494,13 +494,15 @@ void LogicHandle::createWindow(const muduo::net::TcpConnectionPtr connPtr,
 	DP_M2S_CROP_ATTR_S crop;
 	crop.s32X = srcVideo.u16StartX;
 	crop.s32Y = srcVideo.u16StartY;
-	crop.u32Height = srcVideo.u16EndX - srcVideo.u16StartX;
-	crop.u32Width = srcVideo.u16EndY - srcVideo.u16StartY;
+	crop.u32Width = srcVideo.u16EndX - srcVideo.u16StartX;
+	crop.u32Height = srcVideo.u16EndY - srcVideo.u16StartY;
 
 	LOG_INFO << "corp start x: y: end x: y: hei: Wid: " << srcVideo.u16StartX
 			<< " " << srcVideo.u16StartY << " " << srcVideo.u16EndX << " "
 			<< srcVideo.u16EndY << " " << srcVideo.u16VideoHeight << " "
 			<< srcVideo.u16VideoWidth;
+	LOG_INFO << "corp width: height: " << crop.u32Width << " "
+			<< crop.u32Height;
 	it->stVdec.bCrop = DP_TRUE;
 	it->stVdec.stCrop = crop;
 
@@ -555,9 +557,6 @@ void LogicHandle::createWindow(const muduo::net::TcpConnectionPtr connPtr,
 //		reply.u32Success = 1;
 	}
 	reply.u32Success = 0;
-	//modify win priority
-
-	//modify win priority end
 
 	//add update 视频任务（窗口）信息 _sVideoTaskInfo <-- VctrVOGetInfo
 	NodeInfo::VctrVOGetInfoPtr AOInfo =
@@ -581,14 +580,12 @@ void LogicHandle::createWindow(const muduo::net::TcpConnectionPtr connPtr,
 					it->stVdec.stSwms.s32SwmsChn, *it));
 	muduo::Singleton<NodeInfo>::instance().updateMapOutSWMSChCodecDecInfo(
 			swmsDecInfo);
-//	if (createWinData->header.u8PackageType == 0x01) {
+
 	muduo::PrintBuff::printBufferByHex("Reply to pc by creating win ", &reply,
 			reply.header.u16PackageLen);
 	muduo::net::Buffer buff;
 	buff.append(&reply, reply.header.u16PackageLen);
 	connPtr->send(&buff);
-//	} else {
-//	}
 }
 
 void LogicHandle::moveWindow(const muduo::net::TcpConnectionPtr connPtr,
@@ -636,13 +633,15 @@ void LogicHandle::moveWindow(const muduo::net::TcpConnectionPtr connPtr,
 	DP_M2S_CROP_ATTR_S crop;
 	crop.s32X = srcVideo.u16StartX;
 	crop.s32Y = srcVideo.u16StartY;
-	crop.u32Height = srcVideo.u16EndX - srcVideo.u16StartX;
-	crop.u32Width = srcVideo.u16EndY - srcVideo.u16StartY;
+	crop.u32Width = srcVideo.u16EndX - srcVideo.u16StartX;
+	crop.u32Height = srcVideo.u16EndY - srcVideo.u16StartY;
 
 	LOG_INFO << "corp start x: y: end x: y: hei: Wid: " << srcVideo.u16StartX
 			<< " " << srcVideo.u16StartY << " " << srcVideo.u16EndX << " "
 			<< srcVideo.u16EndY << " " << srcVideo.u16VideoHeight << " "
 			<< srcVideo.u16VideoWidth;
+	LOG_INFO << "corp width: height: " << crop.u32Width << " "
+			<< crop.u32Height;
 
 	it->stVdec.bCrop = DP_TRUE;
 	it->stVdec.stCrop = crop;

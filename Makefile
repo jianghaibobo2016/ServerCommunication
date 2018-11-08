@@ -91,7 +91,7 @@ all: .mkdir $(TARGET)
 
 define cmd_o
 $(obj-$1): $2%.o: %.$1  $(MAKEFILE_LIST)
-	$(G++) $(inc_dir) -Wp,-MT,$@ -Wp,-MMD,$@.d $(CFLAGS) -c -o $$@ $$< 
+	$(G++) $(inc_dir)  $(CFLAGS) -c -o $$@ $$< 
 	
 
 endef

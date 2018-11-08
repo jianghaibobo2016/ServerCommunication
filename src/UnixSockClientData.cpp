@@ -31,6 +31,7 @@ UnixSockClientData::UnixSockClientData(recvCallBack cb) {
 
 UnixSockClientData::~UnixSockClientData() {
 	delete[] _buffer;
+	_buffer=NULL;
 	// TODO Auto-generated destructor stub
 }
 
