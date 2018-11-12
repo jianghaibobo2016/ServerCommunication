@@ -15,75 +15,72 @@
 #include <boost/noncopyable.hpp>
 #include <sys/types.h>  // for off_t
 
-namespace muduo
-{
+namespace muduo {
 
-namespace FileUtil
-{
+namespace FileUtil {
 
 // read small file < 64KB
-class ReadSmallFile : boost::noncopyable
-{
- public:
-  ReadSmallFile(StringArg filename);
-  ~ReadSmallFile();
+class ReadSmallFile: boost::noncopyable {
+public:
+	ReadSmallFile(StringArg filename);
+	~ReadSmallFile();
 
-  // return errno
-  template<typename String>
-  int readToString(int maxSize,
-                   String* content,
-                   int64_t* fileSize,
-                   int64_t* modifyTime,
-                   int64_t* createTime);
+	// return errno
+	template<typename String>
+	int readToString(int maxSize, String* content, int64_t* fileSize,
+			int64_t* modifyTime, int64_t* createTime);
 
-  /// Read at maxium kBufferSize into buf_
-  // return errno
-  int readToBuffer(int* size);
+	/// Read at maxium kBufferSize into buf_
+	// return errno
+	int readToBuffer(int* size);
 
-  const char* buffer() const { return buf_; }
+	const char* buffer() const {
+		return buf_;
+	}
 
-  static const int kBufferSize = 64*1024;
+	static const int kBufferSize = 64 * 1024;
 
- private:
-  int fd_;
-  int err_;
-  char buf_[kBufferSize];
+private:
+	int fd_;
+	int err_;
+	char buf_[kBufferSize];
 };
 
 // read the file content, returns errno if error happens.
 template<typename String>
-int readFile(StringArg filename,
-             int maxSize,
-             String* content,
-             int64_t* fileSize = NULL,
-             int64_t* modifyTime = NULL,
-             int64_t* createTime = NULL)
-{
-  ReadSmallFile file(filename);
-  return file.readToString(maxSize, content, fileSize, modifyTime, createTime);
+int readFile(StringArg filename, int maxSize, String* content,
+		int64_t* fileSize = NULL, int64_t* modifyTime = NULL,
+		int64_t* createTime = NULL) {
+	ReadSmallFile file(filename);
+	return file.readToString(maxSize, content, fileSize, modifyTime, createTime);
 }
 
 // not thread safe
-class AppendFile : boost::noncopyable
-{
- public:
-  explicit AppendFile(StringArg filename);
+class AppendFile: boost::noncopyable {
+public:
+	explicit AppendFile(StringArg filename);
 
-  ~AppendFile();
+	~AppendFile();
 
-  void append(const char* logline, const size_t len);
+	void append(const char* logline, const size_t len);
 
-  void flush();
+	void flush();
 
-  off_t writtenBytes() const { return writtenBytes_; }
+	off_t writtenBytes() const {
+		return writtenBytes_;
+	}
 
- private:
+	void cleanFile();
 
-  size_t write(const char* logline, size_t len);
+private:
 
-  FILE* fp_;
-  char buffer_[64*1024];
-  off_t writtenBytes_;
+	size_t write(const char* logline, size_t len);
+
+public:
+	string _filename;
+	FILE* fp_;
+	char buffer_[64 * 1024];
+	off_t writtenBytes_;
 };
 }
 

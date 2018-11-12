@@ -33,8 +33,7 @@ public:
 			m_errormsg = selfreason;
 
 		}
-	virtual ~SystemException()throw (){
-
+	virtual ~SystemException(){
 	}
 	SystemException(const void* pData, int len){
 		m_errormsg = "Error data:";

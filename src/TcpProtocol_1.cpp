@@ -1,3 +1,4 @@
+#if 1
 /*
  * TcpProtocol_1.cpp
  *
@@ -11,6 +12,8 @@
 #include <muduo/base/Logging.h>
 #include <muduo/base/Singleton.h>
 #include <boost/bind.hpp>
+#include <muduo/base/LogFile.h>
+#include <muduo/base/FileUtil.h>
 #include <signal.h>
 
 #include <stdio.h>
@@ -34,12 +37,28 @@ void init(EventLoop* p) {
 			CurrentThread::tid(), p);
 }
 
+boost::scoped_ptr<muduo::LogFile> g_logFile;
+
+void outputFunc(const char* msg, int len) {
+	g_logFile->append(msg, len);
+}
+
+void flushFunc() {
+	g_logFile->flush();
+}
+
 int main() {
 	signal(SIGPIPE, SIG_IGN);
 
+//	::basename
+//	000 * 1024
+//	sleep(100);
+	g_logFile.reset(new muduo::LogFile(("nodeServer"), LogFileMaxSize));
+	muduo::Logger::setOutput(outputFunc);
+	muduo::Logger::setFlush(flushFunc);
 	muduo::Singleton<NodeInfo>::instance();
-
 	GlobalProfile::getInstance();
+//	return 0;
 
 //	muduo::Logger::setLogLevel(muduo::Logger::DEBUG);
 	EventLoop loop; // one loop shared by multiple servers
@@ -55,3 +74,36 @@ int main() {
 	loop.loop();
 }
 
+#endif
+
+//#include <muduo/base/LogFile.h>
+//#include <muduo/base/Logging.h>
+//
+//#include <unistd.h>
+//
+//boost::scoped_ptr<muduo::LogFile> g_logFile;
+//
+//void outputFunc(const char* msg, int len) {
+//	g_logFile->append(msg, len);
+//}
+//
+//void flushFunc() {
+//	g_logFile->flush();
+//}
+//
+//int main(int argc, char* argv[]) {
+//	char name[256] = { 0 };
+//	strncpy(name, argv[0], sizeof name - 1);
+//	g_logFile.reset(new muduo::LogFile(::basename(name), 200 * 1000));
+//	muduo::Logger::setOutput(outputFunc);
+//	muduo::Logger::setFlush(flushFunc);
+//
+//	muduo::string line =
+//			"1234567890 abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ ";
+//
+//	for (int i = 0; i < 100; ++i) {
+//		LOG_INFO << line << i;
+//
+//		usleep(1000);
+//	}
+//}

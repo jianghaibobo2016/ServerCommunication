@@ -65,7 +65,7 @@ void NodeInfo::initLocalInfo() {
 	updateAIGetInfo(aiInfo);
 //
 	LOG_INFO << "########################  2  ####################";
-	VctrVIGetInfoPtr viInfo = getVIGetInfo(); //获取输入节点的视频采集通道信息
+	VctrVIGetInfoPtr viInfo = getVIGetInfo();//获取输入节点的视频采集通道信息
 	getAVInfoFromCodecInfo<VctrVIGetInfoPtr, DP_M2S_VI_GET_INFO_S>(viInfo,
 			DP_M2S_INFO_TYPE_GET_VI,
 			DP_M2S_VI_DEV_MAX);
@@ -121,8 +121,8 @@ void NodeInfo::initLocalInfo() {
 		it->stStream._rtsp.stRtspServer.bOpen = DP_TRUE;
 	}
 	LOG_INFO
-	<< "########################  2  #################### AVEncInfo size:: "
-	<< AVEncInfo->size();
+			<< "########################  2  #################### AVEncInfo size:: "
+			<< AVEncInfo->size();
 	setAVInfoToCodec<VctrAVENCGetInfo, DP_M2S_AVENC_SET_INFO_S>(
 			*AVEncInfo.get(), DP_M2S_INFO_TYPE_SET_AVENC);
 
@@ -143,8 +143,8 @@ void NodeInfo::initLocalInfo() {
 	//取音视频解码通道信息
 	VctrAVDECGetInfoPtr AVDecInfo = getAVDecGetInfo();
 	LOG_INFO
-	<< "########################  4  #################### AVDecInfo size: "
-	<< AVDecInfo->size();
+			<< "########################  4  #################### AVDecInfo size: "
+			<< AVDecInfo->size();
 	getAVInfoFromCodecInfo<VctrAVDECGetInfoPtr, DP_M2S_AVDEC_GET_INFO_S>(
 			AVDecInfo, DP_M2S_INFO_TYPE_GET_AVDEC,
 			DP_VO_DEV_MAX);
@@ -355,12 +355,15 @@ void NodeInfo::rmID(DP_U32 taskID, MapServerTaskIDPtr mTaskID,
 DP_BOOL NodeInfo::initCodec() {
 	UnixSockClientData client(NodeInfo::recvCB);
 	try {
-		if (client.doSendCommand(_sInit.get(), sizeof(DP_M2S_CMD_INIT_S)) == 0)
+		if (client.doSendCommand(_sInit.get(), sizeof(DP_M2S_CMD_INIT_S))
+				== 0) {
 			return DP_TRUE;
-		else
+		} else {
 			return DP_FALSE;
-	} catch (SystemException& ex) {
-		std::cout << "Error:" << ex.what() << endl;
+		}
+	} catch (const std::string& selfreason) {
+		LOG_FATAL << selfreason;
+		return DP_FALSE;
 	}
 	return DP_TRUE;
 }

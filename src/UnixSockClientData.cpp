@@ -31,7 +31,7 @@ UnixSockClientData::UnixSockClientData(recvCallBack cb) {
 
 UnixSockClientData::~UnixSockClientData() {
 	delete[] _buffer;
-	_buffer=NULL;
+	_buffer = NULL;
 	// TODO Auto-generated destructor stub
 }
 
@@ -99,19 +99,18 @@ int UnixSockClientData::doSendCommand(const void* pData, int len)
 	}
 	if (!bConnected) {
 		SocketLayer::CloseSock(sock);
-		throw ("can not connect unix socket");
+		throw SystemException("can not connect unix socket");
 	}
 	//2.send data
-//	cout << "data len :::::::::::::::::::::::::::::::::::"<<len;
 	int wbytes = send(sock, pData, len, 0);
 	if (wbytes <= 0) {
 		SocketLayer::CloseSock(sock);
 		throw SystemException(__FILE__, __FUNCTION__, __LINE__);
 	}
-	muduo::PrintBuff::printBufferByHex("send to fifo : ", pData, wbytes);
+//	muduo::PrintBuff::printBufferByHex("send to fifo : ", pData, wbytes);
 	if (wbytes != len) {
 		SocketLayer::CloseSock(sock);
-		throw ("send bytes!=actual send bytes");
+		throw("send bytes!=actual send bytes");
 	}
 	//3.recv &&close socket
 	fd_set readfd;
@@ -133,8 +132,7 @@ int UnixSockClientData::doSendCommand(const void* pData, int len)
 			rbytes = recv(sock, _buffer, BUFFER_SIZE, 0);
 			if (rbytes > 0) {
 
-//				pthread_cond_signal(&_cond);
-				cout << "rbytes:: " << rbytes << "buff: " << _buffer << endl;
+//				cout << "rbytes:: " << rbytes << "buff: " << _buffer << endl;
 				if (_cb)
 					return _cb(_buffer, rbytes);
 //				doRecvCommand((void*) buffer, rbytes);
@@ -144,7 +142,7 @@ int UnixSockClientData::doSendCommand(const void* pData, int len)
 			}
 		} else {
 			SocketLayer::CloseSock(sock);
-			throw (__FILE__, __FUNCTION__, __LINE__);
+			throw(__FILE__, __FUNCTION__, __LINE__);
 			return -1;
 		}
 	}

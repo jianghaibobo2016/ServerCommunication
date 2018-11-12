@@ -12,12 +12,6 @@
 #include "UnixSockClientData.h"
 #include "PrintBuff.h"
 
-//int recvCB(void* pData, int len) {
-//	DP_U32 dataLen = offset + devMax * sizeof(S);
-//	boost::shared_ptr<DP_S8> recvFromCodec(new DP_S8[dataLen]);
-//
-//}
-
 template<typename T, typename S>
 DP_BOOL NodeInfo::getAVInfoFromCodecInfo(T vctrGetInfo, DP_M2S_INFO_TYPE_E type,
 		DP_U32 devMax) {
@@ -33,8 +27,9 @@ DP_BOOL NodeInfo::getAVInfoFromCodecInfo(T vctrGetInfo, DP_M2S_INFO_TYPE_E type,
 				(DP_M2S_CMD_GETINFO_RESPOND_S*) recvBuff;
 		if (type != getCodecRespond->enInfoTYpe
 				|| getCodecRespond->u32Success != 0) {
-			LOG_WARN<<"Return error in getAVInfoFromCodecInfo : type : "<<getCodecRespond->enInfoTYpe<<
-			" sucess: "<<getCodecRespond->u32Success;
+			LOG_WARN << "Return error in getAVInfoFromCodecInfo : type : "
+					<< getCodecRespond->enInfoTYpe << " sucess: "
+					<< getCodecRespond->u32Success;
 			return DP_FALSE;
 		}
 //		muduo::PrintBuff::printBufferByHex(" recv buff getAVInfoFromCodecInfo ",
@@ -49,8 +44,9 @@ DP_BOOL NodeInfo::getAVInfoFromCodecInfo(T vctrGetInfo, DP_M2S_INFO_TYPE_E type,
 			S tmp = *(S *) (recvBuff + offset + i * sizeof(S));
 			vctrGetInfo->push_back(tmp);
 		}
-	} catch (SystemException& ex) {
-		std::cout << "Error:" << ex.what() << endl;
+	} catch (const std::string& selfreason) {
+		LOG_FATAL << selfreason;
+		return DP_FALSE;
 	}
 	return DP_TRUE;
 }
@@ -107,8 +103,9 @@ DP_BOOL NodeInfo::setAVInfoToCodec(T vAVEnc, DP_M2S_INFO_TYPE_E type) {
 			}
 		}
 
-	} catch (SystemException& ex) {
-		std::cout << "Error:" << ex.what() << endl;
+	} catch (const std::string& selfreason) {
+		std::cout << "Error:" << selfreason << endl;
+		return DP_FALSE;
 	}
 	return DP_TRUE;
 }

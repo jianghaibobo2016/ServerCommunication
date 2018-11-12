@@ -203,8 +203,8 @@ Logger::~Logger() {
 	impl_.finish();
 	const LogStream::Buffer& buf(stream().buffer());
 	g_output(buf.data(), buf.length());
+	g_flush();
 	if (impl_.level_ == FATAL) {
-		g_flush();
 		abort();
 	}
 }

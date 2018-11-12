@@ -42,7 +42,6 @@ class FixedBuffer : boost::noncopyable
     if (implicit_cast<size_t>(avail()) > len)
     {
       memcpy(cur_, buf, len);
-//      std::cout<< "cur_+++++++++++++++++++++++++++"<<cur_<<std::endl;
       cur_ += len;
     }
   }
