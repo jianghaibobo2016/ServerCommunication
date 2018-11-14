@@ -310,8 +310,7 @@ typedef enum _eRemotePropertyName
 	Property_Get_OutputVideoChnInfo,           ///<获取输出节点的显示视频通道信息
 	Property_Get_OutputAudioChnInfo,           ///<获取输出节点的音频输出的通道信息
 	//获取设备其他基本信息...
-	Property_Get_VideoChnVencInfo,      ///<获取输入节点的视频采集通道的流信息 //edit 2018.10.23
-//Property_Get_VideoChnStreamInfo,           ///<获取输入节点的视频采集通道的流信息 //delete 2018.10.23
+	Property_Get_VideoChnVencInfo,    	///<获取输入节点的视频采集通道的流信息 //edit 2018.10.23
 //设置设备基本信息...
 } eRemotePropertyName;
 
@@ -325,6 +324,7 @@ typedef enum _eRemoteCommand {
 	Command_CloseWindow,
 	Command_OpenAudio,
 	Command_CloseAudio,
+	Command_SetAudio
 } eRemoteCommand;
 
 //设备属性值 @see Property_Get_InputVideoChnInfo
@@ -402,7 +402,6 @@ typedef struct _sAllAoChnInfo_tag {
 		DP_U8 u8AoChnVolume;		   ///<音频播放通道音量
 		DP_U8 u8AudioIn;			   ///<该通道是否有音频流 0没有 1有
 		_sAudioTaskInfo audioTaskInfo; ///<单个的音频 仅当u8AudioIn为1时有效
-
 	} _sSingleAoChnInfo;
 
 	//_sSingleAoChnInfo* pSingleAoChnInfo;				///<音频输出通道信息数组
@@ -432,9 +431,6 @@ typedef struct _sAllVencChnInfo_tag //edit 2018.10.23
 						audioIn), srcAudioInfo(audioInfo) {
 			memset(au8PreviewRtspURL, 0, DP_URL_LEN);
 			strcpy((DP_CHAR*) au8PreviewRtspURL, (DP_CHAR*) previewRtspURL);
-//			std::cout << "URL LENgth===========================: "
-//					<< strlen((DP_CHAR*) au8PreviewRtspURL) << std::endl;
-//			memcpy(au8PreviewRtspURL, previewRtspURL, urlLen);
 		}
 		DP_U8 u8ViChnID;								///<关联的视频输入通道ID
 		DP_U8 u8VencChnID;///<流ID，对应音视频输入通道RTSP通道号， @see eInputDeviceChannelVencID
@@ -674,21 +670,6 @@ typedef struct _sRemote_CreateWindow_tag {
 	DP_U8 au8RtspURL[DP_URL_LEN]; ///< 第三方标准RTSP
 	DP_U8 u8AudioIn;  				/// is contain audio or not
 
-	// //输入节点信息
-	// DP_U8 inputSrcType; ///<输入信号的类型 0：输入节点 1：第三方RTSP URL
-	// union {
-	// 	DP_U8 au8RtspURL[DP_URL_LEN]; ///< 第三方标准RTSP
-
-	// 	/*! 输入节点*/
-	// 	struct {
-	// 		DP_U8 au8SrcDevID[DP_DEV_ID_LEN]; ///<输入节点ID
-	// 		DP_U8 u8ViChnID;			///<输入通道ID \a enum eDeviceVideoChannelID
-	// 		DP_U8 u8VencChnID;///<拉流的ID \a  enum eInputDeviceChannelStreamID //edit 2018.10.23
-	// 		DP_U8 u8AiChnID;			///<音频采集物理通道ID  \a eDeviceAudioChannelID
-	// 	} inputDevice;
-
-	// } srcInfo;
-
 	//输出节点信息
 	//视频信息
 	DP_U8 au8DstDevID[DP_DEV_ID_LEN]; ///<输出节点ID
@@ -697,8 +678,10 @@ typedef struct _sRemote_CreateWindow_tag {
 	_sDstVideoInfo dstVideoInfo;	  ///<显示目标信息 \a _sDstVideoInfo
 	_sPhyScreenInfo phyScreenInfo;	///<物理屏幕，用于视频像素对齐，暂时保留 //add 2018.10.22
 	//音频信息
-	DP_U8 u8AudioMute;   ///<是否同时启用音频，当启用音频时，u8AiChnID、u8AoChnID才有效
+	//0 关闭 1切换 2维持
+	DP_U8 u8AudioEnable;   ///<是否同时启用音频，当启用音频时，u8AiChnID、u8AoChnID才有效
 	DP_U8 u8AoChnID;	 ///<音频播放通道ID \a eDeviceAudioChannelID
+	_sSrcAudioInfo srcAudioInfo;	//invalided if audio is enabled. // 2018/11/13
 
 } _sRemote_CreateWindow;
 
@@ -708,7 +691,6 @@ typedef struct _sRemote_Reply_CreateWindow_tag {
 			header(head), u32TaskID(taskID), u32Success(success) {
 		memset(au8DevID, 0, DP_DEV_ID_LEN);
 		strcpy((DP_CHAR*) au8DevID, (DP_CHAR*) devID);
-//		memcpy(au8DevID, devID, DP_DEV_ID_LEN);
 	}
 	_sRemote_Reply_CreateWindow_tag() :
 			header(), au8DevID(), u32TaskID(), u32Success() {
@@ -782,20 +764,6 @@ typedef struct _sRemote_OpenAudio_tag {
 	DP_U8 u8DevType;  ///<采集端设备类型 @see eDeviceType
 
 	DP_U8 au8RtspURL[DP_URL_LEN]; ///< 第三方标准RTSP //server
-
-	//输入信号	//add 2018.10.22
-	// union {
-	// 	DP_U8 au8RtspURL[DP_URL_LEN]; ///< 第三方标准RTSP //server
-
-	// 	/*! 输入节点*/
-	// 	struct //node
-	// 	{
-	// 		DP_U8 au8SrcDevID[DP_DEV_ID_LEN]; ///<节点ID
-	// 		DP_U8 u8AiChnID;		///<音频采集物理通道ID  @see eDeviceAudioChannelID
-	// 		_sSrcAudioInfo srcAudioInfo;	  ///<源音频信息 @see _sSrcAudioInfo
-	// 	} inputDevice;
-
-	// } srcInfo;
 
 	//输出信号
 	DP_U8 au8DstDevID[DP_DEV_ID_LEN]; ///<节点ID

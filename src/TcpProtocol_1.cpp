@@ -51,14 +51,11 @@ int main() {
 	signal(SIGPIPE, SIG_IGN);
 
 //	::basename
-//	000 * 1024
-//	sleep(100);
-	g_logFile.reset(new muduo::LogFile(("nodeServer"), LogFileMaxSize));
+	g_logFile.reset(new muduo::LogFile(LogFileName, LogFileMaxSize));
 	muduo::Logger::setOutput(outputFunc);
 	muduo::Logger::setFlush(flushFunc);
 	muduo::Singleton<NodeInfo>::instance();
 	GlobalProfile::getInstance();
-//	return 0;
 
 //	muduo::Logger::setLogLevel(muduo::Logger::DEBUG);
 	EventLoop loop; // one loop shared by multiple servers

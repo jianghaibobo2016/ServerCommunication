@@ -13,12 +13,13 @@
 NodeInfo::NodeInfo() :
 		_sInit(new DP_M2S_CMD_INIT_S()), _sDeinit(new DP_M2S_CMD_DEINIT_S()), _vAIGetInfo(
 				new VctrAIGetInfo), _vVIGetInfo(new VctrVIGetInfo), _vAVEncGetInfo(
-				new VctrAVENCGetInfo), _vAVDecGetInfo(new VctrAVDECGetInfo), _vVOGetInfo(
-				new VctrVOGetInfo), _allCodecTaskIDCount(0), _mOutCodecTaskIDBeUsed(
-				new MapOutCodecTaskIDBeUsed), _mOutThirdCodecTaskID(
+				new VctrAVENCGetInfo), _vAVDecGetInfo(new VctrAVDECGetInfo), _vAOGetInfo(
+				new VctrAOGetInfo), _vVOGetInfo(new VctrVOGetInfo), _allCodecTaskIDCount(
+				0), _mOutCodecTaskIDBeUsed(new MapOutCodecTaskIDBeUsed), _mOutThirdCodecTaskID(
 				new MapOutThirdCodecTaskID), _mSwmsChCodecDecInfo(
 				new MapOutSWMSChCodecDecInfo), _mThirdIDSrcVideoInfo(
-				new MapThirdIDSrcVideoInfo), _mAudioTaskID(new MapServerTaskID), _mVideoTaskID(
+				new MapThirdIDSrcVideoInfo), _mAODevIDCodecID(
+				new MapAODevIDCodecID), _mAudioTaskID(new MapServerTaskID), _mVideoTaskID(
 				new MapServerTaskID), _mAuViTaskID(new MapServerTaskID), _vWindowPriority(
 				new VctrWindowPriority) {
 	initLocalInfo();
@@ -54,7 +55,6 @@ void NodeInfo::initLocalInfo() {
 	if (initCodec() != DP_TRUE)
 		return;
 	LOG_INFO << "Codec init end...";
-#if 1
 #if (InputDevice)
 	LOG_INFO << "########################  1  ####################";
 	//获取输入节点的音频输入的通道信息
@@ -98,9 +98,8 @@ void NodeInfo::initLocalInfo() {
 		LOG_INFO << "print ------------------";
 		print_avenc_get_attr(*it);
 	}
-#endif
 
-#if (OutputDevice)
+#elif (OutputDevice)
 // input / output  node -->enc info //获取输入节点的视频采集通道的流信息(output node echo video)
 	VctrAVENCGetInfoPtr AVEncInfo = getAVEncGetInfo();
 	LOG_INFO << "########################  1  ####################";
@@ -165,15 +164,21 @@ void NodeInfo::initLocalInfo() {
 	// output node -->vo get info
 	// 获取视频输出信息
 	VctrVOGetInfoPtr VOInfo = getVOGetInfo();
-	LOG_INFO << "########################  7  ####################";
+	LOG_INFO << "########################  5  ####################";
 	getAVInfoFromCodecInfo<VctrVOGetInfoPtr, DP_M2S_VO_GET_INFO_S>(VOInfo,
 			DP_M2S_INFO_TYPE_GET_VO,
 			DP_VO_DEV_MAX);
 	LOG_INFO << "VOInfo size:::: === " << VOInfo->size();
 	for_each(VOInfo->begin(), VOInfo->end(), print_DP_M2S_VO_GET_INFO_S_);
 	updateVOGetInfo(VOInfo);
-#endif
 
+//	LOG_INFO << "########################  6  ####################";
+//	//// 说明： 获取音频输出信息
+//	VctrAOGetInfoPtr AOInfo = getAOGetInfo();
+//	getAVInfoFromCodecInfo<VctrAOGetInfoPtr, DP_M2S_AO_GET_INFO_S>(AOInfo,
+//			DP_M2S_INFO_TYPE_GET_AO,
+//			DP_AO_DEV_MAX);
+//	updateAOGetInfo(AOInfo);
 #endif
 }
 
@@ -282,7 +287,6 @@ DP_U32 NodeInfo::setServerTaskID(DP_U32 taskID, TaskObjectType_E taskType) {
 	if (thirdCodecID->find(taskID) != thirdCodecID->end()) {
 		return thirdCodecID->operator [](taskID);
 	}
-
 	return 0xffff;
 }
 
@@ -322,7 +326,7 @@ void NodeInfo::removeServerTaskID(DP_U32 taskID, TaskObjectType_E taskType) {
 	MapServerTaskIDPtr mTaskID;
 	switch (taskType) {
 	case _eAudioTask:
-		mTaskID = getudioTaskIDMap();
+		mTaskID = getAudioTaskIDMap();
 		rmID(taskID, mTaskID, taskType);
 		break;
 	case _eVideoTask:

@@ -65,10 +65,10 @@ void FileUtil::AppendFile::flush() {
 
 void FileUtil::AppendFile::cleanFile() {
 	struct stat statbuff;
-	int ret = stat(_filename.c_str(), &statbuff);
-	system("ls -lh");
-	std::cout << "size:: " << statbuff.st_size << " ret: " << ret
-			<< "_filename.c_str():: " << _filename.c_str() << std::endl;
+	stat(_filename.c_str(), &statbuff);
+//	int ret = stat(_filename.c_str(), &statbuff);
+//	std::cout << "size:: " << statbuff.st_size << " ret: " << ret
+//			<< "_filename.c_str():: " << _filename.c_str() << std::endl;
 	std::fstream fout(_filename.c_str(), std::ios::out | std::ios::trunc);
 	fout.close();
 

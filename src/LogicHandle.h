@@ -48,6 +48,13 @@ private:
 
 	bool sendAckToCodec(const void *data, DP_S32 dataLen, DP_U8 needReply);
 
+	DP_S32 getNewCodecTaskID(DP_U32 thirdTaskID, TaskObjectType_E type,
+			DP_U32 &reply);
+
+	template<typename S, typename T>
+	void sendCMD(const muduo::net::TcpConnectionPtr connPtr, const S *data,
+			T &reply);
+
 	template<typename T>
 	struct compareDevID: public std::binary_function<T, DP_U32, bool> {
 		bool operator()(const T &vInfo, const DP_U32 &devID) const {
@@ -61,14 +68,6 @@ private:
 		}
 	};
 
-//	template<typename S>
-//	DP_BOOL getInfoFromCodec(DP_M2S_INFO_TYPE_E infoType,
-//			boost::shared_ptr<DP_S8> recvBuff, DP_U32 countOfSt);
-//	typedef boost::function0<void()> getInfoPtrCallBack;
-//	template<typename PTR, typename SALL,typename SSIN>
-//	void replyGottenInfoToThird(getInfoPtrCallBack cb,eDeviceType devType,eRemoteCommand cmd);
-//	void GetInputNodeInfoCB(const muduo::net::TcpConnectionPtr& conn,
-//			muduo::net::Buffer* buf, muduo::Timestamp receiveTime);
 	muduo::MutexLock _mutex;
 	muduo::Condition _cond;
 
