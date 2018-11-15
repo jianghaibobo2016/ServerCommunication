@@ -106,6 +106,10 @@ private:
 		}
 	};
 
+	typedef enum _AOChnID_E {
+		_pureAudioChn = 0x00, _videoAudioChn
+	} AOChnID_E;
+
 };
 #include "LogicHandle.hpp"
 #endif /* SRC_LOGICHANDLE_H_ */
