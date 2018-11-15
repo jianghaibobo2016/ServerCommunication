@@ -51,6 +51,10 @@ private:
 	DP_S32 getNewCodecTaskID(DP_U32 thirdTaskID, TaskObjectType_E type,
 			DP_U32 &reply);
 
+	void closeAAudio(DP_U8 AOChnID, DP_U8 voChnID,
+			DP_M2S_CMD_SETINFO_S &setInfo,
+			NodeInfo::VctrAVDECGetInfoPtr vAVDecInfo);
+
 	template<typename S, typename T>
 	void sendCMD(const muduo::net::TcpConnectionPtr connPtr, const S *data,
 			T &reply);

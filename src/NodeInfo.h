@@ -21,7 +21,11 @@
 #include "dp_m2s_prot.h"
 
 typedef enum _TaskObjectType_E {
-	_eAudioTask = 0, _eVideoTask, _eAudioAndVideoTask, _eTaskObjectTypeButt
+	_eAudioTask = 0,
+	_eVideoTask,
+	_eAudioAndVideoTask,
+	_eUnknowTask,
+	_eTaskObjectTypeButt
 } TaskObjectType_E;
 
 class NodeInfo: boost::noncopyable {
@@ -297,7 +301,7 @@ private:
 
 public:
 	MapServerTaskIDPtr _mAudioTaskID, _mVideoTaskID, _mAuViTaskID;
-	DP_U32 setServerTaskID(DP_U32 taskID, TaskObjectType_E taskType);
+	DP_U32 setServerTaskID(DP_U32 taskID);
 	void removeServerTaskID(DP_U32 taskID, TaskObjectType_E taskType);
 
 private:
@@ -316,8 +320,15 @@ private:
 	void rmID(DP_U32 taskID, MapServerTaskIDPtr mTaskID,
 			TaskObjectType_E taskType);
 
-	DP_S32 cmd_set_avenc_default_512(DP_VOID*pPtr);
-	DP_S32 cmd_set_avenc_default_513(DP_VOID*pPtr);
+	DP_S32 cmd_set_aenc_default(DP_VOID *pPtr, DP_S32 s32TskId, DP_U32 u32Width,
+			DP_U32 u32Height, DP_U32 u32Bitrate, DP_S32 AencChn);
+	DP_S32 cmd_set_venc_default(DP_VOID *pPtr, DP_S32 s32TskId, DP_U32 u32Width,
+			DP_U32 u32Height, DP_U32 u32Bitrate, DP_S32 VencChn);
+	DP_S32 cmd_set_avenc_default(DP_VOID *pPtr, DP_S32 s32TskId,
+			DP_U32 u32Width, DP_U32 u32Height, DP_U32 u32Bitrate,
+			DP_S32 AencChn, DP_S32 VencChn);
+//	DP_S32 cmd_set_avenc_default_512(DP_VOID*pPtr);
+//	DP_S32 cmd_set_avenc_default_513(DP_VOID*pPtr);
 	DP_S32 print_avenc_get_attr(DP_M2S_AVENC_SET_INFO_S info);
 
 //	inline void print_DP_M2S_VO_GET_INFO_S_(DP_M2S_VO_GET_INFO_S *voInfo) {

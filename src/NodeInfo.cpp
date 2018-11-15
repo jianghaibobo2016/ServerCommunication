@@ -281,8 +281,7 @@ void NodeInfo::removeCodecTaskID(DP_U32 thirdId, TaskObjectType_E taskType) {
  *	[512~767]，为音视频任务ID，选中此ID范围时，可操作音频和视频的相关属性；
  *	其他预留，无效；
  */
-DP_U32 NodeInfo::setServerTaskID(DP_U32 taskID, TaskObjectType_E taskType) {
-
+DP_U32 NodeInfo::setServerTaskID(DP_U32 taskID) {
 	MapOutThirdCodecTaskIDPtr thirdCodecID = getOutThirdCodecTaskID();
 	if (thirdCodecID->find(taskID) != thirdCodecID->end()) {
 		return thirdCodecID->operator [](taskID);
@@ -479,6 +478,262 @@ int NodeInfo::recvCB(void* pData, int len) {
 }
 //
 //
+//cmd_set_aenc_default（）//0 0 0 0 0
+//cmd_set_venc_default（）//256 1920 1080 4000 0
+//257 1920 1080 4000 1
+//cmd_set_avenc_default（）//512 1920 1080 4000 1 2
+//513 1920 1080 4000 2 3
+
+DP_S32 NodeInfo::cmd_set_aenc_default(DP_VOID *pPtr, DP_S32 s32TskId,
+		DP_U32 u32Width, DP_U32 u32Height, DP_U32 u32Bitrate, DP_S32 AencChn) {
+	DP_M2S_AVENC_SET_INFO_S *pstAttr = (DP_M2S_AVENC_SET_INFO_S *) pPtr;
+	DP_M2S_AVENC_SET_INFO_S stAttr;
+
+	memset(&stAttr, 0, sizeof(DP_M2S_AVENC_SET_INFO_S));
+
+	/* s1 TskId*/
+	stAttr.TskId = s32TskId;    //0
+
+	/* s2 DP_M2S_AVBIND_ATTR_S */
+	stAttr.AvBindAttr.enBindType = DP_M2S_AVBIND_AI2AENC;/* no video */
+
+	stAttr.AvBindAttr.stAudio.stIn.ModId = DP_M2S_MOD_AI;
+	stAttr.AvBindAttr.stAudio.stIn.u32DevId = 0;
+	stAttr.AvBindAttr.stAudio.stIn.u32ChnId = 0;    //not use
+
+	stAttr.AvBindAttr.stAudio.stOut.ModId = DP_M2S_MOD_AENC;
+	stAttr.AvBindAttr.stAudio.stOut.u32DevId = 0;    //not use
+	stAttr.AvBindAttr.stAudio.stOut.u32ChnId = AencChn;
+
+	//stAttr.AvBindAttr.stVideo = NULL;
+
+	/* s3 DP_M2S_AENC_ATTR_S stAenc */
+	stAttr.stAenc.enAlg = DP_M2S_ALG_AAC_ENC;
+	stAttr.stAenc.s32Bitrate = 48000;
+
+	/* s4 DP_M2S_VENC_ATTR_S stVenc; */
+	stAttr.stVenc.bCrop = DP_FALSE;
+	stAttr.stVenc.bZoom = DP_FALSE;
+	stAttr.stVenc.bOsd = DP_FALSE;
+
+	DP_M2S_CROP_ATTR_S stCrop;
+	stCrop.s32X = 0;
+	stCrop.s32Y = 0;
+	stCrop.u32Width = u32Width;
+	stCrop.u32Height = u32Height;
+	memcpy(&stAttr.stVenc.stCrop, &stCrop, sizeof(DP_M2S_CROP_ATTR_S));
+
+	DP_M2S_ZOOM_ATTR_S stZoom;
+	stZoom.enType = DP_M2S_ZOOM_RECT;
+	stZoom.stRect.s32X = 0;
+	stZoom.stRect.s32Y = 0;
+	stZoom.stRect.u32Width = u32Width;
+	stZoom.stRect.u32Height = u32Height;
+	memcpy(&stAttr.stVenc.stZoom, &stZoom, sizeof(DP_M2S_ZOOM_ATTR_S));
+
+	DP_M2S_OSD_ATTR_S stOsd;
+	stOsd.enType = DP_M2S_OSD_BUTT;
+	memcpy(&stAttr.stVenc.stOsd, &stOsd, sizeof(DP_M2S_OSD_ATTR_S));
+
+	DP_M2S_ALG_ATTR_S stAlg;
+	stAlg.enAlg = DP_M2S_ALG_H264_ENC;
+	stAlg.stH264Enc.u32FrmRate = 30;
+	stAlg.stH264Enc.stSize.u32Width = stZoom.stRect.u32Width;
+	stAlg.stH264Enc.stSize.u32Height = stZoom.stRect.u32Height;
+	stAlg.stH264Enc.enRcMode = DP_M2S_RC_MODE_H264CBR;
+	stAlg.stH264Enc.u32Bitrate = u32Bitrate;
+	stAlg.stH264Enc.enProfile = DP_M2S_ALG_PROFILE_H264_BP;
+	stAlg.stH264Enc.u32Gop = 30;
+	stAlg.stH264Enc.u16SF = 0;
+	stAlg.stH264Enc.u16TF = 0;
+	memcpy(&stAttr.stVenc.stAlg, &stAlg, sizeof(DP_M2S_ALG_ATTR_S));
+
+	/* s5 DP_M2S_STREAM_ATTR_S stStream; */
+	//DP_M2S_STREAM_ATTR_S stStream;
+	stAttr.stStream.enType = DP_M2S_STREAM_RTSP_SERVER;
+	DP_M2S_RTSP_SERVER_ATTR_S stRtspServer;
+	stRtspServer.bOpen = DP_TRUE;
+	stRtspServer.bMulticast = DP_FALSE;
+	stRtspServer.s32TransType = 0;    //udp
+	stRtspServer.s32ConnTimeout = 60;
+	stRtspServer.s32ConnMax = 128;
+	stRtspServer.s32ConnNums = 0;    //not use
+	//stRtspServer.au8Url[] = NULL;//not use
+	memcpy(&stAttr.stStream._rtsp.stRtspServer, &stRtspServer,
+			sizeof(DP_M2S_RTSP_SERVER_ATTR_S));
+
+	memcpy(pstAttr, &stAttr, sizeof(DP_M2S_AVENC_SET_INFO_S));
+	return 0;
+}
+DP_S32 NodeInfo::cmd_set_venc_default(DP_VOID *pPtr, DP_S32 s32TskId,
+		DP_U32 u32Width, DP_U32 u32Height, DP_U32 u32Bitrate, DP_S32 VencChn) {
+	DP_M2S_AVENC_SET_INFO_S *pstAttr = (DP_M2S_AVENC_SET_INFO_S *) pPtr;
+	DP_M2S_AVENC_SET_INFO_S stAttr;
+
+	memset(&stAttr, 0, sizeof(DP_M2S_AVENC_SET_INFO_S));
+
+	/* s1 TskId*/
+	stAttr.TskId = s32TskId;										//256~257
+
+	/* s2 DP_M2S_AVBIND_ATTR_S */
+	stAttr.AvBindAttr.enBindType = DP_M2S_AVBIND_VI2VENC;/* no audio */
+
+	//stAttr.AvBindAttr.stAudio = NULL;
+
+	stAttr.AvBindAttr.stVideo.stIn.ModId = DP_M2S_MOD_VI;
+	stAttr.AvBindAttr.stVideo.stIn.u32DevId = 0;
+	stAttr.AvBindAttr.stVideo.stIn.u32ChnId = 0;					//not use
+
+	stAttr.AvBindAttr.stVideo.stOut.ModId = DP_M2S_MOD_VENC;
+	stAttr.AvBindAttr.stVideo.stOut.u32DevId = 0;					//not use
+	stAttr.AvBindAttr.stVideo.stOut.u32ChnId = VencChn;
+
+	/* s3 DP_M2S_AENC_ATTR_S stAenc */
+
+	/* s4 DP_M2S_VENC_ATTR_S stVenc; */
+	stAttr.stVenc.bCrop = DP_FALSE;
+	stAttr.stVenc.bZoom = DP_FALSE;
+	stAttr.stVenc.bOsd = DP_FALSE;
+
+	DP_M2S_CROP_ATTR_S stCrop;
+	stCrop.s32X = 0;
+	stCrop.s32Y = 0;
+	stCrop.u32Width = u32Width;
+	stCrop.u32Height = u32Height;
+	memcpy(&stAttr.stVenc.stCrop, &stCrop, sizeof(DP_M2S_CROP_ATTR_S));
+
+	DP_M2S_ZOOM_ATTR_S stZoom;
+	stZoom.enType = DP_M2S_ZOOM_RECT;
+	stZoom.stRect.s32X = 0;
+	stZoom.stRect.s32Y = 0;
+	stZoom.stRect.u32Width = u32Width;
+	stZoom.stRect.u32Height = u32Height;
+	memcpy(&stAttr.stVenc.stZoom, &stZoom, sizeof(DP_M2S_ZOOM_ATTR_S));
+
+	DP_M2S_OSD_ATTR_S stOsd;
+	stOsd.enType = DP_M2S_OSD_BUTT;
+	memcpy(&stAttr.stVenc.stOsd, &stOsd, sizeof(DP_M2S_OSD_ATTR_S));
+
+	DP_M2S_ALG_ATTR_S stAlg;
+	stAlg.enAlg = DP_M2S_ALG_H264_ENC;
+	stAlg.stH264Enc.u32FrmRate = 30;
+	stAlg.stH264Enc.stSize.u32Width = stZoom.stRect.u32Width;
+	stAlg.stH264Enc.stSize.u32Height = stZoom.stRect.u32Height;
+	stAlg.stH264Enc.enRcMode = DP_M2S_RC_MODE_H264CBR;
+	stAlg.stH264Enc.u32Bitrate = u32Bitrate;
+	stAlg.stH264Enc.enProfile = DP_M2S_ALG_PROFILE_H264_BP;
+	stAlg.stH264Enc.u32Gop = 30;
+	stAlg.stH264Enc.u16SF = 0;
+	stAlg.stH264Enc.u16TF = 0;
+	memcpy(&stAttr.stVenc.stAlg, &stAlg, sizeof(DP_M2S_ALG_ATTR_S));
+
+	/* s5 DP_M2S_STREAM_ATTR_S stStream; */
+	//DP_M2S_STREAM_ATTR_S stStream;
+	stAttr.stStream.enType = DP_M2S_STREAM_RTSP_SERVER;
+	DP_M2S_RTSP_SERVER_ATTR_S stRtspServer;
+	stRtspServer.bOpen = DP_TRUE;
+	stRtspServer.bMulticast = DP_FALSE;
+	stRtspServer.s32TransType = 0;										//udp
+	stRtspServer.s32ConnTimeout = 60;
+	stRtspServer.s32ConnMax = 128;
+	stRtspServer.s32ConnNums = 0;									//not use
+	//stRtspServer.au8Url[] = NULL;//not use
+	memcpy(&stAttr.stStream._rtsp.stRtspServer, &stRtspServer,
+			sizeof(DP_M2S_RTSP_SERVER_ATTR_S));
+
+	memcpy(pstAttr, &stAttr, sizeof(DP_M2S_AVENC_SET_INFO_S));
+	return 0;
+}
+
+DP_S32 NodeInfo::cmd_set_avenc_default(DP_VOID *pPtr, DP_S32 s32TskId,
+		DP_U32 u32Width, DP_U32 u32Height, DP_U32 u32Bitrate, DP_S32 AencChn,
+		DP_S32 VencChn) {
+	DP_M2S_AVENC_SET_INFO_S *pstAttr = (DP_M2S_AVENC_SET_INFO_S *) pPtr;
+	DP_M2S_AVENC_SET_INFO_S stAttr;
+
+	memset(&stAttr, 0, sizeof(DP_M2S_AVENC_SET_INFO_S));
+
+	/* s1 TskId*/
+	stAttr.TskId = s32TskId;											//513
+
+	/* s2 DP_M2S_AVBIND_ATTR_S */
+	stAttr.AvBindAttr.enBindType = DP_M2S_AVBIND_AI2AENC_VI2VENC;/* AV */
+
+	stAttr.AvBindAttr.stAudio.stIn.ModId = DP_M2S_MOD_AI;
+	stAttr.AvBindAttr.stAudio.stIn.u32DevId = 0;
+	stAttr.AvBindAttr.stAudio.stIn.u32ChnId = 0;					//not use
+
+	stAttr.AvBindAttr.stAudio.stOut.ModId = DP_M2S_MOD_AENC;
+	stAttr.AvBindAttr.stAudio.stOut.u32DevId = 0;					//not use
+	stAttr.AvBindAttr.stAudio.stOut.u32ChnId = AencChn;
+
+	stAttr.AvBindAttr.stVideo.stIn.ModId = DP_M2S_MOD_VI;
+	stAttr.AvBindAttr.stVideo.stIn.u32DevId = 0;
+	stAttr.AvBindAttr.stVideo.stIn.u32ChnId = 0;					//not use
+
+	stAttr.AvBindAttr.stVideo.stOut.ModId = DP_M2S_MOD_VENC;
+	stAttr.AvBindAttr.stVideo.stOut.u32DevId = 0;					//not use
+	stAttr.AvBindAttr.stVideo.stOut.u32ChnId = VencChn;
+
+	/* s3 DP_M2S_AENC_ATTR_S stAenc */
+	stAttr.stAenc.enAlg = DP_M2S_ALG_AAC_ENC;
+	stAttr.stAenc.s32Bitrate = 48000;
+
+	/* s4 DP_M2S_VENC_ATTR_S stVenc; */
+	stAttr.stVenc.bCrop = DP_FALSE;
+	stAttr.stVenc.bZoom = DP_FALSE;
+	stAttr.stVenc.bOsd = DP_FALSE;
+
+	DP_M2S_CROP_ATTR_S stCrop;
+	stCrop.s32X = 0;
+	stCrop.s32Y = 0;
+	stCrop.u32Width = u32Width;
+	stCrop.u32Height = u32Height;
+	memcpy(&stAttr.stVenc.stCrop, &stCrop, sizeof(DP_M2S_CROP_ATTR_S));
+
+	DP_M2S_ZOOM_ATTR_S stZoom;
+	stZoom.enType = DP_M2S_ZOOM_RECT;
+	stZoom.stRect.s32X = 0;
+	stZoom.stRect.s32Y = 0;
+	stZoom.stRect.u32Width = u32Width;
+	stZoom.stRect.u32Height = u32Height;
+	memcpy(&stAttr.stVenc.stZoom, &stZoom, sizeof(DP_M2S_ZOOM_ATTR_S));
+
+	DP_M2S_OSD_ATTR_S stOsd;
+	stOsd.enType = DP_M2S_OSD_BUTT;
+	memcpy(&stAttr.stVenc.stOsd, &stOsd, sizeof(DP_M2S_OSD_ATTR_S));
+
+	DP_M2S_ALG_ATTR_S stAlg;
+	stAlg.enAlg = DP_M2S_ALG_H264_ENC;
+	stAlg.stH264Enc.u32FrmRate = 30;
+	stAlg.stH264Enc.stSize.u32Width = stZoom.stRect.u32Width;
+	stAlg.stH264Enc.stSize.u32Height = stZoom.stRect.u32Height;
+	stAlg.stH264Enc.enRcMode = DP_M2S_RC_MODE_H264CBR;
+	stAlg.stH264Enc.u32Bitrate = u32Bitrate;
+	stAlg.stH264Enc.enProfile = DP_M2S_ALG_PROFILE_H264_BP;
+	stAlg.stH264Enc.u32Gop = 30;
+	stAlg.stH264Enc.u16SF = 0;
+	stAlg.stH264Enc.u16TF = 0;
+	memcpy(&stAttr.stVenc.stAlg, &stAlg, sizeof(DP_M2S_ALG_ATTR_S));
+
+	/* s5 DP_M2S_STREAM_ATTR_S stStream; */
+	//DP_M2S_STREAM_ATTR_S stStream;
+	stAttr.stStream.enType = DP_M2S_STREAM_RTSP_SERVER;
+	DP_M2S_RTSP_SERVER_ATTR_S stRtspServer;
+	stRtspServer.bOpen = DP_TRUE;
+	stRtspServer.bMulticast = DP_FALSE;
+	stRtspServer.s32TransType = 0;										//udp
+	stRtspServer.s32ConnTimeout = 60;
+	stRtspServer.s32ConnMax = 128;
+	stRtspServer.s32ConnNums = 0;									//not use
+	//stRtspServer.au8Url[] = NULL;//not use
+	memcpy(&stAttr.stStream._rtsp.stRtspServer, &stRtspServer,
+			sizeof(DP_M2S_RTSP_SERVER_ATTR_S));
+
+	memcpy(pstAttr, &stAttr, sizeof(DP_M2S_AVENC_SET_INFO_S));
+	return 0;
+}
+#if 0
 DP_S32 NodeInfo::cmd_set_avenc_default_512(DP_VOID*pPtr) {
 	DP_M2S_AVENC_SET_INFO_S *pstAttr = (DP_M2S_AVENC_SET_INFO_S *) pPtr;
 	DP_M2S_AVENC_SET_INFO_S stAttr;
@@ -492,13 +747,12 @@ DP_S32 NodeInfo::cmd_set_avenc_default_512(DP_VOID*pPtr) {
 	stAttr.AvBindAttr.enBindType = DP_M2S_AVBIND_VI2VENC;/* no audio */
 
 	//stAttr.AvBindAttr.stAudio = NULL;
-
 	stAttr.AvBindAttr.stVideo.stIn.ModId = DP_M2S_MOD_VI;
 	stAttr.AvBindAttr.stVideo.stIn.u32DevId = 0;
-	stAttr.AvBindAttr.stVideo.stIn.u32ChnId = 0; //not use
+	stAttr.AvBindAttr.stVideo.stIn.u32ChnId = 0;//not use
 
 	stAttr.AvBindAttr.stVideo.stOut.ModId = DP_M2S_MOD_VENC;
-	stAttr.AvBindAttr.stVideo.stOut.u32DevId = 0; //not use
+	stAttr.AvBindAttr.stVideo.stOut.u32DevId = 0;//not use
 	stAttr.AvBindAttr.stVideo.stOut.u32ChnId = 0;
 
 	/* s3 DP_M2S_AENC_ATTR_S stAenc */
@@ -551,10 +805,10 @@ DP_S32 NodeInfo::cmd_set_avenc_default_512(DP_VOID*pPtr) {
 	DP_M2S_RTSP_SERVER_ATTR_S stRtspServer;
 	stRtspServer.bOpen = DP_TRUE;
 	stRtspServer.bMulticast = DP_FALSE;
-	stRtspServer.s32TransType = 0; //udp
+	stRtspServer.s32TransType = 0;//udp
 	stRtspServer.s32ConnTimeout = 60;
 	stRtspServer.s32ConnMax = 128;
-	stRtspServer.s32ConnNums = 0; //not use
+	stRtspServer.s32ConnNums = 0;//not use
 	//stRtspServer.au8Url[] = NULL;//not use
 	memcpy(&stAttr.stStream._rtsp.stRtspServer, &stRtspServer,
 			sizeof(DP_M2S_RTSP_SERVER_ATTR_S));
@@ -577,13 +831,12 @@ DP_S32 NodeInfo::cmd_set_avenc_default_513(DP_VOID*pPtr) {
 	stAttr.AvBindAttr.enBindType = DP_M2S_AVBIND_VI2VENC;/* no audio */
 
 	//stAttr.AvBindAttr.stAudio = NULL;
-
 	stAttr.AvBindAttr.stVideo.stIn.ModId = DP_M2S_MOD_VI;
 	stAttr.AvBindAttr.stVideo.stIn.u32DevId = 0;
-	stAttr.AvBindAttr.stVideo.stIn.u32ChnId = 0;	//not use
+	stAttr.AvBindAttr.stVideo.stIn.u32ChnId = 0;//not use
 
 	stAttr.AvBindAttr.stVideo.stOut.ModId = DP_M2S_MOD_VENC;
-	stAttr.AvBindAttr.stVideo.stOut.u32DevId = 0;	//not use
+	stAttr.AvBindAttr.stVideo.stOut.u32DevId = 0;//not use
 	stAttr.AvBindAttr.stVideo.stOut.u32ChnId = 1;
 
 	/* s3 DP_M2S_AENC_ATTR_S stAenc */
@@ -632,10 +885,10 @@ DP_S32 NodeInfo::cmd_set_avenc_default_513(DP_VOID*pPtr) {
 	DP_M2S_RTSP_SERVER_ATTR_S stRtspServer;
 	stRtspServer.bOpen = DP_TRUE;
 	stRtspServer.bMulticast = DP_FALSE;
-	stRtspServer.s32TransType = 0;	//udp
+	stRtspServer.s32TransType = 0;//udp
 	stRtspServer.s32ConnTimeout = 60;
 	stRtspServer.s32ConnMax = 128;
-	stRtspServer.s32ConnNums = 0;	//not use
+	stRtspServer.s32ConnNums = 0;//not use
 	//stRtspServer.au8Url[] = NULL;//not use
 	memcpy(&stAttr.stStream._rtsp.stRtspServer, &stRtspServer,
 			sizeof(DP_M2S_RTSP_SERVER_ATTR_S));
@@ -643,7 +896,7 @@ DP_S32 NodeInfo::cmd_set_avenc_default_513(DP_VOID*pPtr) {
 	memcpy(pstAttr, &stAttr, sizeof(DP_M2S_AVENC_SET_INFO_S));
 	return 0;
 }
-
+#endif
 DP_S32 NodeInfo::print_avenc_get_attr(DP_M2S_AVENC_SET_INFO_S info) {
 	printf(
 			"#################################################################\n");
