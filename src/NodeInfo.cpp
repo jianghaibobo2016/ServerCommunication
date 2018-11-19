@@ -65,7 +65,7 @@ void NodeInfo::initLocalInfo() {
 	updateAIGetInfo(aiInfo);
 //
 	LOG_INFO << "########################  2  ####################";
-	VctrVIGetInfoPtr viInfo = getVIGetInfo();//获取输入节点的视频采集通道信息
+	VctrVIGetInfoPtr viInfo = getVIGetInfo(); //获取输入节点的视频采集通道信息
 	getAVInfoFromCodecInfo<VctrVIGetInfoPtr, DP_M2S_VI_GET_INFO_S>(viInfo,
 			DP_M2S_INFO_TYPE_GET_VI,
 			DP_M2S_VI_DEV_MAX);
@@ -76,13 +76,30 @@ void NodeInfo::initLocalInfo() {
 	VctrAVENCGetInfoPtr AVEncInputNodeInfo = getAVEncGetInfo();
 	//for_each!!!!!!!
 	AVEncInputNodeInfo->clear();
+	//cmd_set_aenc_default（）//0 0 0 0 0
+	//cmd_set_venc_default（）//256 1920 1080 4000 0
+	//257 1920 1080 4000 1
+	//cmd_set_avenc_default（）//512 1920 1080 4000 1 2
+	//513 1920 1080 4000 2 3
 	DP_M2S_AVENC_GET_INFO_S avEncInfo;
-	cmd_set_avenc_default_512(&avEncInfo);
+	cmd_set_aenc_default(&avEncInfo, 0, 0, 0, 0, 0);
+//	cmd_set_avenc_default_512(&avEncInfo);
+	AVEncInputNodeInfo->push_back(avEncInfo);
+//	memset(&avEncInfo, 0, sizeof(DP_M2S_AVENC_GET_INFO_S));
+//	cmd_set_venc_default(&avEncInfo, 256, 1920, 1080, 4000, 0);
+//	cmd_set_avenc_default_513(&avEncInfo);
+//	AVEncInputNodeInfo->push_back(avEncInfo);
+//	memset(&avEncInfo, 0, sizeof(DP_M2S_AVENC_GET_INFO_S));
+//	cmd_set_venc_default(&avEncInfo, 257, 1920, 1080, 4000, 1);
+//	AVEncInputNodeInfo->push_back(avEncInfo);
+	memset(&avEncInfo, 0, sizeof(DP_M2S_AVENC_GET_INFO_S));
+	cmd_set_avenc_default(&avEncInfo, 512, 1920, 1080, 4000, 1, 1);
 	AVEncInputNodeInfo->push_back(avEncInfo);
 	memset(&avEncInfo, 0, sizeof(DP_M2S_AVENC_GET_INFO_S));
-	cmd_set_avenc_default_513(&avEncInfo);
+	cmd_set_avenc_default(&avEncInfo, 513, 1920, 1080, 4000, 2, 2);
 	AVEncInputNodeInfo->push_back(avEncInfo);
 
+	LOG_INFO << "Setting avenc ------------------";
 	setAVInfoToCodec<VctrAVENCGetInfo, DP_M2S_AVENC_SET_INFO_S>(
 			*AVEncInputNodeInfo.get(), DP_M2S_INFO_TYPE_SET_AVENC);
 	updateAVEncGetInfo(AVEncInputNodeInfo);
@@ -120,8 +137,8 @@ void NodeInfo::initLocalInfo() {
 		it->stStream._rtsp.stRtspServer.bOpen = DP_TRUE;
 	}
 	LOG_INFO
-			<< "########################  2  #################### AVEncInfo size:: "
-			<< AVEncInfo->size();
+	<< "########################  2  #################### AVEncInfo size:: "
+	<< AVEncInfo->size();
 	setAVInfoToCodec<VctrAVENCGetInfo, DP_M2S_AVENC_SET_INFO_S>(
 			*AVEncInfo.get(), DP_M2S_INFO_TYPE_SET_AVENC);
 
@@ -142,8 +159,8 @@ void NodeInfo::initLocalInfo() {
 	//取音视频解码通道信息
 	VctrAVDECGetInfoPtr AVDecInfo = getAVDecGetInfo();
 	LOG_INFO
-			<< "########################  4  #################### AVDecInfo size: "
-			<< AVDecInfo->size();
+	<< "########################  4  #################### AVDecInfo size: "
+	<< AVDecInfo->size();
 	getAVInfoFromCodecInfo<VctrAVDECGetInfoPtr, DP_M2S_AVDEC_GET_INFO_S>(
 			AVDecInfo, DP_M2S_INFO_TYPE_GET_AVDEC,
 			DP_VO_DEV_MAX);
@@ -199,6 +216,8 @@ DP_S32 NodeInfo::getNewCodecTaskID(DP_U32 thirdId, TaskObjectType_E taskType) {
 		codecID = findNewID(thirdId, _vAuViTaskID);
 		return codecID;
 		break;
+	case _eUnknowTask:
+			break;
 	case _eTaskObjectTypeButt:
 		break;
 	}
@@ -268,6 +287,8 @@ void NodeInfo::removeCodecTaskID(DP_U32 thirdId, TaskObjectType_E taskType) {
 		break;
 	case _eAudioAndVideoTask:
 		break;
+	case _eUnknowTask:
+		break;
 	case _eTaskObjectTypeButt:
 		break;
 	}
@@ -336,8 +357,11 @@ void NodeInfo::removeServerTaskID(DP_U32 taskID, TaskObjectType_E taskType) {
 		mTaskID = getAuViTaskIDMap();
 		rmID(taskID, mTaskID, taskType);
 		break;
+	case _eUnknowTask:
+		break;
 	case _eTaskObjectTypeButt:
 		break;
+
 	}
 }
 

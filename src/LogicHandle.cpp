@@ -36,7 +36,8 @@ void LogicHandle::getInfo(const muduo::net::TcpConnectionPtr connPtr,
 
 	switch (getInfoData->u32Proterty) {
 	case Property_Get_InputVideoChnInfo: { //获取输入节点的视频采集通道信息
-
+		LOG_INFO << "Get 'Property_Get_InputVideoChnInfo' cmd from "
+				<< connPtr->peerAddress().toIpPort();
 		NodeInfo::VctrVIGetInfoPtr viGetInfo =
 				muduo::Singleton<NodeInfo>::instance().getVIGetInfo();
 		DP_U32 propertyLen = sizeof(_sAllViChnInfo)
@@ -67,12 +68,22 @@ void LogicHandle::getInfo(const muduo::net::TcpConnectionPtr connPtr,
 		break;
 	case Property_Get_VideoChnVencInfo: { //获取输入节点的视频采集通道的流信息
 
+		LOG_INFO << "Get 'Property_Get_VideoChnVencInfo' cmd from "
+				<< connPtr->peerAddress().toIpPort();
 		NodeInfo::VctrAVENCGetInfoPtr vAVEncInNodeInfo = muduo::Singleton<
 				NodeInfo>::instance().getAVEncGetInfo();
 
+		DP_U32 videoCount = 0;
+		for (NodeInfo::VctrAVENCGetInfo::iterator it =
+				vAVEncInNodeInfo->begin(); it != vAVEncInNodeInfo->end();
+				it++) {
+			if (it->AvBindAttr.enBindType == DP_M2S_AVBIND_VI2VENC
+					|| it->AvBindAttr.enBindType
+							== DP_M2S_AVBIND_AI2AENC_VI2VENC)
+				videoCount++;
+		}
 		DP_U32 propertyLen = sizeof(_sAllVencChnInfo)
-				+ vAVEncInNodeInfo->size()
-						* sizeof(_sAllVencChnInfo::_sSingleVencChnInfo);
+				+ videoCount * sizeof(_sAllVencChnInfo::_sSingleVencChnInfo);
 		DP_U32 cmdLen = DP_DEV_ID_LEN + sizeof(eRemotePropertyName)
 				+ sizeof(DP_U32) + sizeof(DP_U16) + propertyLen;
 		DP_U32 packageLen = sizeof(_sRemote_Header) + cmdLen;
@@ -83,7 +94,7 @@ void LogicHandle::getInfo(const muduo::net::TcpConnectionPtr connPtr,
 				Property_Get_VideoChnVencInfo, 0x00, propertyLen);
 
 		DP_U8 avEncChCount = vAVEncInNodeInfo->size();
-		_sAllVencChnInfo allAiChInfo(DP_VI_DEV_MAX, avEncChCount);
+		_sAllVencChnInfo allAiChInfo(DP_VI_DEV_MAX, videoCount);
 
 		DP_U8 audioIn = 0;
 
@@ -110,6 +121,7 @@ void LogicHandle::getInfo(const muduo::net::TcpConnectionPtr connPtr,
 //					<< " Check url 2: and len : "
 //					<< singleVencCh->au8PreviewRtspURL << " "
 //					<< strlen((DP_CHAR*) singleVencCh->au8PreviewRtspURL);
+
 			if (it->AvBindAttr.enBindType == DP_M2S_AVBIND_VI2VENC) //视频输入绑到视频编码
 					{
 				buffSend.append(singleVencCh.get(),
@@ -137,6 +149,14 @@ void LogicHandle::getInfo(const muduo::net::TcpConnectionPtr connPtr,
 						sizeof(_sAllVencChnInfo::_sSingleVencChnInfo));
 			}
 		}
+
+		LOG_INFO << "packageLen: " << packageLen << " propertyLen: "
+				<< propertyLen << "  sizeof(_sAllVencChnInfo): "
+				<< sizeof(_sAllVencChnInfo);
+		LOG_INFO << "avEncChCount: " << avEncChCount
+				<< " sizeof(_sAllVencChnInfo::_sSingleVencChnInfo): "
+				<< sizeof(_sAllVencChnInfo::_sSingleVencChnInfo);
+		LOG_INFO << "Send to third " << buffSend.readableBytes() << " bytes. ";
 		connPtr->send(&buffSend);
 //
 	}
@@ -145,6 +165,8 @@ void LogicHandle::getInfo(const muduo::net::TcpConnectionPtr connPtr,
 	case Property_Get_InputAudioChnInfo:
 		//获取输入节点的音频输入的通道信息
 	{
+		LOG_INFO << "Get 'Property_Get_InputAudioChnInfo' cmd from "
+				<< connPtr->peerAddress().toIpPort();
 		NodeInfo::VctrAIGetInfoPtr aiGetInfo =
 				muduo::Singleton<NodeInfo>::instance().getAIGetInfo();
 		DP_U32 propertyLen = sizeof(_sAllAiChnInfo)
@@ -181,14 +203,31 @@ void LogicHandle::getInfo(const muduo::net::TcpConnectionPtr connPtr,
 								it->stCommAttr.enSoundmode, AUDIO_ENCODE_AAC));
 				buffSend.append(singleAICh.get(),
 						sizeof(_sAllAiChnInfo::_sSingleAiChnInfo));
+				LOG_INFO << "_sAllAiChnInfo.u8AiSignalStatus: "
+						<< singleAICh->u8AiSignalStatus << " url : "
+						<< singleAICh->au8PreviewRtspURL
+						<< " u8AiDevIntfSampleRate: "
+						<< singleAICh->srcAudioInfo.u8AiDevIntfSampleRate
+						<< " u8AiDevIntfSoundMode: "
+						<< singleAICh->srcAudioInfo.u8AiDevIntfSoundMode
+						<< " u8AiDevIntfBitwidth: "
+						<< singleAICh->srcAudioInfo.u8AiDevIntfBitwidth
+						<< " u8AencType: "
+						<< singleAICh->srcAudioInfo.u8AencType;
 			}
 		}
+
+		LOG_INFO << "aiChCount: " << aiChCount
+				<< " sizeof(_sAllAiChnInfo::_sSingleAiChnInfo): "
+				<< sizeof(_sAllAiChnInfo::_sSingleAiChnInfo);
 		connPtr->send(&buffSend);
 	}
 		break;
 	case Property_Get_OutputVideoChnInfo: /// real time
 		//获取输出节点的显示视频通道信息
 	{
+		LOG_INFO << "Get 'Property_Get_OutputVideoChnInfo' cmd from "
+				<< connPtr->peerAddress().toIpPort();
 		NodeInfo::VctrVOGetInfoPtr VOInfo =
 				muduo::Singleton<NodeInfo>::instance().getVOGetInfo();
 		NodeInfo::MapOutSWMSChCodecDecInfoPtr swmsChInfo = muduo::Singleton<
@@ -364,6 +403,8 @@ void LogicHandle::getInfo(const muduo::net::TcpConnectionPtr connPtr,
 
 		//获取输出节点的音频输入输出的通道信息
 	case Property_Get_OutputAudioChnInfo: {
+		LOG_INFO << "Get 'Property_Get_OutputAudioChnInfo' cmd from "
+				<< connPtr->peerAddress().toIpPort();
 		NodeInfo::VctrAOGetInfoPtr AOInfo =
 				muduo::Singleton<NodeInfo>::instance().getAOGetInfo();
 		DP_U32 audioCount = AOInfo->size();
@@ -766,9 +807,8 @@ void LogicHandle::closeWindow(const muduo::net::TcpConnectionPtr connPtr,
 		return;
 	muduo::Singleton<NodeInfo>::instance().removeCodecTaskID(
 			closeWinData->u32TaskID, _eVideoTask);
-
 	_sRemote_Header head(_netInfo.ip2U32(), Type_DeviceOutput, 0x01,
-			sizeof(_sRemote_Reply_CloseWindow), Command_CloseAudio,
+			sizeof(_sRemote_Reply_CloseWindow), Command_CloseWindow,
 			DP_DEV_ID_LEN + sizeof(DP_U32) * 2);
 	_sRemote_Reply_CloseWindow reply(head,
 			muduo::Singleton<LocalInfo>::instance().getLocalInfo()->au8DevID,
@@ -800,12 +840,6 @@ void LogicHandle::closeWindow(const muduo::net::TcpConnectionPtr connPtr,
 	muduo::net::Buffer buffSend;
 	buffSend.append(&setInfo, packageLen - dataLen);
 	buffSend.append(&(*it), dataLen);
-	_sRemote_Header head(_netInfo.ip2U32(), Type_DeviceOutput, 0x01,
-			sizeof(_sRemote_Reply_CloseWindow), Command_CloseWindow,
-			DP_DEV_ID_LEN + sizeof(DP_U32) * 2);
-	_sRemote_Reply_CloseWindow reply(head,
-			muduo::Singleton<LocalInfo>::instance().getLocalInfo()->au8DevID,
-			closeWinData->u32TaskID, 0);
 
 	if (sendAckToCodec(buffSend.toStringPiece().data(),
 			sizeof(DP_M2S_INF_PROT_HEAD_S) + sizeof(DP_M2S_INFO_TYPE_E)
@@ -938,8 +972,8 @@ void LogicHandle::openAudio(const muduo::net::TcpConnectionPtr connPtr,
 	NodeInfo::VctrAVDECGetInfo::iterator itAudio;
 	if (AODevCodecID->find(AOChnID) != AODevCodecID->end()) {
 		DP_U32 closeAudioTaskID = AODevCodecID->operator [](AOChnID);
-		if ((itAudio = find_if(vAVDecInfo->begin(), vAVDecInfo->end(),
-				bind2nd(findAVDecInfoByCodecID(), closeAudioTaskID))
+		if (((itAudio = find_if(vAVDecInfo->begin(), vAVDecInfo->end(),
+				bind2nd(findAVDecInfoByCodecID(), closeAudioTaskID)))
 				!= vAVDecInfo->end())) {
 			itAudio->AvBindAttr.enBindType = DP_M2S_AVBIND_VDEC2VO;
 			itAudio->stStream._rtsp.stRtspClient.s8Open = 0x02;
@@ -1036,9 +1070,9 @@ void LogicHandle::closeAudio(const muduo::net::TcpConnectionPtr connPtr,
 	}
 	NodeInfo::MapAODevIDCodecIDPtr AODevCodecID =
 			muduo::Singleton<NodeInfo>::instance().getAODevIDCodecID();
-	if (NodeInfo::MapAODevIDCodecID::iterator it = AODevCodecID->find(AOChnID)
-			!= AODevCodecID->end())
-		AODevCodecID->erase(it);
+	NodeInfo::MapAODevIDCodecID::iterator iter;
+	if ((iter = AODevCodecID->find(AOChnID)) != AODevCodecID->end())
+		AODevCodecID->erase(iter);
 
 	muduo::Singleton<NodeInfo>::instance().updateAVDecGetInfo(vAVDecInfo);
 	muduo::Singleton<NodeInfo>::instance().updateAODevIDCodecID(AODevCodecID);
@@ -1076,8 +1110,8 @@ void LogicHandle::closeAAudio(DP_U8 AOChnID, DP_U8 voChnID,
 		//the u8VoChnID is existed
 		DP_U32 closeAudioTaskID = AODevCodecID->operator [](AOChnID);
 		//find avdec by closing codec id
-		if ((itAudio = find_if(vAVDecInfo->begin(), vAVDecInfo->end(),
-				bind2nd(findAVDecInfoByCodecID(), closeAudioTaskID))
+		if (((itAudio = find_if(vAVDecInfo->begin(), vAVDecInfo->end(),
+				bind2nd(findAVDecInfoByCodecID(), closeAudioTaskID)))
 				!= vAVDecInfo->end())) {
 			itAudio->AvBindAttr.enBindType = DP_M2S_AVBIND_VDEC2VO;
 			itAudio->stStream._rtsp.stRtspClient.s8Open = 0x02;
@@ -1094,9 +1128,9 @@ void LogicHandle::closeAAudio(DP_U8 AOChnID, DP_U8 voChnID,
 					<< " but is not found with codec task id: "
 					<< closeAudioTaskID;
 		}
-		if (NodeInfo::MapAODevIDCodecID::iterator it = AODevCodecID->find(
-				AOChnID) != AODevCodecID->end())
-			AODevCodecID->erase(it);
+		NodeInfo::MapAODevIDCodecID::iterator iter;
+		if ((iter = AODevCodecID->find(AOChnID)) != AODevCodecID->end())
+			AODevCodecID->erase(iter);
 	}
 
 	muduo::Singleton<NodeInfo>::instance().updateAODevIDCodecID(AODevCodecID);

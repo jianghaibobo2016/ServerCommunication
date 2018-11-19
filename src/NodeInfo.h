@@ -256,6 +256,8 @@ public:
 				break;
 			case _eTaskObjectTypeButt:
 				break;
+			case _eUnknowTask:
+							break;
 			}
 		}
 	}
