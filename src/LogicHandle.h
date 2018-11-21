@@ -46,6 +46,12 @@ public:
 
 private:
 
+	void Get_InputVideoChnInfo(const muduo::net::TcpConnectionPtr connPtr);
+	void Get_VideoChnVencInfo(const muduo::net::TcpConnectionPtr connPtr);
+	void Get_InputAudioChnInfo(const muduo::net::TcpConnectionPtr connPtr);
+	void Get_OutputAudioChnInfo(const muduo::net::TcpConnectionPtr connPtr);
+	void Get_OutputVideoChnInfo(const muduo::net::TcpConnectionPtr connPtr);
+
 	bool sendAckToCodec(const void *data, DP_S32 dataLen, DP_U8 needReply);
 
 	DP_S32 getNewCodecTaskID(DP_U32 thirdTaskID, TaskObjectType_E type,
@@ -72,8 +78,6 @@ private:
 		}
 	};
 
-	muduo::MutexLock _mutex;
-	muduo::Condition _cond;
 
 	///change if terminal changed
 	SetNetwork _netInfo;

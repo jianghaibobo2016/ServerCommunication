@@ -64,12 +64,9 @@ public:
 	typedef std::map<DP_U32, DP_U32> MapServerTaskID;
 	typedef boost::shared_ptr<MapServerTaskID> MapServerTaskIDPtr;
 
-	//input node URL<<--->>codecTaskID
-	typedef std::map<DP_U8*, DP_U32> MapCodecTaskID;
-	typedef boost::shared_ptr<MapCodecTaskID> MapCodecTaskIDPtr;
-
-//out node codec task id vector data structure
+	//out node codec task id vector data structure
 	typedef std::vector<DP_U32> VctrOutCodecTaskID;
+
 	//task id & its used
 	typedef std::map<VctrOutCodecTaskID, DP_U32> MapOutCodecTaskIDBeUsed;
 	typedef boost::shared_ptr<MapOutCodecTaskIDBeUsed> MapOutCodecTaskIDBeUsedPtr; //!
@@ -90,10 +87,6 @@ public:
 	// window present priority (sort)
 	typedef std::vector<DP_U32> VctrWindowPriority;
 	typedef boost::shared_ptr<VctrWindowPriority> VctrWindowPriorityPtr;
-
-	//AOCh status
-	typedef std::map<eDeviceAudioChannelID, DP_BOOL> MapAOChStatus;
-	typedef boost::shared_ptr<MapAOChStatus> MapAOChStatusPtr;
 
 	//AO Dev id -- codec Task id
 	typedef std::map<DP_U8, DP_U32> MapAODevIDCodecID;
@@ -329,9 +322,13 @@ private:
 	DP_S32 cmd_set_avenc_default(DP_VOID *pPtr, DP_S32 s32TskId,
 			DP_U32 u32Width, DP_U32 u32Height, DP_U32 u32Bitrate,
 			DP_S32 AencChn, DP_S32 VencChn);
-//	DP_S32 cmd_set_avenc_default_512(DP_VOID*pPtr);
-//	DP_S32 cmd_set_avenc_default_513(DP_VOID*pPtr);
+	DP_S32 cmd_set_avenc_default_512(DP_VOID*pPtr);
+	DP_S32 cmd_set_avenc_default_513(DP_VOID*pPtr);
 	DP_S32 print_avenc_get_attr(DP_M2S_AVENC_SET_INFO_S info);
+
+	//sync
+	void syncToJson();
+	void syncFromJson();
 
 //	inline void print_DP_M2S_VO_GET_INFO_S_(DP_M2S_VO_GET_INFO_S *voInfo) {
 //		LOG_INFO << "print_DP_M2S_VO_GET_INFO_S_　devid: " << voInfo->s32DevId

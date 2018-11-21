@@ -50,14 +50,16 @@ void flushFunc() {
 int main() {
 	signal(SIGPIPE, SIG_IGN);
 
-//	::basename
+	//logging setting
 	g_logFile.reset(new muduo::LogFile(LogFileName, LogFileMaxSize));
 	muduo::Logger::setOutput(outputFunc);
 	muduo::Logger::setFlush(flushFunc);
+
+	//init
 	muduo::Singleton<NodeInfo>::instance();
 	GlobalProfile::getInstance();
 
-//	muduo::Logger::setLogLevel(muduo::Logger::DEBUG);
+	//	muduo::Logger::setLogLevel(muduo::Logger::DEBUG);
 	EventLoop loop; // one loop shared by multiple servers
 	print(&loop);
 	ServerHandle tcpServer(&loop, InetAddress(5010));

@@ -7,6 +7,8 @@
 
 #include "GlobalProfile.h"
 
+#include <muduo/base/Logging.h>
+
 //namespace DSPPAUtil{
 
 GlobalProfile::Profile::Profile(const string &path) {
@@ -610,8 +612,7 @@ void GlobalProfile::loadFromJSON() {
 	if (access(PROFILE_JSON_DIR, F_OK) != 0) {
 		if (mkdir(PROFILE_JSON_DIR, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)
 				== -1) {
-//			throw SyscallException(_EXCEPTION_POSTION_);
-			;
+			LOG_FATAL << "Can not access and mkdir : " << PROFILE_JSON_DIR;
 		}
 	}
 

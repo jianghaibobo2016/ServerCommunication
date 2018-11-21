@@ -258,6 +258,17 @@ typedef struct _sVideoTaskInfo_tag {
 
 //音频任务信息
 typedef struct _sAudioTaskInfo_tag {
+	_sAudioTaskInfo_tag(DP_U32 taskID, DP_U8 vStreamStatus, DP_U8 *inputRtspURL,
+			_sSrcAudioInfo audioInfo, DP_U8 aoChnID) :
+			u32TaskID(taskID), u8VStreamStatus(vStreamStatus), srcAudioInfo(
+					audioInfo), u8AoChnID(aoChnID) {
+		memset(au8InputRtspURL, 0, DP_URL_LEN);
+		strcpy((DP_CHAR*) au8InputRtspURL, (DP_CHAR*) inputRtspURL);
+	}
+	_sAudioTaskInfo_tag() :
+			u32TaskID(), u8VStreamStatus(), srcAudioInfo(), u8AoChnID() {
+		memset(au8InputRtspURL, 0, DP_URL_LEN);
+	}
 	DP_U32 u32TaskID;			 ///<见任务ID注释
 	DP_U8 u8VStreamStatus;		 ///<视频输入网络流媒体信号有无
 //	DP_U8 au8SrcDevID[DP_DEV_ID_LEN];	 ///<设备ID
@@ -394,9 +405,18 @@ typedef struct _sAllVoChnInfo_tag {
 
 //设备属性值 @see Property_Get_OutputAudioChnInfo
 typedef struct _sAllAoChnInfo_tag {
+	_sAllAoChnInfo_tag(DP_U8 aoChnCount) :
+			u8AoChnCount(aoChnCount) {
+	}
 	DP_U8 u8AoChnCount;					 ///<音频播放通道数量
 	typedef struct _sSingleAoChnInfo_tag ///<音频输出通道信号
 	{
+		_sSingleAoChnInfo_tag(DP_U8 aoChnMute, DP_U8 aoChnID, DP_U8 aoChnVolume,
+				DP_U8 audioIn, _sAudioTaskInfo audioTask) :
+				u8AoChnMute(aoChnMute), u8AoChnID(aoChnID), u8AoChnVolume(
+						aoChnVolume), u8AudioIn(audioIn), audioTaskInfo(
+						audioTask) {
+		}
 		DP_U8 u8AoChnMute;			   ///<音频播放通道开关状态
 		DP_U8 u8AoChnID;			   ///<音频播放通道ID @see eDeviceAudioChannelID
 		DP_U8 u8AoChnVolume;		   ///<音频播放通道音量
@@ -664,11 +684,11 @@ typedef struct _sRemote_Reply_SetInfo_tag {
 /// @{
 //输出节点需要实现
 typedef struct _sRemote_CreateWindow_tag {
-	_sRemote_Header header;
+	_sRemote_Header header;  // sizeof 20
 	DP_U32 u32TaskID; ///<见任务ID注释
 
 	DP_U8 au8RtspURL[DP_URL_LEN]; ///< 第三方标准RTSP
-	DP_U8 u8AudioIn;  				/// is contain audio or not
+	DP_U8 u8AudioIn;  				/// is contain audio or not  // 281byte
 
 	//输出节点信息
 	//视频信息
@@ -681,7 +701,7 @@ typedef struct _sRemote_CreateWindow_tag {
 	//0 关闭 1切换 2维持
 	DP_U8 u8AudioEnable;   ///<是否同时启用音频，当启用音频时，u8AiChnID、u8AoChnID才有效
 	DP_U8 u8AoChnID;	 ///<音频播放通道ID \a eDeviceAudioChannelID
-	_sSrcAudioInfo srcAudioInfo;	//invalided if audio is enabled. // 2018/11/13
+	_sSrcAudioInfo srcAudioInfo;//invalided if audio is enabled. // 2018/11/13
 
 } _sRemote_CreateWindow;
 
@@ -764,6 +784,7 @@ typedef struct _sRemote_OpenAudio_tag {
 	DP_U8 u8DevType;  ///<采集端设备类型 @see eDeviceType
 
 	DP_U8 au8RtspURL[DP_URL_LEN]; ///< 第三方标准RTSP //server
+	_sSrcAudioInfo  srcAudioInfo; //2018/11/20
 
 	//输出信号
 	DP_U8 au8DstDevID[DP_DEV_ID_LEN]; ///<节点ID

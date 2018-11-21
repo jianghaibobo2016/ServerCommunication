@@ -9,7 +9,7 @@
 //namespace DSPPAUtil{
 
 void PrintCurTime() {
-	char* wday[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+	const char* wday[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
 	time_t timep;
 	struct tm *p;
 	time(&timep);

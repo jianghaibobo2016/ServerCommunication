@@ -101,6 +101,11 @@ void ServerHandle::onMessage(const TcpConnectionPtr &connPtr, Buffer *buff,
 				boost::bind(&LogicHandle::closeAudio, &logicHandle, connPtr,
 						data));
 		break;
+	case Command_SetAudio:
+		_threadPool.run(
+				boost::bind(&LogicHandle::setAudioInfo, &logicHandle, connPtr,
+						data));
+		break;
 	default:
 		break;
 	}
