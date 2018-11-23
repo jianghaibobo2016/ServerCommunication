@@ -27,7 +27,7 @@ DP_BOOL NodeInfo::getAVInfoFromCodecInfo(T vctrGetInfo, DP_M2S_INFO_TYPE_E type,
 				(DP_M2S_CMD_GETINFO_RESPOND_S*) recvBuff;
 		if (type != getCodecRespond->enInfoTYpe
 				|| getCodecRespond->u32Success != 0) {
-			LOG_WARN << "Return error in getAVInfoFromCodecInfo : type : "
+			LOG_ERROR << "Return error in getAVInfoFromCodecInfo : type : "
 					<< getCodecRespond->enInfoTYpe << " sucess: "
 					<< getCodecRespond->u32Success;
 			return DP_FALSE;

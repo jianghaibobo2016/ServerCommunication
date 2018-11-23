@@ -10,8 +10,8 @@
 	</VersionInfo>
 	<BaseInfo>
 		<u16DevSn>65535</u16DevSn>
-		<u16Devtype>5</u16Devtype>
-		<u16DevNum>4098</u16DevNum>
+		<u16Devtype>65535</u16Devtype>
+		<u16DevNum>65535</u16DevNum>
 		<au8DevName>未命名</au8DevName>
 		<au8DevID>FFFFFFFFFFFF</au8DevID>
 		<u16DevWorkMode>65535</u16DevWorkMode>

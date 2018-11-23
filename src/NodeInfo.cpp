@@ -52,8 +52,10 @@ void print_DP_M2S_VO_GET_INFO_S_(DP_M2S_VO_GET_INFO_S voInfo) {
 }
 void NodeInfo::initLocalInfo() {
 	LOG_INFO << "Codec init begin...";
-	if (initCodec() != DP_TRUE)
+	if (initCodec() != DP_TRUE) {
+		LOG_ERROR << "Init failed !";
 		return;
+	}
 	LOG_INFO << "Codec init end...";
 #if (InputDevice)
 	LOG_INFO << "########################  1  ####################";
@@ -193,6 +195,7 @@ void NodeInfo::initLocalInfo() {
 			DP_AO_DEV_MAX);
 	updateAOGetInfo(AOInfo);
 #endif
+
 }
 
 DP_S32 NodeInfo::getNewCodecTaskID(DP_U32 thirdId, TaskObjectType_E taskType) {
@@ -259,13 +262,27 @@ DP_S32 NodeInfo::getUsedCodecTaskID(DP_U32 thirdId) {
 	else
 		return -2;
 }
-void NodeInfo::removeCodecTaskID(DP_U32 thirdId, TaskObjectType_E taskType) {
+void NodeInfo::removeCodecTaskID(DP_U32 thirdId) {
 	LOG_INFO << "Remove third task id :" << thirdId;
+	MapOutThirdCodecTaskIDPtr thirdCodecID = getOutThirdCodecTaskID();
+	DP_S32 id = 0;
+	TaskObjectType_E taskType;
+	if (thirdCodecID->find(thirdId) != thirdCodecID->end())
+		id = thirdCodecID->operator [](thirdId);
+	if (id <= 255)
+		taskType = _eAudioTask;
+	else if (id >= 256 && id <= 511)
+		taskType = _eVideoTask;
+	else if (id >= 512)
+		taskType = _eAudioAndVideoTask;
+	LOG_INFO << "codec id in remove :" << id << " taskType: " << taskType;
 	switch (taskType) {
 	case _eAudioTask: {
 		LOG_INFO << "_mOutCodecTaskIDBeUsed->operator [](TaskID)in remove  : "
 				<< _mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID)
-				<< " size:: " << _mOutCodecTaskIDBeUsed->size();
+				<< " size:: " << _mOutCodecTaskIDBeUsed->size()
+				<< " _mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID): "
+				<< _mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID);
 		DP_U32 codecID = _mOutThirdCodecTaskID->operator [](thirdId);
 		_mOutThirdCodecTaskID->erase(thirdId);
 		_vAllUseCodecTaskID.erase(
@@ -278,7 +295,9 @@ void NodeInfo::removeCodecTaskID(DP_U32 thirdId, TaskObjectType_E taskType) {
 	case _eVideoTask: {
 		LOG_INFO << "_mOutCodecTaskIDBeUsed->operator [](TaskID)in remove  : "
 				<< _mOutCodecTaskIDBeUsed->operator [](_vVideoTaskID)
-				<< " size:: " << _mOutCodecTaskIDBeUsed->size();
+				<< " size:: " << _mOutCodecTaskIDBeUsed->size()
+				<< " _mOutCodecTaskIDBeUsed->operator [](_vVideoTaskID): "
+				<< _mOutCodecTaskIDBeUsed->operator [](_vVideoTaskID);
 		DP_U32 codecID = _mOutThirdCodecTaskID->operator [](thirdId);
 		_mOutThirdCodecTaskID->erase(thirdId);
 		_vAllUseCodecTaskID.erase(
@@ -296,7 +315,9 @@ void NodeInfo::removeCodecTaskID(DP_U32 thirdId, TaskObjectType_E taskType) {
 	case _eAudioAndVideoTask: {
 		LOG_INFO << "_mOutCodecTaskIDBeUsed->operator [](TaskID)in remove  : "
 				<< _mOutCodecTaskIDBeUsed->operator [](_vAuViTaskID)
-				<< " size:: " << _mOutCodecTaskIDBeUsed->size();
+				<< " size:: " << _mOutCodecTaskIDBeUsed->size()
+				<< " _mOutCodecTaskIDBeUsed->operator [](_vAuViTaskID): "
+				<< _mOutCodecTaskIDBeUsed->operator [](_vAuViTaskID);
 		DP_U32 codecID = _mOutThirdCodecTaskID->operator [](thirdId);
 		_mOutThirdCodecTaskID->erase(thirdId);
 		_vAllUseCodecTaskID.erase(
@@ -401,14 +422,15 @@ void NodeInfo::rmID(DP_U32 taskID, MapServerTaskIDPtr mTaskID,
 DP_BOOL NodeInfo::initCodec() {
 	UnixSockClientData client(NodeInfo::recvCB);
 	try {
-		if (client.doSendCommand(_sInit.get(), sizeof(DP_M2S_CMD_INIT_S))
-				== 0) {
+		DP_S32 retSend = client.doSendCommand(_sInit.get(),
+				sizeof(DP_M2S_CMD_INIT_S));
+		if (retSend == 0)
 			return DP_TRUE;
-		} else {
+		else {
 			return DP_FALSE;
 		}
-	} catch (const std::string& selfreason) {
-		LOG_FATAL << selfreason;
+	} catch (SystemException &ex) {
+		LOG_ERROR << ex.what();
 		return DP_FALSE;
 	}
 	return DP_TRUE;
@@ -1040,4 +1062,111 @@ DP_S32 NodeInfo::print_avenc_get_attr(DP_M2S_AVENC_SET_INFO_S info) {
 	printf(
 			"#################################################################\n");
 	return 0;
+}
+
+void NodeInfo::printAVDEC(DP_M2S_AVDEC_GET_INFO_S *avdec) {
+	LOG_DEBUG << "avdec:";
+	LOG_DEBUG << "avdec->AvBindAttr.enBindType "
+			<< avdec->AvBindAttr.enBindType;
+	LOG_DEBUG << "avdec->AvBindAttr.stAudio.stIn.ModId "
+			<< avdec->AvBindAttr.stAudio.stIn.ModId;
+	LOG_DEBUG << "avdec->AvBindAttr.stAudio.stIn.u32ChnId "
+			<< avdec->AvBindAttr.stAudio.stIn.u32ChnId;
+	LOG_DEBUG << "avdec->AvBindAttr.stAudio.stIn.u32DevId "
+			<< avdec->AvBindAttr.stAudio.stIn.u32DevId;
+	LOG_DEBUG << "avdec->AvBindAttr.stAudio.stOut.ModId "
+			<< avdec->AvBindAttr.stAudio.stOut.ModId;
+	LOG_DEBUG << "avdec->AvBindAttr.stAudio.stOut.u32ChnId "
+			<< avdec->AvBindAttr.stAudio.stOut.u32ChnId;
+	LOG_DEBUG << "avdec->AvBindAttr.stAudio.stOut.u32DevId "
+			<< avdec->AvBindAttr.stAudio.stOut.u32DevId;
+	LOG_DEBUG << "avdec->AvBindAttr.stVideo.stIn.ModId "
+			<< avdec->AvBindAttr.stVideo.stIn.ModId;
+	LOG_DEBUG << "avdec->AvBindAttr.stVideo.stIn.u32ChnId "
+			<< avdec->AvBindAttr.stVideo.stIn.u32ChnId;
+	LOG_DEBUG << "avdec->AvBindAttr.stVideo.stIn.u32DevId "
+			<< avdec->AvBindAttr.stVideo.stIn.u32DevId;
+	LOG_DEBUG << "avdec->AvBindAttr.stVideo.stOut.ModId "
+			<< avdec->AvBindAttr.stVideo.stOut.ModId;
+	LOG_DEBUG << "avdec->AvBindAttr.stVideo.stOut.u32ChnId "
+			<< avdec->AvBindAttr.stVideo.stOut.u32ChnId;
+	LOG_DEBUG << "avdec->AvBindAttr.stVideo.stOut.u32DevId "
+			<< avdec->AvBindAttr.stVideo.stOut.u32DevId;
+	LOG_DEBUG << "avdec->TskId " << avdec->TskId;
+	LOG_DEBUG << "avdec->stAdec.enAlg " << avdec->stAdec.enAlg;
+	LOG_DEBUG << "avdec->stStream._rtsp.stRtspClient.au8Url "
+			<< avdec->stStream._rtsp.stRtspClient.au8Url;
+	LOG_DEBUG << "avdec->stStream._rtsp.stRtspClient.bMulticast "
+			<< avdec->stStream._rtsp.stRtspClient.bMulticast;
+	LOG_DEBUG << "avdec->stStream._rtsp.stRtspClient.s32ConnTimeout "
+			<< avdec->stStream._rtsp.stRtspClient.s32ConnTimeout;
+	LOG_DEBUG << "avdec->stStream._rtsp.stRtspClient.s32TransType "
+			<< avdec->stStream._rtsp.stRtspClient.s32TransType;
+	LOG_DEBUG << "avdec->stStream._rtsp.stRtspClient.s8Open "
+			<< avdec->stStream._rtsp.stRtspClient.s8Open;
+	LOG_DEBUG << "avdec->stStream._rtsp.stRtspServer.au8Url "
+			<< avdec->stStream._rtsp.stRtspServer.au8Url;
+	LOG_DEBUG << "avdec->stStream._rtsp.stRtspServer.bMulticast "
+			<< avdec->stStream._rtsp.stRtspServer.bMulticast;
+	LOG_DEBUG << "avdec->stStream._rtsp.stRtspServer.bOpen "
+			<< avdec->stStream._rtsp.stRtspServer.bOpen;
+	LOG_DEBUG << "avdec->stStream._rtsp.stRtspServer.s32ConnMax "
+			<< avdec->stStream._rtsp.stRtspServer.s32ConnMax;
+	LOG_DEBUG << "avdec->stStream._rtsp.stRtspServer.s32ConnNums "
+			<< avdec->stStream._rtsp.stRtspServer.s32ConnNums;
+	LOG_DEBUG << "avdec->stStream._rtsp.stRtspServer.s32ConnTimeout "
+			<< avdec->stStream._rtsp.stRtspServer.s32ConnTimeout;
+	LOG_DEBUG << "avdec->stStream._rtsp.stRtspServer.s32TransType "
+			<< avdec->stStream._rtsp.stRtspServer.s32TransType;
+	LOG_DEBUG << "avdec->stVdec.bCrop " << avdec->stVdec.bCrop;
+	LOG_DEBUG << "avdec->stVdec.bOsd " << avdec->stVdec.bOsd;
+	LOG_DEBUG << "avdec->stVdec.bSwms " << avdec->stVdec.bSwms;
+	LOG_DEBUG << "avdec->stVdec.bZoom " << avdec->stVdec.bZoom;
+	LOG_DEBUG << "avdec->stVdec.stAlg.enAlg " << avdec->stVdec.stAlg.enAlg;
+	LOG_DEBUG << "avdec->stVdec.stCrop.s32X " << avdec->stVdec.stCrop.s32X;
+	LOG_DEBUG << "avdec->stVdec.stCrop.s32Y " << avdec->stVdec.stCrop.s32Y;
+	LOG_DEBUG << "avdec->stVdec.stCrop.u32Height "
+			<< avdec->stVdec.stCrop.u32Height;
+	LOG_DEBUG << "avdec->stVdec.stCrop.u32Width "
+			<< avdec->stVdec.stCrop.u32Width;
+	LOG_DEBUG << "avdec->stVdec.stOsd.au8PicPath "
+			<< avdec->stVdec.stOsd.au8PicPath;
+	LOG_DEBUG << "avdec->stVdec.stOsd.enDispMode "
+			<< avdec->stVdec.stOsd.enDispMode;
+	LOG_DEBUG << "avdec->stVdec.stOsd.enType " << avdec->stVdec.stOsd.enType;
+	LOG_DEBUG << "avdec->stVdec.stOsd.stStr.au8Str "
+			<< avdec->stVdec.stOsd.stStr.au8Str;
+	LOG_DEBUG << "avdec->stVdec.stOsd.stStr.u32Color "
+			<< avdec->stVdec.stOsd.stStr.u32Color;
+	LOG_DEBUG << "avdec->stVdec.stOsd.stPoint.s32X "
+			<< avdec->stVdec.stOsd.stPoint.s32X;
+	LOG_DEBUG << "avdec->stVdec.stOsd.stPoint.s32Y "
+			<< avdec->stVdec.stOsd.stPoint.s32Y;
+	LOG_DEBUG << "avdec->stVdec.stSwms.s32SwmsChn "
+			<< avdec->stVdec.stSwms.s32SwmsChn;
+	LOG_DEBUG << "avdec->stVdec.stSwms.s32VoDevId "
+			<< avdec->stVdec.stSwms.s32VoDevId;
+	LOG_DEBUG << "avdec->stVdec.stSwms.stRect.s32X "
+			<< avdec->stVdec.stSwms.stRect.s32X;
+	LOG_DEBUG << "avdec->stVdec.stSwms.stRect.s32Y "
+			<< avdec->stVdec.stSwms.stRect.s32Y;
+	LOG_DEBUG << "avdec->stVdec.stSwms.stRect.u32Height "
+			<< avdec->stVdec.stSwms.stRect.u32Height;
+	LOG_DEBUG << "avdec->stVdec.stSwms.stRect.u32Width "
+			<< avdec->stVdec.stSwms.stRect.u32Width;
+	LOG_DEBUG << "avdec->stVdec.stSwms.u32Priority "
+			<< avdec->stVdec.stSwms.u32Priority;
+	LOG_DEBUG << "avdec->stVdec.stZoom.enType " << avdec->stVdec.stZoom.enType;
+	LOG_DEBUG << "avdec->stVdec.stZoom.stRatio.u32HRatio "
+			<< avdec->stVdec.stZoom.stRatio.u32HRatio;
+	LOG_DEBUG << "avdec->stVdec.stZoom.stRatio.u32WRatio "
+			<< avdec->stVdec.stZoom.stRatio.u32WRatio;
+	LOG_DEBUG << "avdec->stVdec.stZoom.stRatio.u32XRatio "
+			<< avdec->stVdec.stZoom.stRatio.u32XRatio;
+	LOG_DEBUG << "avdec->stVdec.stZoom.stRatio.u32YRatio "
+			<< avdec->stVdec.stZoom.stRatio.u32YRatio;
+	LOG_DEBUG << "avdec->stVdec.stZoom.stRect.s32X "
+			<< avdec->stVdec.stZoom.stRect.s32X;
+	LOG_DEBUG << "avdec->stVdec.stZoom.stRect.s32Y "
+			<< avdec->stVdec.stZoom.stRect.s32Y;
 }

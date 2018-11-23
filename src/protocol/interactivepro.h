@@ -827,7 +827,6 @@ typedef struct _sRemote_Reply_CloseAudio_tag {
 typedef struct _sRemote_SetAudio_tag {
 	_sRemote_Header header;
 	DP_U8 au8DevID[DP_DEV_ID_LEN];		///<输出节点ID
-	DP_U32 u32TaskID;						///<见任务ID注释
 	DP_U8 u8AoChnID;					///<音频播放通道ID @see eDeviceAudioChannelID
 	DP_U8 u8AoChnMute;					///<音频通道静音
 	DP_U8 u8AoChnVolume;					///<音频通道音量 0~100

@@ -9,6 +9,7 @@
 #include <netinet/in.h>
 #include <boost/bind.hpp>
 #include <muduo/base/Singleton.h>
+#include <muduo/base/Logging.h>
 #include <arpa/inet.h>
 #include <iostream>
 #include <string.h>
@@ -60,11 +61,10 @@ void UDPServerHandle::runUdp() {
 }
 void UDPServerHandle::parserDataRecv(DP_U8 *buff, DP_U32 len) {
 	_sRemote_Search * search = (_sRemote_Search*) buff;
-	if (search->header.stFunctionMsg.u8CommandID == Command_Search){
+	if (search->header.stFunctionMsg.u8CommandID == Command_Search) {
 //		printBufferByHex("UDP recv :", buff, len);
 		devSearchHandle();
-	}
-	else
+	} else
 		printBufferByHex("UDP recv 2 ", buff, len);
 }
 
@@ -91,7 +91,9 @@ void UDPServerHandle::devSearchHandle() {
 				sizeof(_sRemote_Reply_Search_ExtendDeviceInput));
 	}
 
-	sendto(m_socket, sendBuf, localInfo->header.u16PackageLen, 0,
+	int ret = sendto(m_socket, sendBuf, localInfo->header.u16PackageLen, 0,
 			(struct sockaddr *) &sendAddr, tmp_server_addr_len);
+//	if (ret > 0)
+//		LOG_INFO << "Dev search ok, return " << ret << " bytes.";
 
 }

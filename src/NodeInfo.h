@@ -250,7 +250,7 @@ public:
 			case _eTaskObjectTypeButt:
 				break;
 			case _eUnknowTask:
-							break;
+				break;
 			}
 		}
 	}
@@ -281,7 +281,7 @@ public:
 	DP_S32 getNewCodecTaskID(DP_U32 thirdId, TaskObjectType_E taskType);
 	DP_S32 findNewID(DP_U32 thirdId, VctrOutCodecTaskID TaskID);
 	DP_S32 getUsedCodecTaskID(DP_U32 thirdId);
-	void removeCodecTaskID(DP_U32 thirdId, TaskObjectType_E taskType);
+	void removeCodecTaskID(DP_U32 thirdId);
 
 	static int recvCB(void* pData, int len);
 private:
@@ -329,6 +329,9 @@ private:
 	//sync
 	void syncToJson();
 	void syncFromJson();
+
+public:
+	static void printAVDEC(DP_M2S_AVDEC_GET_INFO_S *avdec);
 
 //	inline void print_DP_M2S_VO_GET_INFO_S_(DP_M2S_VO_GET_INFO_S *voInfo) {
 //		LOG_INFO << "print_DP_M2S_VO_GET_INFO_S_　devid: " << voInfo->s32DevId

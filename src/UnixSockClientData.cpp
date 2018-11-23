@@ -110,7 +110,7 @@ int UnixSockClientData::doSendCommand(const void* pData, int len)
 //	muduo::PrintBuff::printBufferByHex("send to fifo : ", pData, wbytes);
 	if (wbytes != len) {
 		SocketLayer::CloseSock(sock);
-		throw("send bytes!=actual send bytes");
+		throw SystemException("send bytes!=actual send bytes");
 	}
 	//3.recv &&close socket
 	fd_set readfd;
@@ -142,7 +142,7 @@ int UnixSockClientData::doSendCommand(const void* pData, int len)
 			}
 		} else {
 			SocketLayer::CloseSock(sock);
-			throw(__FILE__, __FUNCTION__, __LINE__);
+			throw SystemException("Recv 0 msg from codec !");
 			return -1;
 		}
 	}
