@@ -33,6 +33,8 @@ typedef enum _E_RemoteCMD_ {
 	_eCloseWindow,
 	_eOpenAudio,
 	_eCloseAudio,
+	_eSetAudio,
+	_eClearTask=0x0b,
 	_eButt
 } _E_RemoteCMD;
 

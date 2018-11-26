@@ -41,6 +41,10 @@ _E_RemoteCMD DataPackageParser::parserDataPackage(std::string data) {
 		return _eOpenAudio;
 	case Command_CloseAudio:
 		return _eCloseAudio;
+	case Command_SetAudio:
+		return _eSetAudio;
+	case Command_ClearTask:
+		return _eClearTask;
 	}
 
 	return _eButt;

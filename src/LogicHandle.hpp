@@ -31,6 +31,7 @@ void LogicHandle::sendCMD(const muduo::net::TcpConnectionPtr connPtr,
 	reply.u32Success = 0;
 	sendBuff.retrieveAll();
 	sendBuff.append(&reply, reply.header.u16PackageLen);
+	LOG_INFO << "Reply success : " << reply.u32Success;
 	connPtr->send(&sendBuff);
 }
 

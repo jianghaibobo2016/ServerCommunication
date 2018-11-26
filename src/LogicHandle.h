@@ -37,6 +37,8 @@ public:
 			std::string data);
 	void closeWindow(const muduo::net::TcpConnectionPtr connPtr,
 			std::string data);
+	void clearAllTask(const muduo::net::TcpConnectionPtr connPtr,
+				std::string data);
 	void openAudio(const muduo::net::TcpConnectionPtr connPtr,
 			std::string data);
 	void closeAudio(const muduo::net::TcpConnectionPtr connPtr,
@@ -61,6 +63,7 @@ private:
 			DP_M2S_CMD_SETINFO_S &setInfo,
 			NodeInfo::VctrAVDECGetInfoPtr vAVDecInfo);
 
+
 	template<typename S, typename T>
 	void sendCMD(const muduo::net::TcpConnectionPtr connPtr, const S *data,
 			T &reply);
@@ -78,10 +81,9 @@ private:
 		}
 	};
 
-
 	///change if terminal changed
 	SetNetwork _netInfo;
-private:
+public:
 	/* remainnnnnnnnnnnnnnnn*/
 	struct findThirdIDByCodecID: public std::binary_function<
 			std::map<DP_U32, DP_U32>::value_type, DP_U32, bool> {
@@ -93,6 +95,7 @@ private:
 				return false;
 		}
 	};
+private:
 	struct findAVDecInfoByCodecID: public std::binary_function<
 			DP_M2S_AVDEC_GET_INFO_S, DP_U32, bool> {
 		bool operator()(const DP_M2S_AVDEC_GET_INFO_S &avDec,

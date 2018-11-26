@@ -10,6 +10,7 @@
 #include "NodeInfo.h"
 #include "interactivepro.h"
 #include "UnixSockClientData.h"
+#include "LogicHandle.h"
 NodeInfo::NodeInfo() :
 		_sInit(new DP_M2S_CMD_INIT_S()), _sDeinit(new DP_M2S_CMD_DEINIT_S()), _vAIGetInfo(
 				new VctrAIGetInfo), _vVIGetInfo(new VctrVIGetInfo), _vAVEncGetInfo(
@@ -228,8 +229,10 @@ DP_S32 NodeInfo::findNewID(DP_U32 thirdId, VctrOutCodecTaskID TaskID) {
 			<< _mOutCodecTaskIDBeUsed->operator [](TaskID);
 
 	//check thirdId!
-	if (_mOutThirdCodecTaskID->find(thirdId) != _mOutThirdCodecTaskID->end())
-		return 0;
+	if (_mOutThirdCodecTaskID->find(thirdId) != _mOutThirdCodecTaskID->end()) {
+		LOG_ERROR << "The repetition third id ";
+		return -3;
+	}
 
 	if (TaskID.size() <= _mOutCodecTaskIDBeUsed->operator [](TaskID))
 		return -1; //error for full !!!!!!
@@ -283,6 +286,12 @@ void NodeInfo::removeCodecTaskID(DP_U32 thirdId) {
 				<< " size:: " << _mOutCodecTaskIDBeUsed->size()
 				<< " _mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID): "
 				<< _mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID);
+		if (_mOutThirdCodecTaskID->find(thirdId)
+				== _mOutThirdCodecTaskID->end()) {
+			LOG_ERROR << "Can not find thirdId: " << thirdId
+					<< " in _mOutThirdCodecTaskID !";
+			return;
+		}
 		DP_U32 codecID = _mOutThirdCodecTaskID->operator [](thirdId);
 		_mOutThirdCodecTaskID->erase(thirdId);
 		_vAllUseCodecTaskID.erase(
@@ -335,6 +344,22 @@ void NodeInfo::removeCodecTaskID(DP_U32 thirdId) {
 
 }
 
+void NodeInfo::updateThirdTaskIDCodecTaskid(DP_U32 thirdId, DP_S32 codecID) {
+	LOG_INFO << "Update third task id :" << thirdId;
+	MapOutThirdCodecTaskIDPtr thirdCodecID = getOutThirdCodecTaskID();
+	NodeInfo::MapOutThirdCodecTaskID::iterator it_ID;
+	it_ID = std::find_if(thirdCodecID->begin(), thirdCodecID->end(),
+			bind2nd(LogicHandle::findThirdIDByCodecID(), codecID));
+	if (it_ID != thirdCodecID->end()) {
+		thirdCodecID->erase(it_ID);
+		thirdCodecID->insert(
+				MapOutThirdCodecTaskID::value_type(thirdId, codecID));
+		updateMapOutThirdCodecTaskID(thirdCodecID);
+	} else {
+		LOG_ERROR << "Can not find third task id : " << thirdId;
+		return;
+	}
+}
 /*
  * 范围定义：
  * 	[0~255]，为音频任务ID，选中此ID范围时，仅可操作音频的相关属性；

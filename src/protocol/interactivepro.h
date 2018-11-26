@@ -335,7 +335,8 @@ typedef enum _eRemoteCommand {
 	Command_CloseWindow,
 	Command_OpenAudio,
 	Command_CloseAudio,
-	Command_SetAudio
+	Command_SetAudio,
+	Command_ClearTask = 0x0b
 } eRemoteCommand;
 
 //设备属性值 @see Property_Get_InputVideoChnInfo
@@ -784,7 +785,7 @@ typedef struct _sRemote_OpenAudio_tag {
 	DP_U8 u8DevType;  ///<采集端设备类型 @see eDeviceType
 
 	DP_U8 au8RtspURL[DP_URL_LEN]; ///< 第三方标准RTSP //server
-	_sSrcAudioInfo  srcAudioInfo; //2018/11/20
+	_sSrcAudioInfo srcAudioInfo; //2018/11/20
 
 	//输出信号
 	DP_U8 au8DstDevID[DP_DEV_ID_LEN]; ///<节点ID
@@ -840,7 +841,25 @@ typedef struct _sRemote_Reply_SetAudio_tag {
 } _sRemote_Reply_SetAudio;
 ///@} //end 关闭音频命令
 ///@} //end 控制软件与输入输出节点的协议
+///////////////////////////////////////////////////11 clear all task///////////////////////////////////////////////////
+typedef struct _sRemote_ClearTask_tag {
+	_sRemote_Header header;
+	DP_U8 au8DevID[DP_DEV_ID_LEN];		///<输出节点ID
+	DP_U8 u8TaskType;						///<0视频任务 1音频任务 2 video & audio
+} _sRemote_ClearTask;
 
+typedef struct _sRemote_Reply_ClearTask_tag {
+	_sRemote_Reply_ClearTask_tag(_sRemote_Header head, DP_U8 *devID,
+			DP_U32 u32Success) :
+			header(head), u32Success(u32Success) {
+		memset(au8DevID, 0, DP_DEV_ID_LEN);
+		strcpy((DP_CHAR*) au8DevID, (DP_CHAR*) devID);
+	}
+	_sRemote_Header header;
+	DP_U8 au8DevID[DP_DEV_ID_LEN];		///< 节点ID
+	DP_U32 u32Success; 					///<0成功 其他失败，含错误码
+} _sRemote_Reply_ClearTask;
+//add new protocol 2018/11/26
 #pragma pack()
 
 #endif

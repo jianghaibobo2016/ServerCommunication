@@ -44,6 +44,6 @@ static const DP_CHAR *IFNAMEDEV = "eth0";
 //static const DP_CHAR *IFNAMEDEV = "ens33";
 
 
-static const DP_U32 LogFileMaxSize = 4 * 1024 * 1024;
+static const DP_U32 LogFileMaxSize = 2 * 1024 * 1024;
 
 #endif /* SRC_DEVSTATICCONFIGURE_H_ */

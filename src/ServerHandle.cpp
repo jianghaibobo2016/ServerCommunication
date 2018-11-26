@@ -48,7 +48,7 @@ void ServerHandle::onMessage(const TcpConnectionPtr &connPtr, Buffer *buff,
 //	non block
 	//use thread pool
 	if (!isUsingThreadPool) {
-		LOG_FATAL<<"WHY NOT USE THREAD POOL !";
+		LOG_FATAL << "WHY NOT USE THREAD POOL !";
 	}
 
 	//run model judge
@@ -63,47 +63,52 @@ void ServerHandle::onMessage(const TcpConnectionPtr &connPtr, Buffer *buff,
 //	NodeInfo nodeInfo;
 	LogicHandle logicHandle;
 	switch (DataPackageParser::parserDataPackage(data)) {
-	case Command_Search:
+	case _eSearch:
 //		_threadPool.run(boost::bind(&DevSearch::devSearch, devSearch, connPtr));
 		break;
-	case Command_CreateWindow:
+	case _eCreateWindow:
 		_threadPool.run(
 				boost::bind(&LogicHandle::createWindow, &logicHandle, connPtr,
 						data));
 		break;
-	case Command_GetInfo:
+	case _eGetInfo:
 		_threadPool.run(
 				boost::bind(&LogicHandle::getInfo, &logicHandle, connPtr,
 						data));
 		break;
-	case Command_SetInfo:
+	case _eSetInfo:
 		_threadPool.run(
 				boost::bind(&LogicHandle::setInfo, &logicHandle, connPtr,
 						data));
 		break;
-	case Command_MoveWindow:
+	case _eMoveWindow:
 		_threadPool.run(
 				boost::bind(&LogicHandle::moveWindow, &logicHandle, connPtr,
 						data));
 		break;
-	case Command_CloseWindow:
+	case _eCloseWindow:
 		_threadPool.run(
 				boost::bind(&LogicHandle::closeWindow, &logicHandle, connPtr,
 						data));
 		break;
-	case Command_OpenAudio:
+	case _eOpenAudio:
 		_threadPool.run(
 				boost::bind(&LogicHandle::openAudio, &logicHandle, connPtr,
 						data));
 		break;
-	case Command_CloseAudio:
+	case _eCloseAudio:
 		_threadPool.run(
 				boost::bind(&LogicHandle::closeAudio, &logicHandle, connPtr,
 						data));
 		break;
-	case Command_SetAudio:
+	case _eSetAudio:
 		_threadPool.run(
 				boost::bind(&LogicHandle::setAudioInfo, &logicHandle, connPtr,
+						data));
+		break;
+	case _eClearTask:
+		_threadPool.run(
+				boost::bind(&LogicHandle::clearAllTask, &logicHandle, connPtr,
 						data));
 		break;
 	default:

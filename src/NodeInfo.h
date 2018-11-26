@@ -282,6 +282,7 @@ public:
 	DP_S32 findNewID(DP_U32 thirdId, VctrOutCodecTaskID TaskID);
 	DP_S32 getUsedCodecTaskID(DP_U32 thirdId);
 	void removeCodecTaskID(DP_U32 thirdId);
+	void updateThirdTaskIDCodecTaskid(DP_U32 thirdId, DP_S32 codecID);
 
 	static int recvCB(void* pData, int len);
 private:
