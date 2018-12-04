@@ -224,6 +224,7 @@ void NodeInfo::initLocalInfo() {
 	VecVODEV voDev;
 	voDev.push_back(DP_M2S_VO_DEV_HDMI0_HI3536);
 
+
 	getAVInfoFromCodecInfo<VctrVOGetInfoPtr, DP_M2S_VO_GET_INFO_S>(VOInfo,
 			DP_M2S_INFO_TYPE_GET_VO, DP_VO_DEV_MAX);
 	LOG_INFO << "VOInfo size:::: === " << VOInfo->size();
