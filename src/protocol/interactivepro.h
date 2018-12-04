@@ -327,7 +327,7 @@ typedef enum _eRemotePropertyName
 
 //协议命令号定义
 typedef enum _eRemoteCommand {
-	Command_Search = 0x01,
+	Command_MulticastSearch = 0x01, //20181203 modify
 	Command_GetInfo,
 	Command_SetInfo,
 	Command_CreateWindow,
@@ -336,7 +336,8 @@ typedef enum _eRemoteCommand {
 	Command_OpenAudio,
 	Command_CloseAudio,
 	Command_SetAudio,
-	Command_ClearTask = 0x0b
+	Command_ClearTask = 0x0b,
+	Command_UnicastSearch = 0XF1 //20181203 add
 } eRemoteCommand;
 
 //设备属性值 @see Property_Get_InputVideoChnInfo

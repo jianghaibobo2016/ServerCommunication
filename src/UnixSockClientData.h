@@ -28,6 +28,7 @@ public:
 	virtual ~UnixSockClientData();
 	void addCommand(const void* pData, int len);
 	int doSendCommand(const void* pData, int len) throw (SystemException);
+	int onlySendMsg(const void* pData, int len) throw (SystemException);
 	uint8_t * getRecvBuff() {
 //		DP_U64 sec = 0;
 //		DP_U64 usec = 0;

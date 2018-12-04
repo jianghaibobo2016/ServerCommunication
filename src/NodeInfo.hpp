@@ -11,103 +11,123 @@
 #include "NodeInfo.h"
 #include "UnixSockClientData.h"
 #include "PrintBuff.h"
+//#include <st>
 
+// 使用偏特化判断模板是否为指定类型，这里用于判断模板类型是否为double型
+template<typename T>
+struct isAVEncOrDec {
+	operator bool() {
+		return false;
+	}
+};
+template<>
+struct isAVEncOrDec<DP_M2S_AVENC_INFO_S> {
+	operator bool() {
+		return true;
+	}
+};
+template<>
+struct isAVEncOrDec<DP_M2S_AVDEC_INFO_S> {
+	operator bool() {
+		return true;
+	}
+};
+
+//利用 c++模板 类型 推导思想，实现最简单的 判断两个类型 是否一样的 方法
+template<typename T1, typename T2>
+struct is__same {
+	operator bool() {
+		return false;
+	}
+};
+
+template<typename T1>
+struct is__same<T1, T1> {
+	operator bool() {
+		return true;
+	}
+};
+
+//VctrAVDECGetInfoPtr  DP_M2S_CMD_AVENC_SETINFO_S
 template<typename T, typename S>
-DP_BOOL NodeInfo::getAVInfoFromCodecInfo(T vctrGetInfo, DP_M2S_INFO_TYPE_E type,
-		DP_U32 devMax) {
-	DP_M2S_CMD_GETINFO_S getInfo(sizeof(DP_M2S_CMD_GETINFO_S),
-			DP_M2S_CMD_GETINFO, 0x01, type);
-	try {
-		UnixSockClientDataPtr client(new UnixSockClientData());
-		client->doSendCommand(&getInfo, sizeof(DP_M2S_CMD_GETINFO_S));
-		DP_U32 offset = sizeof(DP_M2S_INF_PROT_HEAD_S)
-				+ sizeof(DP_M2S_INFO_TYPE_E) + sizeof(DP_U32) + sizeof(DP_U32);
-		DP_U8 *recvBuff = client->getRecvBuff();
-		DP_M2S_CMD_GETINFO_RESPOND_S *getCodecRespond =
-				(DP_M2S_CMD_GETINFO_RESPOND_S*) recvBuff;
-		if (type != getCodecRespond->enInfoTYpe
-				|| getCodecRespond->u32Success != 0) {
-			LOG_ERROR << "Return error in getAVInfoFromCodecInfo : type : "
-					<< getCodecRespond->enInfoTYpe << " sucess: "
-					<< getCodecRespond->u32Success;
-			return DP_FALSE;
+DP_BOOL NodeInfo::getAVInfoFromCodec(VecCodecTaskID codecID,
+		DP_M2S_CMD_ID_E cmd) {
+	vector<DP_S32>::iterator itID;
+	typename T checkAVInfo;
+	DP_M2S_CMD_COMMON_GETINFO_S getAVDec(cmd);
+	DP_S32 retSend = 0;
+	UnixSockClientData client(NodeInfo::recvCB);
+	for (itID = codecID.begin(); itID != codecID.end(); itID++) {
+		LOG_INFO << "Ask av info  cmd: " << cmd
+				<< " ======================================task id : "
+				<< (DP_S32) *itID;
+		getAVDec.s32TskId = (DP_S32) *itID;
+		try {
+			retSend = client.doSendCommand(&getAVDec,
+					sizeof(DP_M2S_CMD_COMMON_GETINFO_S));
+			if (retSend != 0)
+				LOG_ERROR << "Send avdec failed taskiD in ask : "
+						<< getAVDec.s32TskId;
+				else {
+					DP_U8 *recvBuff = client.getRecvBuff();
+					S *getCodecRespond = (S*) recvBuff;
+					checkAVInfo->push_back(getCodecRespond->stInfo);
+					LOG_INFO << "Ask av task id : "
+							<< getCodecRespond->stInfo.s32TskId;
+					if (is__same<S, DP_M2S_AVENC_INFO_S>()) {
+						LOG_INFO << "S is same to DP_M2S_AVENC_INFO_S";
+						NodeInfo::printAVENC(&getCodecRespond->stInfo);
+					}
+					if (is__same<S, DP_M2S_AVDEC_INFO_S>()) {
+						LOG_INFO << "S is same to DP_M2S_AVDEC_INFO_S";
+						NodeInfo::printAVDEC(&getCodecRespond->stInfo);
+					}
+				}
+		} catch (SystemException &ex) {
+			LOG_ERROR << ex.what() << " task id :" << getAVDec.s32TskId;
 		}
-//		muduo::PrintBuff::printBufferByHex(" recv buff getAVInfoFromCodecInfo ",
-//				recvBuff, getCodecRespond->u32InfoLen);
-		DP_U32 numOfVencCh = 0;
-		numOfVencCh = getCodecRespond->u32InfoLen / sizeof(S);
-		LOG_INFO << "u32InfoLen : sizeof (S) : " << getCodecRespond->u32InfoLen
-				<< " // " << sizeof(S) << " numOfVencCh:  " << numOfVencCh;
+	}
+	LOG_INFO << "Size of checkAVDec: " << checkAVInfo->size();
+}
 
-		vctrGetInfo->clear();
-		for (DP_U32 i = 0; i < numOfVencCh; i++) {
-			S tmp = *(S *) (recvBuff + offset + i * sizeof(S));
-			vctrGetInfo->push_back(tmp);
+template<typename T, typename S> //VctrAVDECGetInfoPtr DP_M2S_CMD_AVDEC_SETINFO_S
+DP_BOOL NodeInfo::setAVInfoToCodec(boost::shared_ptr<T> vAVInfo,
+		DP_M2S_CMD_ID_E cmd) {
+	try {
+		boost::shared_ptr<S> setAVInfo(new S(cmd));
+		muduo::net::Buffer buffSend;
+		UnixSockClientDataPtr client(new UnixSockClientData(NodeInfo::recvCB));
+		DP_S32 ret = 0;
+		for (typename T::iterator it = vAVInfo.begin(); it != vAVInfo.end();
+				it++) {
+			setAVInfo->stInfo = *it;
+			buffSend.retrieveAll();
+			buffSend.append(setAVInfo.get(), sizeof(S));
+			ret = client->doSendCommand(buffSend.toStringPiece().data(),
+					sizeof(S));
+			if (ret != 0) {
+				LOG_ERROR << "Recv from codec : " << ret;
+				return DP_FALSE;
+			} else {
+				LOG_INFO << "Set to codec task id: " << it->stInfo.s32TskId;
+			}
 		}
 	} catch (const std::string& selfreason) {
-		LOG_FATAL << selfreason;
+		std::cout << "Error: " << selfreason << endl;
 		return DP_FALSE;
 	}
 	return DP_TRUE;
 }
 
-//send all
-//template<typename T, typename S>
-//DP_BOOL NodeInfo::setAVInfoToCodec(T vAVEnc, DP_M2S_INFO_TYPE_E type) {
-//	try {
-//		DP_U32 infoLen = vAVEnc.size() * sizeof(S);
-//		DP_U32 packageLen = sizeof(DP_M2S_INF_PROT_HEAD_S)
-//				+ sizeof(DP_M2S_INFO_TYPE_E) + sizeof(DP_U32) + infoLen;
-//		DP_M2S_CMD_SETINFO_S setInfo(packageLen, DP_M2S_CMD_SETINFO, 0x01, type,
-//				infoLen);
-//		muduo::net::Buffer buffSend;
-//		buffSend.append(&setInfo, packageLen - infoLen);
-//		for (typename T::iterator it = vAVEnc.begin(); it != vAVEnc.end();
-//				it++) {
-//			buffSend.append((DP_U8*) &(*it), sizeof(S));
-//		}
-//		UnixSockClientDataPtr client(new UnixSockClientData(NodeInfo::recvCB));
-//		if (client->doSendCommand(buffSend.toStringPiece().data(), packageLen)
-//				== 0)
-//			return DP_TRUE;
-//		else
-//			return DP_FALSE;
-//
-//	} catch (SystemException& ex) {
-//		std::cout << "Error:" << ex.what() << endl;
-//	}
-//	return DP_TRUE;
-//}
+template<typename T, typename S, typename V>
+DP_BOOL NodeInfo::getAOVOInfoFromCodec(DP_M2S_CMD_ID_E cmd, V aovoDev) {
+	VctrVOGetInfoPtr VOInfo = getVOGetInfo();
 
-template<typename T, typename S>
-DP_BOOL NodeInfo::setAVInfoToCodec(T vAVEnc, DP_M2S_INFO_TYPE_E type) {
-	try {
-		DP_U32 infoLen = sizeof(S);
-		DP_U32 packageLen = sizeof(DP_M2S_INF_PROT_HEAD_S)
-				+ sizeof(DP_M2S_INFO_TYPE_E) + sizeof(DP_U32) + infoLen;
-		DP_M2S_CMD_SETINFO_S setInfo(packageLen, DP_M2S_CMD_SETINFO, 0x01, type,
-				infoLen);
-		muduo::net::Buffer buffSend;
-
-		UnixSockClientDataPtr client(new UnixSockClientData(NodeInfo::recvCB));
-		for (typename T::iterator it = vAVEnc.begin(); it != vAVEnc.end();
-				it++) {
-			buffSend.retrieveAll();
-			buffSend.append(&setInfo, packageLen - infoLen);
-			buffSend.append((DP_U8*) &(*it), sizeof(S));
-			LOG_INFO << " it -> task id : " << it->TskId;
-			if (client->doSendCommand(buffSend.toStringPiece().data(),
-					packageLen) == 0) {
-//			return DP_TRUE;
-
-			}
-		}
-
-	} catch (const std::string& selfreason) {
-		std::cout << "Error:" << selfreason << endl;
-		return DP_FALSE;
-	}
-	return DP_TRUE;
+	DP_M2S_CMD_VO_GETINFO_S getCmd(DP_M2S_CMD_VO_GET,
+			DP_M2S_VO_DEV_HDMI0_HI3536);
+	//send to codec
+	//recv
+	DP_M2S_CMD_VO_GETINFO_ACK_S
 }
 
 #endif /* SRC_NODEINFO_HPP_ */

@@ -16,7 +16,7 @@
 
 #include <map>
 #include <vector>
-
+#include "SetNetwork.h"
 #include "interactivepro.h"
 #include "dp_m2s_prot.h"
 
@@ -33,7 +33,7 @@ public:
 	NodeInfo();
 	~NodeInfo();
 
-	typedef boost::shared_ptr<DP_M2S_CMD_INIT_S> InitPtr;
+	typedef boost::shared_ptr<DP_M2S_CMD_SYS_INIT_S> InitPtr;
 	typedef boost::shared_ptr<DP_M2S_CMD_DEINIT_S> DeinitPtr;
 
 	//获取音频输入设备信息
@@ -45,19 +45,19 @@ public:
 	typedef boost::shared_ptr<VctrVIGetInfo> VctrVIGetInfoPtr;
 
 	//获取音视频编码通道信息
-	typedef std::vector<DP_M2S_AVENC_GET_INFO_S> VctrAVENCGetInfo;
+	typedef std::vector<DP_M2S_AVENC_INFO_S> VctrAVENCGetInfo;
 	typedef boost::shared_ptr<VctrAVENCGetInfo> VctrAVENCGetInfoPtr;
 
 	//取音视频解码通道信息
-	typedef std::vector<DP_M2S_AVDEC_GET_INFO_S> VctrAVDECGetInfo;
+	typedef std::vector<DP_M2S_AVDEC_INFO_S> VctrAVDECGetInfo;
 	typedef boost::shared_ptr<VctrAVDECGetInfo> VctrAVDECGetInfoPtr;
 
 	// 说明： 获取音频输出信息
-	typedef std::vector<DP_M2S_AO_GET_INFO_S> VctrAOGetInfo;
+	typedef std::vector<DP_M2S_AO_INFO_S> VctrAOGetInfo;
 	typedef boost::shared_ptr<VctrAOGetInfo> VctrAOGetInfoPtr;
 
 	// 获取视频输出信息
-	typedef std::vector<DP_M2S_VO_GET_INFO_S> VctrVOGetInfo;
+	typedef std::vector<DP_M2S_VO_INFO_S> VctrVOGetInfo;
 	typedef boost::shared_ptr<VctrVOGetInfo> VctrVOGetInfoPtr;
 
 	//id for codec & id for thirdparty
@@ -77,7 +77,7 @@ public:
 	typedef std::vector<DP_U32> VctrAllUsedCodecTaskID;
 
 	// SWMS chn  num -->> avdec
-	typedef std::map<DP_S32, DP_M2S_AVDEC_GET_INFO_S> MapOutSWMSChCodecDecInfo;
+	typedef std::map<DP_S32, DP_M2S_AVDEC_INFO_S> MapOutSWMSChCodecDecInfo;
 	typedef boost::shared_ptr<MapOutSWMSChCodecDecInfo> MapOutSWMSChCodecDecInfoPtr;
 
 	// third task id -->  _sSrcVideoInfo
@@ -91,6 +91,11 @@ public:
 	//AO Dev id -- codec Task id
 	typedef std::map<DP_U8, DP_U32> MapAODevIDCodecID;
 	typedef boost::shared_ptr<MapAODevIDCodecID> MapAODevIDCodecIDPtr;
+
+	typedef std::vector<DP_S32> VecCodecTaskID;
+
+	typedef std::vector<DP_M2S_VO_DEV_E> VecVODEV;
+	typedef std::vector<DP_M2S_AO_DEV_E> VecAODEV;
 
 	//----------------------------get --------------------------//
 	inline const VctrAIGetInfoPtr getAIGetInfo() const {
@@ -257,8 +262,8 @@ public:
 	//----------------------------update --------------------------//
 
 private:
-	InitPtr _sInit;
-	DeinitPtr _sDeinit;
+//	InitPtr _sInit;
+//	DeinitPtr _sDeinit;
 	mutable muduo::MutexLock _mutex;
 	muduo::MutexLock _mutexForUsedID;
 	VctrAIGetInfoPtr _vAIGetInfo;
@@ -289,11 +294,13 @@ private:
 	void initLocalInfo();
 
 	template<typename T, typename S>
-	DP_BOOL getAVInfoFromCodecInfo(T vctrGetInfo, DP_M2S_INFO_TYPE_E type,
-			DP_U32 devMax);
+	DP_BOOL getAVInfoFromCodec(VecCodecTaskID codecID, DP_M2S_CMD_ID_E cmd);
 
 	template<typename T, typename S>
-	DP_BOOL setAVInfoToCodec(T vAVEnc, DP_M2S_INFO_TYPE_E type);
+	DP_BOOL setAVInfoToCodec(boost::shared_ptr<T> vAVEnc, DP_M2S_CMD_ID_E cmd);
+
+	template<typename T, typename S, typename E>
+	DP_BOOL getAOVOInfoFromCodec(DP_M2S_CMD_ID_E cmd, E devId);
 
 public:
 	MapServerTaskIDPtr _mAudioTaskID, _mVideoTaskID, _mAuViTaskID;
@@ -303,6 +310,8 @@ public:
 private:
 	VctrWindowPriorityPtr _vWindowPriority;
 
+	static SetNetwork _netInfo;
+
 	//use in output node
 	void setInputTaskIDInMap(VctrAVENCGetInfoPtr avEncInfo);
 	void setOutputTaskIDInMap(VctrAVDECGetInfoPtr avEncInfo);
@@ -310,11 +319,16 @@ private:
 	DP_BOOL initCodec();
 	DP_BOOL deinitCodec();
 
+	DP_BOOL initOutAVEnc();
+	DP_BOOL initOutAVDec();
+
 private:
 	DP_U32 setID(MapServerTaskIDPtr mTaskID, DP_U32 taskID, DP_U32 min,
 			DP_U32 max, TaskObjectType_E taskType);
 	void rmID(DP_U32 taskID, MapServerTaskIDPtr mTaskID,
 			TaskObjectType_E taskType);
+
+	void initAVDec(DP_M2S_AVDEC_INFO_S *avdec, DP_S32 taskID, DP_U32 chnID);
 
 	DP_S32 cmd_set_aenc_default(DP_VOID *pPtr, DP_S32 s32TskId, DP_U32 u32Width,
 			DP_U32 u32Height, DP_U32 u32Bitrate, DP_S32 AencChn);
@@ -323,16 +337,17 @@ private:
 	DP_S32 cmd_set_avenc_default(DP_VOID *pPtr, DP_S32 s32TskId,
 			DP_U32 u32Width, DP_U32 u32Height, DP_U32 u32Bitrate,
 			DP_S32 AencChn, DP_S32 VencChn);
-	DP_S32 cmd_set_avenc_default_512(DP_VOID*pPtr);
-	DP_S32 cmd_set_avenc_default_513(DP_VOID*pPtr);
-	DP_S32 print_avenc_get_attr(DP_M2S_AVENC_SET_INFO_S info);
+//	DP_S32 cmd_set_avenc_default_512(DP_VOID*pPtr);
+//	DP_S32 cmd_set_avenc_default_513(DP_VOID*pPtr);
+//	DP_S32 print_avenc_get_attr(DP_M2S_AVENC_INFO_S info);
 
 	//sync
 	void syncToJson();
 	void syncFromJson();
 
 public:
-	static void printAVDEC(DP_M2S_AVDEC_GET_INFO_S *avdec);
+	static void printAVDEC(DP_M2S_AVDEC_INFO_S *avdec);
+	static void printAVENC(DP_M2S_AVENC_INFO_S *avenc);
 
 //	inline void print_DP_M2S_VO_GET_INFO_S_(DP_M2S_VO_GET_INFO_S *voInfo) {
 //		LOG_INFO << "print_DP_M2S_VO_GET_INFO_S_　devid: " << voInfo->s32DevId

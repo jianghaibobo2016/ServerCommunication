@@ -8,7 +8,7 @@
  * 日期：2018/10/19
  */
 
-#if 1
+#if 0
 #ifndef __DP_M2S_PROT_H__
 #define __DP_M2S_PROT_H__
 #include <string.h>
@@ -1409,15 +1409,14 @@ typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_EXIT_RESPOND_S;
 #endif 
 #endif
 
-
-#if 0
+#if 1
 /**
  * 文件: dp_m2s_prot.h
  * 简要: 编解码模块控制协议
  * 详述：
  该协议主要是用于（设备节点）编解码模块与服务逻辑模块之间的内部控制操作。
  * 作者：lyw
- * 版本：v02.00
+ * 版本：v02.01
  * 日期：2018/11/22
  */
 
@@ -1425,7 +1424,7 @@ typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_EXIT_RESPOND_S;
 #define __DP_M2S_PROT_H__
 
 #include "./dp_sd_type.h"
-#include "DevStaticConfigure.h"
+#include <string.h>
 #pragma pack(push)
 #pragma pack(1)
 
@@ -1434,14 +1433,10 @@ typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_EXIT_RESPOND_S;
 /* IDMS4K 输出设备 */
 #define IDMS4K_DEV_HI3536_OUT 0x2f
 /* IDMS4K 设备类型定义 */
-#if (InputDevice)
-#define IMDS4K_DEV IDMS4K_DEV_HI3536_IN
-#endif
-#if (OutputDevice)
 #define IMDS4K_DEV IDMS4K_DEV_HI3536_OUT
-#endif
+
 /* 协议版本号 */
-#define DP_M2S_INF_PROT_VERSION			"02.00"
+#define DP_M2S_INF_PROT_VERSION			"02.01"
 #define DP_M2S_INF_PROT_VERSION_LEN		5
 /* 协议通信接口定义 */
 #define DP_M2S_INF_PROT_UNIX_FIFO		"/tmp/UNIX_AV2APP"
@@ -1584,6 +1579,15 @@ typedef enum _DP_M2S_VO_DEV_E {
 
 	DP_M2S_VO_DEV_HDMI0_HI3536 = 0x0, DP_M2S_VO_DEV_MAX
 } DP_M2S_VO_DEV_E;
+
+/* 音频输入通道最大数量 */
+#define DP_M2S_AI_CHN_MAX 1
+/* 音频频输出通道最大数量 */
+#define DP_M2S_AO_CHN_MAX 2
+/* 视频输出通道最大数量 */
+#define DP_M2S_VOU_CHN_MAX 1
+/* 视频层是否使用虚拟层进行拼接 */
+#define DP_M2S_IS_USE_VIR 1
 
 /* 音频编码通道最大数量 */
 #define DP_M2S_AENC_CHN_MAX 1
@@ -1740,7 +1744,13 @@ typedef struct _DP_M2S_BIND_S {
  *注意：无
  */
 typedef struct _DP_M2S_AVBIND_ATTR_S {
-
+	_DP_M2S_AVBIND_ATTR_S(DP_M2S_AVBIND_TYPE_E bindType, DP_M2S_BIND_S audio,
+			DP_M2S_BIND_S video) :
+			enBindType(bindType), stAudio(audio), stVideo(video) {
+	}
+	_DP_M2S_AVBIND_ATTR_S() :
+			enBindType(), stAudio(), stVideo() {
+	}
 	DP_M2S_AVBIND_TYPE_E enBindType;
 	DP_M2S_BIND_S stAudio;
 	DP_M2S_BIND_S stVideo;
@@ -1761,7 +1771,18 @@ typedef struct _DP_M2S_AVBIND_ATTR_S {
  *注意：无
  */
 typedef struct _DP_M2S_INF_PROT_HEAD_S {
-
+	_DP_M2S_INF_PROT_HEAD_S(DP_U16 packageLen, DP_M2S_CMD_ID_E cmdID,
+			DP_U8 needReply) :
+			u16HeadTag(DP_M2S_INF_PROT_PKT_HEAD), u16PacketLen(packageLen), u8CommandID(
+					cmdID) {
+		if (needReply == 0x00)
+			u16PacketLen &= 0x7FFF;
+		else if (needReply == 0x01)
+			u16PacketLen |= 0x8000;
+	}
+	_DP_M2S_INF_PROT_HEAD_S() :
+			u16HeadTag(DP_M2S_INF_PROT_PKT_HEAD), u16PacketLen(), u8CommandID() {
+	}
 	DP_U16 u16HeadTag;
 	DP_U16 u16PacketLen;
 	DP_U8 u8CommandID;
@@ -1777,7 +1798,6 @@ typedef struct _DP_M2S_INF_PROT_HEAD_S {
  *注意：无
  */
 typedef enum _DP_M2S_VIDEO_SYNC_E {
-
 	DP_M2S_VIDEO_SYNC_720P60 = 0x0,
 	DP_M2S_VIDEO_SYNC_1080P60,
 	DP_M2S_VIDEO_SYNC_4K30,
@@ -1796,7 +1816,6 @@ typedef enum _DP_M2S_VIDEO_SYNC_E {
  *注意：无
  */
 typedef enum _DP_M2S_AUDIO_SAMPLE_RATE_E {
-
 	DP_M2S_AUDIO_SAMPLE_RATE_8000 = 8000,
 	DP_M2S_AUDIO_SAMPLE_RATE_16000 = 16000,
 	DP_M2S_AUDIO_SAMPLE_RATE_32000 = 32000,
@@ -1814,7 +1833,6 @@ typedef enum _DP_M2S_AUDIO_SAMPLE_RATE_E {
  *注意：无
  */
 typedef enum _DP_M2S_AUDIO_BIT_WIDTH_E {
-
 	DP_M2S_AUDIO_BIT_WIDTH_8 = 0x0,
 	DP_M2S_AUDIO_BIT_WIDTH_16 = 0x1,
 	DP_M2S_AUDIO_BIT_WIDTH_BUTT
@@ -1829,7 +1847,6 @@ typedef enum _DP_M2S_AUDIO_BIT_WIDTH_E {
  *注意：无
  */
 typedef enum _DP_M2S_AUDIO_SOUND_MODE_E {
-
 	DP_M2S_AUDIO_SOUND_MODE_MONO = 0x0,
 	DP_M2S_AUDIO_SOUND_MODE_STEREO = 0x1,
 	DP_M2S_AUDIO_SOUND_MODE_BUTT
@@ -1845,7 +1862,12 @@ typedef enum _DP_M2S_AUDIO_SOUND_MODE_E {
  *注意：无
  */
 typedef struct _DP_M2S_AUDIO_COMM_ATTR_S {
-
+	_DP_M2S_AUDIO_COMM_ATTR_S(DP_M2S_AUDIO_SAMPLE_RATE_E samplerate,
+			DP_M2S_AUDIO_BIT_WIDTH_E bitwidth,
+			DP_M2S_AUDIO_SOUND_MODE_E soundmode) :
+			enSamplerate(samplerate), enBitwidth(bitwidth), enSoundmode(
+					soundmode) {
+	}
 	DP_M2S_AUDIO_SAMPLE_RATE_E enSamplerate;
 	DP_M2S_AUDIO_BIT_WIDTH_E enBitwidth;
 	DP_M2S_AUDIO_SOUND_MODE_E enSoundmode;
@@ -1860,7 +1882,6 @@ typedef struct _DP_M2S_AUDIO_COMM_ATTR_S {
  *注意：无
  */
 typedef struct _DP_M2S_POINT_S {
-
 	DP_S32 s32X;
 	DP_S32 s32Y;
 } DP_M2S_POINT_S;
@@ -1889,7 +1910,6 @@ typedef struct _DP_M2S_SIZE_S {
  *注意：无
  */
 typedef struct _DP_M2S_RECT_S {
-
 	DP_S32 s32X;
 	DP_S32 s32Y;
 	DP_U32 u32Width;
@@ -1911,7 +1931,6 @@ typedef struct _DP_M2S_RECT_S {
  *注意：无
  */
 typedef enum _DP_M2S_ALG_TYPE_E {
-
 	DP_M2S_ALG_H264_ENC = 0x0,
 	DP_M2S_ALG_H264_DEC,
 	DP_M2S_ALG_H265_ENC,
@@ -1932,7 +1951,6 @@ typedef enum _DP_M2S_ALG_TYPE_E {
  *注意：无
  */
 typedef enum _DP_M2S_RC_MODE_E {
-
 	DP_M2S_RC_MODE_H264CBR = 0x0, DP_M2S_RC_MODE_H264VBR, DP_M2S_RC_MODE_BUTT
 } DP_M2S_RC_MODE_E;
 
@@ -1946,7 +1964,6 @@ typedef enum _DP_M2S_RC_MODE_E {
  *注意：无
  */
 typedef enum _DP_M2S_ALG_PROFILE_E {
-
 	DP_M2S_ALG_PROFILE_H264_BP = 0x0,
 	DP_M2S_ALG_PROFILE_H264_MP,
 	DP_M2S_ALG_PROFILE_H264_HP,
@@ -1970,7 +1987,6 @@ typedef enum _DP_M2S_ALG_PROFILE_E {
  *注意：无
  */
 typedef struct _DP_M2S_ALG_H264ENC_ATTR_S {
-
 	DP_U32 u32FrmRate;
 	DP_M2S_SIZE_S stSize;
 	DP_M2S_RC_MODE_E enRcMode;
@@ -1992,7 +2008,6 @@ typedef struct _DP_M2S_ALG_H264ENC_ATTR_S {
  *注意：无
  */
 typedef struct _DP_M2S_ALG_H264DEC_ATTR_S {
-
 	DP_M2S_ALG_PROFILE_E enProfile;
 	DP_M2S_SIZE_S stSize;
 } DP_M2S_ALG_H264DEC_ATTR_S;
@@ -2006,7 +2021,6 @@ typedef struct _DP_M2S_ALG_H264DEC_ATTR_S {
  *注意：无
  */
 typedef struct _DP_M2S_ALG_AACENC_ATTR_S {
-
 	DP_U32 u32Bitrate;
 	DP_BOOL bAdts;
 } DP_M2S_ALG_AACENC_ATTR_S;
@@ -2019,7 +2033,6 @@ typedef struct _DP_M2S_ALG_AACENC_ATTR_S {
  *注意：无
  */
 typedef struct _DP_M2S_ALG_AACDEC_ATTR_S {
-
 	DP_BOOL bAdts;
 } DP_M2S_ALG_AACDEC_ATTR_S;
 
@@ -2035,7 +2048,6 @@ typedef struct _DP_M2S_ALG_AACDEC_ATTR_S {
  *注意：无
  */
 typedef struct _DP_M2S_ALG_ATTR_S {
-
 	DP_M2S_ALG_TYPE_E enAlg;
 	union {
 		DP_M2S_ALG_H264ENC_ATTR_S stH264Enc;
@@ -2062,7 +2074,6 @@ typedef DP_M2S_RECT_S DP_M2S_CROP_ATTR_S;
  *注意：无
  */
 typedef enum _DP_M2S_ZOOM_TYPE_E {
-
 	DP_M2S_ZOOM_RECT = 0x0, DP_M2S_ZOOM_RATIO, DP_M2S_ZOOM_BUTT
 } DP_M2S_ZOOM_TYPE_E;
 
@@ -2077,7 +2088,6 @@ typedef enum _DP_M2S_ZOOM_TYPE_E {
  *注意：无，
  */
 typedef struct _DP_M2S_ZOOM_RATIO_S {
-
 	DP_U32 u32XRatio;
 	DP_U32 u32YRatio;
 	DP_U32 u32WRatio;
@@ -2094,7 +2104,6 @@ typedef struct _DP_M2S_ZOOM_RATIO_S {
  *注意：无
  */
 typedef struct _DP_M2S_ZOOM_ATTR_S {
-
 	DP_M2S_ZOOM_TYPE_E enType;
 	union {
 		DP_M2S_RECT_S stRect;
@@ -2111,7 +2120,6 @@ typedef struct _DP_M2S_ZOOM_ATTR_S {
  *注意：无
  */
 typedef enum _DP_M2S_OSD_TYPE_E {
-
 	DP_M2S_OSD_PIC = 0x0, DP_M2S_OSD_STRING, DP_M2S_OSD_BUTT
 } DP_M2S_OSD_TYPE_E;
 
@@ -2127,7 +2135,6 @@ typedef enum _DP_M2S_OSD_TYPE_E {
  *注意：无
  */
 typedef enum _DP_M2S_OSD_DISPLAY_MODE_E {
-
 	DP_M2S_OSD_DISPLAY_MODE_COORD = 0x0,
 	DP_M2S_OSD_DISPLAY_MODE_LTOP,
 	DP_M2S_OSD_DISPLAY_MODE_RTOP,
@@ -2149,7 +2156,6 @@ typedef enum _DP_M2S_OSD_DISPLAY_MODE_E {
  *注意：无
  */
 typedef struct _DP_M2S_OSD_ATTR_S {
-
 	DP_M2S_OSD_TYPE_E enType;
 	union {
 		struct {
@@ -2173,7 +2179,14 @@ typedef struct _DP_M2S_OSD_ATTR_S {
  *注意：无
  */
 typedef struct _DP_M2S_SWMS_ATTR_S {
-
+	_DP_M2S_SWMS_ATTR_S(DP_M2S_VO_DEV_E voDevId, DP_S32 swmsChn,
+			DP_U32 priority, DP_M2S_RECT_S rect) :
+			enVoDevId(voDevId), u32SwmsChn(swmsChn), u32Priority(priority), stRect(
+					rect) {
+	}
+	_DP_M2S_SWMS_ATTR_S() :
+			enVoDevId(), u32SwmsChn(), u32Priority(), stRect() {
+	}
 	DP_M2S_VO_DEV_E enVoDevId;
 	DP_U32 u32SwmsChn;
 	DP_U32 u32Priority;
@@ -2193,7 +2206,9 @@ typedef struct _DP_M2S_SWMS_ATTR_S {
  *	对应于 DP_M2S_INFO_TYPE_GET_AVENC ；
  */
 typedef struct _DP_M2S_CSC_ATTR_S {
-
+	_DP_M2S_CSC_ATTR_S() :
+			u8Sharpen(), u8Luma(), u8Contrast(), u8Hue(), u8Staturation() {
+	}
 	DP_U8 u8Sharpen;
 	DP_U8 u8Luma;
 	DP_U8 u8Contrast;
@@ -2209,7 +2224,12 @@ typedef struct _DP_M2S_CSC_ATTR_S {
  *注意：无
  */
 typedef struct _DP_M2S_AENC_ATTR_S {
-
+	_DP_M2S_AENC_ATTR_S(DP_M2S_ALG_ATTR_S alg) :
+			stAlg(alg) {
+	}
+	_DP_M2S_AENC_ATTR_S() :
+			stAlg() {
+	}
 	DP_M2S_ALG_ATTR_S stAlg;
 } DP_M2S_AENC_ATTR_S;
 
@@ -2227,7 +2247,18 @@ typedef struct _DP_M2S_AENC_ATTR_S {
  *注意：无
  */
 typedef struct _DP_M2S_VENC_ATTR_S {
-
+	_DP_M2S_VENC_ATTR_S(DP_BOOL crop, DP_BOOL zoom, DP_BOOL osd,
+			DP_M2S_CROP_ATTR_S sCrop, DP_M2S_ZOOM_ATTR_S sZoom,
+			DP_M2S_OSD_ATTR_S sOsd, DP_M2S_ALG_ATTR_S sAlg) :
+			bCrop(crop), bZoom(zoom), bOsd(osd) {
+		stCrop = sCrop;
+		stZoom = sZoom;
+		stOsd = sOsd;
+		stAlg = sAlg;
+	}
+	_DP_M2S_VENC_ATTR_S() :
+			bCrop(), bZoom(), bOsd() {
+	}
 	DP_BOOL bCrop;
 	DP_BOOL bZoom;
 	DP_BOOL bOsd;
@@ -2245,7 +2276,12 @@ typedef struct _DP_M2S_VENC_ATTR_S {
  *注意：无
  */
 typedef struct _DP_M2S_ADEC_ATTR_S {
-
+	_DP_M2S_ADEC_ATTR_S(DP_M2S_ALG_TYPE_E alg) :
+			enAlg(alg) {
+	}
+	_DP_M2S_ADEC_ATTR_S() :
+			enAlg() {
+	}
 	DP_M2S_ALG_TYPE_E enAlg;
 } DP_M2S_ADEC_ATTR_S;
 
@@ -2265,7 +2301,20 @@ typedef struct _DP_M2S_ADEC_ATTR_S {
  *注意： 无
  */
 typedef struct _DP_M2S_VDEC_ATTR_S {
-
+	_DP_M2S_VDEC_ATTR_S(DP_BOOL crop, DP_BOOL zoom, DP_BOOL osd, DP_BOOL swms,
+			DP_M2S_ALG_ATTR_S sAlg, DP_M2S_CROP_ATTR_S sCrop,
+			DP_M2S_ZOOM_ATTR_S sZoom, DP_M2S_OSD_ATTR_S sOsd,
+			DP_M2S_SWMS_ATTR_S sSwms) :
+			bCrop(crop), bZoom(zoom), bOsd(osd), bSwms(swms) {
+		stAlg = sAlg;
+		stCrop = sCrop;
+		stZoom = sZoom;
+		stOsd = sOsd;
+		stSwms = sSwms;
+	}
+	_DP_M2S_VDEC_ATTR_S() :
+			bCrop(), bZoom(), bOsd(), bSwms(), stAlg(), stCrop(), stZoom(), stOsd(), stSwms() {
+	}
 	DP_BOOL bCrop;
 	DP_BOOL bZoom;
 	DP_BOOL bOsd;
@@ -2309,7 +2358,6 @@ typedef enum _DP_M2S_STREAM_TYPE_E {
  *注意：无
  */
 typedef struct _DP_M2S_RTSP_SERVER_ATTR_S {
-
 	DP_BOOL bOpen;
 	DP_BOOL bUDP;
 	DP_BOOL bMulticast;
@@ -2331,7 +2379,6 @@ typedef struct _DP_M2S_RTSP_SERVER_ATTR_S {
  *注意：无
  */
 typedef struct _DP_M2S_RTSP_CLIENT_ATTR_S {
-
 	DP_S8 s8Open;
 	DP_BOOL bUDP;
 	DP_BOOL bMulticast;
@@ -2348,12 +2395,24 @@ typedef struct _DP_M2S_RTSP_CLIENT_ATTR_S {
  *注意：无
  */
 typedef struct _DP_M2S_STREAM_ATTR_S {
-
+	_DP_M2S_STREAM_ATTR_S(DP_M2S_STREAM_TYPE_E type,
+			DP_M2S_RTSP_SERVER_ATTR_S rtspServer) :
+			enType(type) {
+		_rtsp.stRtspServer = rtspServer;
+	}
+	_DP_M2S_STREAM_ATTR_S(DP_M2S_STREAM_TYPE_E type,
+			DP_M2S_RTSP_CLIENT_ATTR_S rtspClient) :
+			enType(type) {
+		_rtsp.stRtspClient = rtspClient;
+	}
+	_DP_M2S_STREAM_ATTR_S() :
+			enType() {
+	}
 	DP_M2S_STREAM_TYPE_E enType;
-	union {
+	union rtsp {
 		DP_M2S_RTSP_SERVER_ATTR_S stRtspServer;
 		DP_M2S_RTSP_CLIENT_ATTR_S stRtspClient;
-	};
+	} _rtsp;
 } DP_M2S_STREAM_ATTR_S;
 
 /************************************* 音频输入设备信息 *********************************/
@@ -2371,7 +2430,6 @@ typedef struct _DP_M2S_STREAM_ATTR_S {
  *	对应指令： DP_M2S_CMD_AI_GET ；
  */
 typedef struct _DP_M2S_AI_GET_INFO_S {
-
 	DP_M2S_AI_DEV_E enDevId;
 	DP_BOOL bsConn;
 	DP_BOOL bSignal;
@@ -2391,7 +2449,13 @@ typedef struct _DP_M2S_AI_GET_INFO_S {
  *	须注意的是，当使用指令 DP_M2S_CMD_AI_SET 时，成员参数 stCommAttr 无效；
  */
 typedef struct _DP_M2S_AI_SET_INFO_S {
-
+	_DP_M2S_AI_SET_INFO_S(DP_M2S_AI_DEV_E devId, DP_U8 vol,
+			DP_M2S_AUDIO_SAMPLE_RATE_E samplerate,
+			DP_M2S_AUDIO_BIT_WIDTH_E bitwidth,
+			DP_M2S_AUDIO_SOUND_MODE_E soundmode) :
+			enDevId(devId), u8Vol(vol), stCommAttr(samplerate, bitwidth,
+					soundmode) {
+	}
 	DP_M2S_AI_DEV_E enDevId;
 	DP_U8 u8Vol;
 	DP_M2S_AUDIO_COMM_ATTR_S stCommAttr;
@@ -2412,7 +2476,6 @@ typedef struct _DP_M2S_AI_SET_INFO_S {
  *	对应指令： DP_M2S_CMD_VI_GET ；
  */
 typedef struct _DP_M2S_VI_GET_INFO_S {
-
 	DP_M2S_VI_DEV_E enDevId;
 	DP_BOOL bConn;
 	DP_BOOL bSignal;
@@ -2433,7 +2496,6 @@ typedef struct _DP_M2S_VI_GET_INFO_S {
  *	对应指令： DP_M2S_CMD_VI_SET ；
  */
 typedef struct _DP_M2S_VI_SET_INFO_S {
-
 	DP_M2S_VI_DEV_E enDevId;
 	DP_U32 u32FrmRate;
 	DP_M2S_RECT_S stCap;
@@ -2454,7 +2516,21 @@ typedef struct _DP_M2S_VI_SET_INFO_S {
  对应指令： DP_M2S_CMD_AVENC_GET 和 DP_M2S_CMD_AVENC_SET ；
  */
 typedef struct _DP_M2S_AVENC_INFO_S {
-
+	_DP_M2S_AVENC_INFO_S(DP_S32 tskId, DP_M2S_AVBIND_ATTR_S avBindAttr,
+			DP_M2S_AENC_ATTR_S aenc, DP_M2S_VENC_ATTR_S venc,
+			DP_M2S_STREAM_TYPE_E type, DP_M2S_RTSP_CLIENT_ATTR_S rtspClient) :
+			s32TskId(tskId), stAvBind(avBindAttr), stAenc(aenc), stVenc(venc), stStream(
+					type, rtspClient) {
+	}
+	_DP_M2S_AVENC_INFO_S(DP_S32 tskId, DP_M2S_AVBIND_ATTR_S avBindAttr,
+			DP_M2S_AENC_ATTR_S aenc, DP_M2S_VENC_ATTR_S venc,
+			DP_M2S_STREAM_TYPE_E type, DP_M2S_RTSP_SERVER_ATTR_S rtspServer) :
+			s32TskId(tskId), stAvBind(avBindAttr), stAenc(aenc), stVenc(venc), stStream(
+					type, rtspServer) {
+	}
+	_DP_M2S_AVENC_INFO_S() :
+			s32TskId(), stAvBind(), stAenc(), stVenc(), stStream() {
+	}
 	DP_S32 s32TskId;
 	DP_M2S_AVBIND_ATTR_S stAvBind;
 	DP_M2S_AENC_ATTR_S stAenc;
@@ -2476,7 +2552,15 @@ typedef struct _DP_M2S_AVENC_INFO_S {
  对应指令： DP_M2S_CMD_AVDEC_GET 和 DP_M2S_CMD_AVDEC_SET ；
  */
 typedef struct _DP_M2S_AVDEC_INFO_S {
-
+	_DP_M2S_AVDEC_INFO_S(DP_S32 tskId, DP_M2S_AVBIND_ATTR_S avBindAttr,
+			DP_M2S_STREAM_ATTR_S stream, DP_M2S_ADEC_ATTR_S adec,
+			DP_M2S_VDEC_ATTR_S vdec) :
+			s32TskId(tskId), AvBindAttr(avBindAttr), stStream(stream), stAdec(
+					adec), stVdec(vdec) {
+	}
+	_DP_M2S_AVDEC_INFO_S() :
+			s32TskId(), AvBindAttr(), stStream(), stAdec(), stVdec() {
+	}
 	DP_S32 s32TskId;
 	DP_M2S_AVBIND_ATTR_S AvBindAttr;
 	DP_M2S_STREAM_ATTR_S stStream;
@@ -2495,7 +2579,9 @@ typedef struct _DP_M2S_AVDEC_INFO_S {
  *	对应指令： DP_M2S_CMD_AO_GET 或  DP_M2S_CMD_AO_SET ；
  */
 typedef struct _DP_M2S_AO_INFO_S {
-
+	_DP_M2S_AO_INFO_S(DP_M2S_AO_DEV_E devId, DP_U8 vol) :
+			enDevId(devId), u8Vol(vol) {
+	}
 	DP_M2S_AO_DEV_E enDevId;
 	DP_U8 u8Vol;
 } DP_M2S_AO_INFO_S;
@@ -2517,13 +2603,51 @@ typedef struct _DP_M2S_AO_INFO_S {
 
  */
 typedef struct _DP_M2S_VO_INFO_S {
-
+	_DP_M2S_VO_INFO_S(DP_M2S_VO_DEV_E devId, DP_BOOL enable,
+			DP_M2S_VIDEO_SYNC_E sync, DP_M2S_SWMS_ATTR_S *swms, DP_U32 swmNum,
+			DP_M2S_CSC_ATTR_S csc) :
+			enDevId(devId), bEnable(enable), enSync(sync), stCsc(csc) {
+		memcpy(stSwms, swms, swmNum * sizeof(DP_M2S_SWMS_ATTR_S));
+	}
+	_DP_M2S_VO_INFO_S() :
+			enDevId(), bEnable(), enSync() {
+		memset(stSwms, 0, DP_M2S_SWMS_MAX * sizeof(DP_M2S_SWMS_ATTR_S));
+	}
 	DP_M2S_VO_DEV_E enDevId;
 	DP_BOOL bEnable;
 	DP_M2S_VIDEO_SYNC_E enSync;
 	DP_M2S_SWMS_ATTR_S stSwms[DP_M2S_SWMS_MAX];
 	DP_M2S_CSC_ATTR_S stCsc;
 } DP_M2S_VO_INFO_S;
+
+/************************************* 窗口信息 *********************************/
+/*
+ *说明： 获取或设置 窗口信息
+ *定义： DP_M2S_WINS_INFO_S
+ *成员：
+ *  s32CropEnable	：  裁剪设置使能，0：关闭裁剪功能；1：开启裁剪功能；-1：裁剪设置无效；
+ *  s32ZoomEnable	：  缩放设置使能，0：关闭缩放功能；1：开启缩放功能；-1：缩放设置无效；
+ *  s32OsdEnable	：  OSD设置使能， 0：关闭OSD功能； 1：开启OSD功能； -1：OSD设置无效；
+ *  s32SwmsEnable	：  拼接设置使能，0：关闭拼接功能；1：开启拼接功能；-1：拼接设置无效；
+ *  stCrop	：  图像裁剪属性参数，引用 DP_M2S_CROP_ATTR_S
+ *  stZoom	：  图像缩放属性参数，引用 DP_M2S_ZOOM_ATTR_S
+ *  stOsd	：  图像叠加属性参数，引用 DP_M2S_OSD_ATTR_S
+ *  stSwms  ：  图像拼接属性参数，引用 DP_M2S_SWMS_ATTR_S
+ *注意：
+ *	1、当设备不支持某功能时，相应地设置为-1，即可表示无效；
+ *	2、仅当任务有效时，该信息参数才可有效。
+ */
+typedef struct _DP_M2S_WINS_INFO_S {
+
+	DP_S32 s32CropEnable;
+	DP_S32 s32ZoomEnable;
+	DP_S32 s32OsdEnable;
+	DP_S32 s32SwmsEnable;
+	DP_M2S_CROP_ATTR_S stCrop;
+	DP_M2S_ZOOM_ATTR_S stZoom;
+	DP_M2S_OSD_ATTR_S stOsd;
+	DP_M2S_SWMS_ATTR_S stSwms;
+} DP_M2S_WINS_INFO_S;
 
 /**************************************************************************************************************/
 /***************************************************控制指令操作类型 声明***********************************************/
@@ -2543,12 +2667,15 @@ typedef struct _DP_M2S_VO_INFO_S {
  *	DP_M2S_CMD_AVENC_SET		： 设置音视频编码信息 ，引用结构 DP_M2S_CMD_AVENC_SETINFO_S 和 DP_M2S_CMD_AVENC_SETINFO_ACK_S
  *	DP_M2S_CMD_AVDEC_GET		： 获取音视频解码信息 ，引用结构 DP_M2S_CMD_AVDEC_GETINFO_S 和 DP_M2S_CMD_AVDEC_GETINFO_ACK_S
  *	DP_M2S_CMD_AVDEC_SET		： 设置音视频解码信息 ，引用结构 DP_M2S_CMD_AVDEC_SETINFO_S 和 DP_M2S_CMD_AVDEC_SETINFO_ACK_S
+ *	DP_M2S_CMD_WINS_GET			： 获取音视频解码的窗口信息 ，引用结构 DP_M2S_CMD_WINS_GETINFO_S 和 DP_M2S_CMD_WINS_GETINFO_ACK_S
+ *	DP_M2S_CMD_WINS_SET			： 设置音视频解码的窗口信息 ，引用结构 DP_M2S_CMD_WINS_SETINFO_S 和 DP_M2S_CMD_WINS_SETINFO_ACK_S
  *	DP_M2S_CMD_AO_GET			： 获取音频输出设备信息 ，引用结构 DP_M2S_CMD_AO_GETINFO_S 和 DP_M2S_CMD_AO_GETINFO_ACK_S
  *	DP_M2S_CMD_AO_SET			： 设置音频输出设备信息 ，引用结构 DP_M2S_CMD_AO_SETINFO_S 和 DP_M2S_CMD_AO_SETINFO_ACK_S
  *	DP_M2S_CMD_VO_GET			： 获取视频输出设备信息 ，引用结构 DP_M2S_CMD_VO_GETINFO_S 和 DP_M2S_CMD_VO_GETINFO_ACK_S
  *	DP_M2S_CMD_VO_SET			： 设置视频输出设备信息 ，引用结构 DP_M2S_CMD_VO_SETINFO_S 和 DP_M2S_CMD_VO_SETINFO_ACK_S
  *注意：
- *	须先 初始化系统资源；
+ *	1、 须先 初始化系统资源；
+ *	2、 DP_M2S_CMD_WINS_GET 或 DP_M2S_CMD_WINS_SET 使用前，须保证相关的任务有效；
  */
 
 typedef enum {
@@ -2567,6 +2694,8 @@ typedef enum {
 
 	/* audio & video decode */
 	DP_M2S_CMD_AVDEC_GET, DP_M2S_CMD_AVDEC_SET,
+
+	DP_M2S_CMD_WINS_GET, DP_M2S_CMD_WINS_SET,
 
 	/* audio output */
 	DP_M2S_CMD_AO_GET, DP_M2S_CMD_AO_SET,
@@ -2589,7 +2718,6 @@ typedef enum {
  *注意：无
  */
 typedef struct _DP_M2S_CMD_ACK_S {
-
 	DP_M2S_INF_PROT_HEAD_S stHeader;
 	DP_U32 u32Success;
 } DP_M2S_CMD_ACK_S;
@@ -2606,7 +2734,23 @@ typedef struct _DP_M2S_CMD_ACK_S {
  *注意：无
  */
 typedef struct _DP_M2S_CMD_SYS_INIT_S {
-
+	_DP_M2S_CMD_SYS_INIT_S(const DP_M2S_AI_SET_INFO_S *aiInfo, DP_U32 aiCount,
+			const DP_M2S_VO_INFO_S *voInfo, DP_U32 voCount) :
+			stHeader(sizeof(DP_M2S_CMD_SYS_INIT_S), DP_M2S_CMD_SYS_INIT, 0x01) {
+		memset(au8VerInfo, 0, DP_M2S_INF_PROT_VERSION_LEN);
+		memcpy(au8VerInfo, DP_M2S_INF_PROT_VERSION,
+				sizeof(DP_M2S_INF_PROT_VERSION));
+		if (aiCount <= DP_M2S_AI_DEV_MAX && aiCount > 0)
+			memcpy(stAiInfo, aiInfo, aiCount * sizeof(DP_M2S_AI_SET_INFO_S));
+		if (voCount <= DP_M2S_VO_DEV_MAX && voCount > 0)
+			memcpy(stVoInfo, voInfo, voCount * sizeof(DP_M2S_VO_INFO_S));
+	}
+	_DP_M2S_CMD_SYS_INIT_S() :
+			stHeader(sizeof(DP_M2S_CMD_SYS_INIT_S), DP_M2S_CMD_SYS_INIT, 0x01) {
+		memset(au8VerInfo, 0, DP_M2S_INF_PROT_VERSION_LEN);
+		memcpy(au8VerInfo, DP_M2S_INF_PROT_VERSION,
+				sizeof(DP_M2S_INF_PROT_VERSION));
+	}
 	DP_M2S_INF_PROT_HEAD_S stHeader;
 	DP_U8 au8VerInfo[DP_M2S_INF_PROT_VERSION_LEN];
 	DP_M2S_AI_SET_INFO_S stAiInfo[DP_M2S_AI_DEV_MAX];
@@ -2751,22 +2895,29 @@ typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_VI_SETINFO_ACK_S;
  *注意：无
  */
 typedef struct _DP_M2S_CMD_AVENC_GETINFO_S {
-
+	_DP_M2S_CMD_AVENC_GETINFO_S(DP_M2S_CMD_ID_E cmd) :
+			stHeader(sizeof(DP_M2S_CMD_AVENC_GETINFO_S), cmd, 0x01), s32TskId(0) {
+	}
 	DP_M2S_INF_PROT_HEAD_S stHeader;
 	DP_S32 s32TskId;
 } DP_M2S_CMD_AVENC_GETINFO_S;
+
+//common struct
+typedef DP_M2S_CMD_AVENC_GETINFO_S DP_M2S_CMD_COMMON_GETINFO_S;
 
 /*
  *说明： 获取音视频编码信息 应答
  *定义： DP_M2S_CMD_AVENC_GETINFO_ACK_S
  *成员：
  *	stHeader	： 协议头，其内容：u16HeadTag + u16PacketLen+ DP_M2S_CMD_AVENC_GET ；
+ *	u32Success	： 0:成功，其他失败，返回错误码
  *  stInfo		:  音视频编码信息，引用 DP_M2S_AVENC_INFO_S
  *注意：无
  */
 typedef struct _DP_M2S_CMD_AVENC_GETINFO_ACK_S {
 
 	DP_M2S_INF_PROT_HEAD_S stHeader;
+	DP_U32 u32Success;
 	DP_M2S_AVENC_INFO_S stInfo;
 } DP_M2S_CMD_AVENC_GETINFO_ACK_S;
 
@@ -2780,7 +2931,9 @@ typedef struct _DP_M2S_CMD_AVENC_GETINFO_ACK_S {
  *注意：无
  */
 typedef struct _DP_M2S_CMD_AVENC_SETINFO_S {
-
+	_DP_M2S_CMD_AVENC_SETINFO_S(DP_M2S_CMD_ID_E cmd) :
+			stHeader(sizeof(DP_M2S_CMD_AVENC_SETINFO_S), cmd, 0x01), stInfo() {
+	}
 	DP_M2S_INF_PROT_HEAD_S stHeader;
 	DP_M2S_AVENC_INFO_S stInfo;
 } DP_M2S_CMD_AVENC_SETINFO_S;
@@ -2798,7 +2951,9 @@ typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_AVENC_SETINFO_ACK_S;
  *注意：无
  */
 typedef struct _DP_M2S_CMD_AVDEC_GETINFO_S {
-
+	_DP_M2S_CMD_AVDEC_GETINFO_S(DP_M2S_CMD_ID_E cmd) :
+			stHeader(sizeof(DP_M2S_CMD_AVDEC_GETINFO_S), cmd, 0x01), s32TskId(0) {
+	}
 	DP_M2S_INF_PROT_HEAD_S stHeader;
 	DP_S32 s32TskId;
 } DP_M2S_CMD_AVDEC_GETINFO_S;
@@ -2808,12 +2963,14 @@ typedef struct _DP_M2S_CMD_AVDEC_GETINFO_S {
  *定义： DP_M2S_CMD_AVDEC_GETINFO_ACK_S
  *成员：
  *	stHeader	： 协议头，其内容：u16HeadTag + u16PacketLen+ DP_M2S_CMD_AVDEC_GET ；
+ *	u32Success	： 0:成功，其他失败，返回错误码
  *  stInfo		:  音视频解码信息，引用 DP_M2S_AVDEC_INFO_S
  *注意：无
  */
 typedef struct _DP_M2S_CMD_AVDEC_GETINFO_ACK_S {
 
 	DP_M2S_INF_PROT_HEAD_S stHeader;
+	DP_U32 u32Success;
 	DP_M2S_AVDEC_INFO_S stInfo;
 } DP_M2S_CMD_AVDEC_GETINFO_ACK_S;
 
@@ -2827,7 +2984,9 @@ typedef struct _DP_M2S_CMD_AVDEC_GETINFO_ACK_S {
  *注意：无
  */
 typedef struct _DP_M2S_CMD_AVDEC_SETINFO_S {
-
+	_DP_M2S_CMD_AVDEC_SETINFO_S(DP_M2S_CMD_ID_E cmd) :
+			stHeader(sizeof(DP_M2S_CMD_AVDEC_SETINFO_S), cmd, 0x01), stInfo() {
+	}
 	DP_M2S_INF_PROT_HEAD_S stHeader;
 	DP_M2S_AVDEC_INFO_S stInfo;
 } DP_M2S_CMD_AVDEC_SETINFO_S;
@@ -2835,7 +2994,60 @@ typedef struct _DP_M2S_CMD_AVDEC_SETINFO_S {
 /* 设置音视频解码信息 应答 */
 typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_AVDEC_SETINFO_ACK_S;
 
-/*************************************12. DP_M2S_CMD_AO_GET *************************/
+/*************************************12. DP_M2S_CMD_WINS_GET *************************/
+/*
+ *说明： 获取（视频）窗口信息
+ *定义： DP_M2S_CMD_WINS_GETINFO_S
+ *成员：
+ *	stHeader	： 协议头，其内容：u16HeadTag + u16PacketLen+ DP_M2S_CMD_WINS_GET ；
+ *	s32TskId	： 任务ID，详细参看“任务ID分配”介绍；
+ *注意：无
+ */
+typedef struct _DP_M2S_CMD_WINS_GETINFO_S {
+
+	DP_M2S_INF_PROT_HEAD_S stHeader;
+	DP_S32 s32TskId;
+} DP_M2S_CMD_WINS_GETINFO_S;
+
+/*
+ *说明： 获取（视频）窗口信息 应答
+ *定义： DP_M2S_CMD_WINS_GETINFO_ACK_S
+ *成员：
+ *	stHeader	： 协议头，其内容：u16HeadTag + u16PacketLen+ DP_M2S_CMD_WINS_GET ；
+ *	u32Success	： 0:成功，其他失败，返回错误码
+ *	s32TskId	： 任务ID，详细参看“任务ID分配”介绍；
+ *  stInfo		:  窗口信息，引用 DP_M2S_WINS_INFO_S
+ *注意：无
+ */
+typedef struct _DP_M2S_CMD_WINS_GETINFO_ACK_S {
+
+	DP_M2S_INF_PROT_HEAD_S stHeader;
+	DP_U32 u32Success;
+	DP_S32 s32TskId;
+	DP_M2S_WINS_INFO_S stInfo;
+} DP_M2S_CMD_WINS_GETINFO_ACK_S;
+
+/*************************************13. DP_M2S_CMD_WINS_SET *************************/
+/*
+ *说明： 设置（视频）窗口信息
+ *定义： DP_M2S_CMD_WINS_SETINFO_S
+ *成员：
+ *	stHeader	： 协议头，其内容：u16HeadTag + u16PacketLen+ DP_M2S_CMD_WINS_SET ；
+ *	s32TskId	： 任务ID，详细参看“任务ID分配”介绍；
+ *  stInfo		:  窗口信息，引用 DP_M2S_WINS_INFO_S
+ *注意：无
+ */
+typedef struct _DP_M2S_CMD_WINS_SETINFO_ACK_S {
+
+	DP_M2S_INF_PROT_HEAD_S stHeader;
+	DP_S32 s32TskId;
+	DP_M2S_WINS_INFO_S stInfo;
+} DP_M2S_CMD_WINS_SETINFO_S;
+
+/* 设置（视频）窗口信息 应答 */
+typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_WINS_SETINFO_ACK_S;
+
+/*************************************14. DP_M2S_CMD_AO_GET *************************/
 /*
  *说明： 获取音频输出设备信息
  *定义： DP_M2S_CMD_AO_GETINFO_S
@@ -2845,7 +3057,9 @@ typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_AVDEC_SETINFO_ACK_S;
  *注意：无
  */
 typedef struct _DP_M2S_CMD_AO_GETINFO_S {
-
+	_DP_M2S_CMD_AO_GETINFO_S(DP_M2S_CMD_ID_E cmd, DP_M2S_AO_DEV_E devId) :
+			stHeader(sizeof(DP_M2S_CMD_AO_GETINFO_S), cmd, 0x01), enDevId(devId) {
+	}
 	DP_M2S_INF_PROT_HEAD_S stHeader;
 	DP_M2S_AO_DEV_E enDevId;
 } DP_M2S_CMD_AO_GETINFO_S;
@@ -2866,7 +3080,7 @@ typedef struct _DP_M2S_CMD_AO_GETINFO_ACK_S {
 	DP_M2S_AO_INFO_S stInfo;
 } DP_M2S_CMD_AO_GETINFO_ACK_S;
 
-/*************************************13. DP_M2S_CMD_AO_SET *************************/
+/*************************************15. DP_M2S_CMD_AO_SET *************************/
 /*
  *说明： 设置音频输出设备信息
  *定义： DP_M2S_CMD_AO_SETINFO_S
@@ -2884,7 +3098,7 @@ typedef struct _DP_M2S_CMD_AO_SETINFO_S {
 /* 设置音频输出设备信息 应答 */
 typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_AO_SETINFO_ACK_S;
 
-/*************************************14. DP_M2S_CMD_VO_GET *************************/
+/*************************************16. DP_M2S_CMD_VO_GET *************************/
 /*
  *说明： 获取视频输出设备信息
  *定义： DP_M2S_CMD_VO_GETINFO_S
@@ -2894,7 +3108,9 @@ typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_AO_SETINFO_ACK_S;
  *注意：无
  */
 typedef struct _DP_M2S_CMD_VO_GETINFO_S {
-
+	_DP_M2S_CMD_VO_GETINFO_S(DP_M2S_CMD_ID_E cmd, DP_M2S_VO_DEV_E devId) :
+			stHeader(sizeof(DP_M2S_CMD_VO_GETINFO_S), cmd, 0x01), enDevId(devId) {
+	}
 	DP_M2S_INF_PROT_HEAD_S stHeader;
 	DP_M2S_VO_DEV_E enDevId;
 } DP_M2S_CMD_VO_GETINFO_S;
@@ -2915,7 +3131,7 @@ typedef struct _DP_M2S_CMD_VO_GETINFO_ACK_S {
 	DP_M2S_VO_INFO_S stInfo;
 } DP_M2S_CMD_VO_GETINFO_ACK_S;
 
-/*************************************15. DP_M2S_CMD_VO_SET *************************/
+/*************************************17. DP_M2S_CMD_VO_SET *************************/
 /*
  *说明： 设置视频输出设备信息
  *定义： DP_M2S_CMD_VO_SETINFO_S

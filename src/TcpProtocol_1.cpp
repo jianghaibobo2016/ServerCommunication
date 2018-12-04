@@ -48,8 +48,10 @@ void flushFunc() {
 }
 
 int main() {
+	//jhbnote todo : signal handle :sync data
 	signal(SIGPIPE, SIG_IGN);
 
+	//	muduo::Logger::setLogLevel(muduo::Logger::DEBUG);
 	//logging setting
 	g_logFile.reset(new muduo::LogFile(LogFileName, LogFileMaxSize));
 	muduo::Logger::setOutput(outputFunc);
@@ -59,7 +61,6 @@ int main() {
 	muduo::Singleton<NodeInfo>::instance();
 	GlobalProfile::getInstance();
 
-	//	muduo::Logger::setLogLevel(muduo::Logger::DEBUG);
 	EventLoop loop; // one loop shared by multiple servers
 	print(&loop);
 	ServerHandle tcpServer(&loop, InetAddress(5010));

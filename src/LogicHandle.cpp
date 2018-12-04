@@ -21,8 +21,8 @@
 #include "PrintBuff.h"
 
 LogicHandle::LogicHandle() {
-	_netInfo.setIfname(IFNAMEDEV);
-	_netInfo.getNetworkConfig();
+//	_netInfo.setIfname(IFNAMEDEV);
+//	_netInfo.getNetworkConfig();
 }
 
 LogicHandle::~LogicHandle() {
@@ -163,6 +163,9 @@ void LogicHandle::createWindow(const muduo::net::TcpConnectionPtr connPtr,
 		strcpy((DP_CHAR*) it->stStream._rtsp.stRtspClient.au8Url,
 				(DP_CHAR*) createWinData->au8RtspURL);
 
+		LOG_INFO << " createWinData->au8RtspURL: " << createWinData->au8RtspURL
+				<< " it->stStream._rtsp.stRtspClient.au8Url: "
+				<< it->stStream._rtsp.stRtspClient.au8Url;
 		///////////////////////////////
 
 		DP_M2S_ALG_ATTR_S alg;
@@ -612,6 +615,7 @@ void LogicHandle::clearAllTask(const muduo::net::TcpConnectionPtr connPtr,
 	buffSend.retrieveAll();
 	LOG_INFO << "Reply success : " << reply.u32Success;
 	buffSend.append(&reply, reply.header.u16PackageLen);
+	/////////////////////// send after sendto codec//////////!!!!
 	connPtr->send(&buffSend);
 	NodeInfo::MapOutThirdCodecTaskIDPtr thirdCodecID =
 			muduo::Singleton<NodeInfo>::instance().getOutThirdCodecTaskID();
@@ -658,7 +662,9 @@ void LogicHandle::clearAllTask(const muduo::net::TcpConnectionPtr connPtr,
 			LOG_WARN << "send to codec return false";
 //			reply.u32Success = 1;
 		}
+
 	}
+	LOG_WARN << "Clear task over !";
 
 	muduo::Singleton<NodeInfo>::instance().updateAVDecGetInfo(vAVDecInfo);
 }
@@ -1497,6 +1503,7 @@ void LogicHandle::Get_OutputVideoChnInfo(
 			videoInfo->srcVideoInfo =
 					muduo::Singleton<NodeInfo>::instance().getThirdIDSrcVideoInfo()->operator [](
 							videoInfo->u32TaskID);
+		//jhbnote error src info occasionally
 		LOG_INFO << "src video infoHeight : "
 				<< videoInfo->srcVideoInfo.u16VideoHeight << " width: "
 				<< videoInfo->srcVideoInfo.u16VideoWidth;

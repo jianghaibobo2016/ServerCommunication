@@ -16,7 +16,7 @@
 //#include <boost/noncopyable.hpp>
 #include <map>
 
-#include "SetNetwork.h"
+
 #include "NodeInfo.h"
 #include "dp_m2s_prot.h"
 //#include "NodeInfo.h"
@@ -82,7 +82,7 @@ private:
 	};
 
 	///change if terminal changed
-	SetNetwork _netInfo;
+//	SetNetwork _netInfo;
 public:
 	/* remainnnnnnnnnnnnnnnn*/
 	struct findThirdIDByCodecID: public std::binary_function<

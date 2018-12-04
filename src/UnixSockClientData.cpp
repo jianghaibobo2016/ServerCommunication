@@ -63,7 +63,6 @@ void UnixSockClientData::onTimer(int nID) {
 
 	}
 }
-
 void UnixSockClientData::addCommand(const void* pData, int len) {
 	if (len <= 0) {
 		throw SystemException(pData, 20);
@@ -74,6 +73,46 @@ void UnixSockClientData::addCommand(const void* pData, int len) {
 	_packages.push_back(vData);
 }
 
+int UnixSockClientData::onlySendMsg(const void* pData, int len)
+		throw (SystemException) {
+	assert(pData);
+	//1.create sock & connect
+	int sock = SocketLayer::CreatePipeSock();
+	int retrycount = 10;
+	sockaddr_un serveraddr = SocketLayer::FilePath2UnixAddress(
+	DP_M2S_INF_PROT_UNIX_FIFO);
+	bool bConnected = false;
+	while ((--retrycount) > 0) {
+		/////////////////////////////////////////////////if failed
+		int ret = connect(sock, (const sockaddr*) &serveraddr,
+				sizeof(serveraddr));
+		if (ret == -1) {
+			if (errno == EISCONN) {
+				bConnected = true;
+				break;
+			} else if (errno == EINTR) {
+				continue;
+			} else
+				ThreadUtil::Sleep(5);
+		}
+	}
+	if (!bConnected) {
+		SocketLayer::CloseSock(sock);
+		throw SystemException("can not connect unix socket");
+	}
+	//2.send data
+	int wbytes = send(sock, pData, len, 0);
+	if (wbytes <= 0) {
+		SocketLayer::CloseSock(sock);
+		throw SystemException("Send failed !");
+	}
+	//	muduo::PrintBuff::printBufferByHex("send to fifo : ", pData, wbytes);
+	if (wbytes != len) {
+		SocketLayer::CloseSock(sock);
+		throw SystemException("send bytes!=actual send bytes");
+	}
+	SocketLayer::CloseSock(sock);
+}
 int UnixSockClientData::doSendCommand(const void* pData, int len)
 		throw (SystemException) {
 	assert(pData);
@@ -107,7 +146,7 @@ int UnixSockClientData::doSendCommand(const void* pData, int len)
 		SocketLayer::CloseSock(sock);
 		throw SystemException(__FILE__, __FUNCTION__, __LINE__);
 	}
-//	muduo::PrintBuff::printBufferByHex("send to fifo : ", pData, wbytes);
+	muduo::PrintBuff::printBufferByHex("send to fifo : ", pData, wbytes);
 	if (wbytes != len) {
 		SocketLayer::CloseSock(sock);
 		throw SystemException("send bytes!=actual send bytes");
@@ -120,6 +159,7 @@ int UnixSockClientData::doSendCommand(const void* pData, int len)
 	int result = -1;
 	int rbytes;
 
+	memset(_buffer, 0, BUFFER_SIZE);
 //	uint8_t buffer[BUFFER_SIZE];
 	while (1) {
 		FD_ZERO(&readfd);
@@ -133,8 +173,11 @@ int UnixSockClientData::doSendCommand(const void* pData, int len)
 			if (rbytes > 0) {
 
 //				cout << "rbytes:: " << rbytes << "buff: " << _buffer << endl;
-				if (_cb)
+				if (_cb) {
+					SocketLayer::CloseSock(sock);
 					return _cb(_buffer, rbytes);
+				}
+				SocketLayer::CloseSock(sock);
 //				doRecvCommand((void*) buffer, rbytes);
 			} else if (rbytes == 0) {
 				SocketLayer::CloseSock(sock);
@@ -146,6 +189,7 @@ int UnixSockClientData::doSendCommand(const void* pData, int len)
 			return -1;
 		}
 	}
+	SocketLayer::CloseSock(sock);
 	//4.end
 }
 #if 0
