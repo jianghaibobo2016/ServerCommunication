@@ -299,8 +299,8 @@ private:
 	template<typename T, typename S>
 	DP_BOOL setAVInfoToCodec(boost::shared_ptr<T> vAVEnc, DP_M2S_CMD_ID_E cmd);
 
-	template<typename T, typename S, typename E>
-	DP_BOOL getAOVOInfoFromCodec(DP_M2S_CMD_ID_E cmd, E devId);
+	template<typename T, typename ST, typename V, typename ACK>
+	DP_BOOL getAOVOInfoFromCodec(T AOVOInfo, DP_M2S_CMD_ID_E cmd, V aovoDev);
 
 public:
 	MapServerTaskIDPtr _mAudioTaskID, _mVideoTaskID, _mAuViTaskID;

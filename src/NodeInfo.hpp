@@ -119,15 +119,31 @@ DP_BOOL NodeInfo::setAVInfoToCodec(boost::shared_ptr<T> vAVInfo,
 	return DP_TRUE;
 }
 
-template<typename T, typename S, typename V>
-DP_BOOL NodeInfo::getAOVOInfoFromCodec(DP_M2S_CMD_ID_E cmd, V aovoDev) {
-	VctrVOGetInfoPtr VOInfo = getVOGetInfo();
-
-	DP_M2S_CMD_VO_GETINFO_S getCmd(DP_M2S_CMD_VO_GET,
-			DP_M2S_VO_DEV_HDMI0_HI3536);
-	//send to codec
-	//recv
-	DP_M2S_CMD_VO_GETINFO_ACK_S
+//VctrVOGetInfoPtr DP_M2S_CMD_VO_GETINFO_S VecVODEV DP_M2S_CMD_VO_GETINFO_ACK_S
+template<typename T, typename ST, typename V, typename ACK>
+DP_BOOL NodeInfo::getAOVOInfoFromCodec(T AOVOInfo, DP_M2S_CMD_ID_E cmd,
+		V aovoDev) {
+	AOVOInfo->clear();
+	DP_S32 retSend = 0;
+	UnixSockClientData client(NodeInfo::recvCB);
+	typename V::iterator it;
+	for (it = aovoDev.begin(); it != aovoDev.end(); it++) {
+		ST getCmd(cmd, *it);
+		try {
+			retSend = client.doSendCommand(&getCmd, sizeof(ST));
+			if (retSend != 0) {
+				LOG_ERROR << "Send avdec failed dev in ask : " << *it;
+			} else {
+				DP_U8 *recvBuff = client.getRecvBuff();
+				ACK* getInfoAck = (ACK*) recvBuff;
+				AOVOInfo->push_back(getInfoAck->stInfo);
+				LOG_INFO << "Get aovo info dev: " << getInfoAck->stInfo.enDevId;
+			}
+		} catch (SystemException &ex) {
+			LOG_ERROR << ex.what() << " dev id :" << *it;
+		}
+	}
+	LOG_INFO << "Get aovo size: " << AOVOInfo->size();
 }
 
 #endif /* SRC_NODEINFO_HPP_ */

@@ -223,20 +223,23 @@ void NodeInfo::initLocalInfo() {
 	// 获取视频输出信息
 	VecVODEV voDev;
 	voDev.push_back(DP_M2S_VO_DEV_HDMI0_HI3536);
+	VctrVOGetInfoPtr VOInfo = getVOGetInfo();
+	getAOVOInfoFromCodec<VctrVOGetInfoPtr, DP_M2S_CMD_VO_GETINFO_S, VecVODEV,
+			DP_M2S_CMD_VO_GETINFO_ACK_S>(VOInfo, DP_M2S_CMD_VO_GET, voDev);
 
-
-	getAVInfoFromCodecInfo<VctrVOGetInfoPtr, DP_M2S_VO_GET_INFO_S>(VOInfo,
-			DP_M2S_INFO_TYPE_GET_VO, DP_VO_DEV_MAX);
-	LOG_INFO << "VOInfo size:::: === " << VOInfo->size();
-	for_each(VOInfo->begin(), VOInfo->end(), print_DP_M2S_VO_GET_INFO_S_);
-	updateVOGetInfo (VOInfo);
-
-//	LOG_INFO << "########################  6  ####################";
-	//// 说明： 获取音频输出信息
-	VctrAOGetInfoPtr AOInfo = getAOGetInfo();
-	getAVInfoFromCodecInfo<VctrAOGetInfoPtr, DP_M2S_AO_GET_INFO_S>(AOInfo,
-			DP_M2S_INFO_TYPE_GET_AO, DP_AO_DEV_MAX);
-	updateAOGetInfo(AOInfo);
+	updateVOGetInfo(VOInfo);
+//	getAVInfoFromCodecInfo<VctrVOGetInfoPtr, DP_M2S_VO_GET_INFO_S>(VOInfo,
+//			DP_M2S_INFO_TYPE_GET_VO, DP_VO_DEV_MAX);
+//	LOG_INFO << "VOInfo size:::: === " << VOInfo->size();
+//	for_each(VOInfo->begin(), VOInfo->end(), print_DP_M2S_VO_GET_INFO_S_);
+//	updateVOGetInfo(VOInfo);
+//
+////	LOG_INFO << "########################  6  ####################";
+//	//// 说明： 获取音频输出信息
+//	VctrAOGetInfoPtr AOInfo = getAOGetInfo();
+//	getAVInfoFromCodecInfo<VctrAOGetInfoPtr, DP_M2S_AO_GET_INFO_S>(AOInfo,
+//			DP_M2S_INFO_TYPE_GET_AO, DP_AO_DEV_MAX);
+//	updateAOGetInfo(AOInfo);
 
 }
 
@@ -985,7 +988,7 @@ DP_S32 NodeInfo::cmd_set_venc_default(DP_VOID *pPtr, DP_S32 s32TskId,
 	stRtspServer.s32TransType = 0;//udp
 	stRtspServer.s32ConnTimeout = 60;
 	stRtspServer.s32ConnMax = 128;
-	stRtspServer.s32ConnNums = 0; //not use
+	stRtspServer.s32ConnNums = 0;//not use
 //stRtspServer.au8Url[] = NULL;//not use
 	memcpy(&stAttr.stStream._rtsp.stRtspServer, &stRtspServer,
 			sizeof(DP_M2S_RTSP_SERVER_ATTR_S));
