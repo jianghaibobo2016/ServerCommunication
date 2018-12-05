@@ -2718,6 +2718,9 @@ typedef enum {
  *注意：无
  */
 typedef struct _DP_M2S_CMD_ACK_S {
+	_DP_M2S_CMD_ACK_S(DP_M2S_CMD_ID_E cmd, DP_U32 success) :
+			stHeader(sizeof(DP_M2S_CMD_ACK_S), cmd, 0x01), u32Success(success) {
+	}
 	DP_M2S_INF_PROT_HEAD_S stHeader;
 	DP_U32 u32Success;
 } DP_M2S_CMD_ACK_S;

@@ -9,6 +9,7 @@
 #include <muduo/base/Logging.h>
 #include "PrintBuff.h"
 #include "UnixSockClientData.h"
+#include "ErrorCode.h"
 
 UnixSockClientData::UnixSockClientData(recvCallBack cb) {
 	// TODO Auto-generated constructor stub
@@ -112,6 +113,7 @@ int UnixSockClientData::onlySendMsg(const void* pData, int len)
 		throw SystemException("send bytes!=actual send bytes");
 	}
 	SocketLayer::CloseSock(sock);
+	return wbytes;
 }
 int UnixSockClientData::doSendCommand(const void* pData, int len)
 		throw (SystemException) {
@@ -167,7 +169,7 @@ int UnixSockClientData::doSendCommand(const void* pData, int len)
 		result = select(sock + 1, &readfd, 0, 0, &timeout);
 		if (result == 0) { //timeout
 			SocketLayer::CloseSock(sock);
-			return -1;
+			return DP_ERR_COMMUNICATE_ABNORMAL_TIMEOUT;
 		} else if (result > 0) {
 			rbytes = recv(sock, _buffer, BUFFER_SIZE, 0);
 			if (rbytes > 0) {

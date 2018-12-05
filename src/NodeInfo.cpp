@@ -34,21 +34,20 @@ NodeInfo::~NodeInfo() {
 }
 
 //////////////////////////////////////////& type can modify info
-void print_DP_M2S_VO_GET_INFO_S_(DP_M2S_VO_GET_INFO_S voInfo) {
-	LOG_INFO << "print_DP_M2S_VO_GET_INFO_S_　devid: " << voInfo.s32DevId
+void print_DP_M2S_VO_GET_INFO_S_(DP_M2S_VO_INFO_S voInfo) {
+	LOG_INFO << "print_DP_M2S_VO_GET_INFO_S_　devid: " << voInfo.enDevId
 			<< " enable: " << voInfo.bEnable << " sync: " << voInfo.enSync;
-	voInfo.s32DevId = 10;
 	LOG_INFO << "print_DP_M2S_VO_GET_INFO_S_　 stsw[0]::" << " stw.void: "
-			<< voInfo.stSwms[0].s32VoDevId << " chn: "
-			<< voInfo.stSwms[0].s32SwmsChn << " priority: "
+			<< voInfo.stSwms[0].enVoDevId << " chn: "
+			<< voInfo.stSwms[0].u32SwmsChn << " priority: "
 			<< voInfo.stSwms[0].u32Priority << " x "
 			<< voInfo.stSwms[0].stRect.s32X << " y: "
 			<< voInfo.stSwms[0].stRect.s32Y << " width: "
 			<< voInfo.stSwms[0].stRect.u32Width << " height: "
 			<< voInfo.stSwms[0].stRect.u32Height;
 	LOG_INFO << "print_DP_M2S_VO_GET_INFO_S_　 stsw[1]::" << " stw.void: "
-			<< voInfo.stSwms[1].s32VoDevId << " chn: "
-			<< voInfo.stSwms[1].s32SwmsChn << " priority: "
+			<< voInfo.stSwms[1].enVoDevId << " chn: "
+			<< voInfo.stSwms[1].u32SwmsChn << " priority: "
 			<< voInfo.stSwms[1].u32Priority << " x "
 			<< voInfo.stSwms[1].stRect.s32X << " y: "
 			<< voInfo.stSwms[1].stRect.s32Y << " width: "
@@ -220,26 +219,26 @@ void NodeInfo::initLocalInfo() {
 
 	initOutAVEnc();
 	initOutAVDec();
+
 	// 获取视频输出信息
 	VecVODEV voDev;
 	voDev.push_back(DP_M2S_VO_DEV_HDMI0_HI3536);
 	VctrVOGetInfoPtr VOInfo = getVOGetInfo();
 	getAOVOInfoFromCodec<VctrVOGetInfoPtr, DP_M2S_CMD_VO_GETINFO_S, VecVODEV,
 			DP_M2S_CMD_VO_GETINFO_ACK_S>(VOInfo, DP_M2S_CMD_VO_GET, voDev);
-
+	for_each(VOInfo->begin(), VOInfo->end(), print_DP_M2S_VO_GET_INFO_S_);
+	LOG_INFO << "Get aovo size获取视频输出信息 : " << VOInfo->size();
 	updateVOGetInfo(VOInfo);
-//	getAVInfoFromCodecInfo<VctrVOGetInfoPtr, DP_M2S_VO_GET_INFO_S>(VOInfo,
-//			DP_M2S_INFO_TYPE_GET_VO, DP_VO_DEV_MAX);
-//	LOG_INFO << "VOInfo size:::: === " << VOInfo->size();
-//	for_each(VOInfo->begin(), VOInfo->end(), print_DP_M2S_VO_GET_INFO_S_);
-//	updateVOGetInfo(VOInfo);
-//
-////	LOG_INFO << "########################  6  ####################";
+
 //	//// 说明： 获取音频输出信息
-//	VctrAOGetInfoPtr AOInfo = getAOGetInfo();
-//	getAVInfoFromCodecInfo<VctrAOGetInfoPtr, DP_M2S_AO_GET_INFO_S>(AOInfo,
-//			DP_M2S_INFO_TYPE_GET_AO, DP_AO_DEV_MAX);
-//	updateAOGetInfo(AOInfo);
+	VecAODEV aoDev;
+	aoDev.push_back(DP_M2S_AO_DEV_LINEOUT0_HI3536);
+	aoDev.push_back(DP_M2S_AO_DEV_HDMI0_HI3536);
+	VctrAOGetInfoPtr AOInfo = getAOGetInfo();
+	getAOVOInfoFromCodec<VctrAOGetInfoPtr, DP_M2S_CMD_AO_GETINFO_S, VecAODEV,
+			DP_M2S_CMD_AO_GETINFO_ACK_S>(AOInfo, DP_M2S_CMD_AO_GET, aoDev);
+	LOG_INFO << "Get aovo size获取音频输出信息 : " << AOInfo->size();
+	updateAOGetInfo(AOInfo);
 
 }
 
@@ -356,8 +355,9 @@ DP_BOOL NodeInfo::initOutAVDec() {
 			AVDecInfo, DP_M2S_CMD_AVDEC_SET) != DP_TRUE) {
 		LOG_ERROR << "Set av Dec failed !";
 		// jhbnote will restart prog or not ?
-	} else
+	} else {
 		setOutputTaskIDInMap(AVDecInfo);
+	}
 
 	updateAVDecGetInfo(AVDecInfo);
 
@@ -663,66 +663,60 @@ DP_BOOL NodeInfo::initCodec() {
 }
 
 DP_BOOL NodeInfo::deinitCodec() {
-	UnixSockClientData client(NodeInfo::recvCB);
-	if (client.doSendCommand(_sDeinit.get(), sizeof(DP_M2S_CMD_INIT_S)) == 0)
-		return DP_TRUE;
-	else
+	DP_M2S_CMD_ACK_S deinit(DP_M2S_CMD_SYS_DEINIT, 0);
+	DP_S32 retSend = 0;
+	NodeInfo::sendToCodecAndRecv(retSend, &deinit, sizeof(DP_M2S_CMD_ACK_S));
+	if (retSend != 0) {
+		LOG_ERROR << "Deinit failed.";
 		return DP_FALSE;
+	} else {
+		LOG_WARN << "Deinit ok.";
+		return DP_TRUE;
+	}
 }
 
 void NodeInfo::setOutputTaskIDInMap(VctrAVDECGetInfoPtr avDecInfo) {
-	MapOutCodecTaskIDBeUsedPtr mTaskIDUsed = getOutCodecTaskIDBeUsed();
-//	assert(avDecInfo->empty());
 	vector<DP_S32> vSwmsChn;
 	for (DP_U32 i = 0; i < 64; i++)
 		vSwmsChn.push_back(i);
 
 	for (VctrAVDECGetInfo::iterator it = avDecInfo->begin();
 			it != avDecInfo->end(); it++) {
-		LOG_INFO << "AVDecInfo  in fun setOutputTaskIDInMap size : "
+		LOG_DEBUG << "AVDecInfo in func setOutputTaskIDInMap size : "
 				<< avDecInfo->size() << "  enBindType : "
-				<< it->AvBindAttr.enBindType << " taskID : " << it->TskId
-				<< " swms chn : " << it->stVdec.stSwms.s32SwmsChn;
+				<< it->AvBindAttr.enBindType << " taskID : " << it->s32TskId
+				<< " swms chn : " << it->stVdec.stSwms.u32SwmsChn;
 
+		//used swms == true
 		if (it->stVdec.bSwms == DP_TRUE) {
-			LOG_INFO << "bSwms is true ";
+			LOG_DEBUG << "bSwms is true ";
 			_mSwmsChCodecDecInfo->insert(
 					MapOutSWMSChCodecDecInfo::value_type(
-							it->stVdec.stSwms.s32SwmsChn, *it));
+							it->stVdec.stSwms.u32SwmsChn, *it));
 
-			vSwmsChn.erase(
-					find(vSwmsChn.begin(), vSwmsChn.end(),
-							it->stVdec.stSwms.s32SwmsChn));
-
+			vector<DP_S32>::iterator it_find = find(vSwmsChn.begin(),
+					vSwmsChn.end(), it->stVdec.stSwms.u32SwmsChn);
+			if (it_find != vSwmsChn.end()) {
+				vSwmsChn.erase(it_find);
+			} else {
+				LOG_WARN << "Can not find swms chn id : "
+						<< it->stVdec.stSwms.u32SwmsChn << " in vSwmsChn";
+			}
 			_vWindowPriority->push_back(it->stVdec.stSwms.u32Priority);
 		}
-		switch (it->AvBindAttr.enBindType) {
-		case DP_M2S_AVBIND_ADEC2AO:
-			_vAudioTaskID.push_back(it->TskId);
-// without audio
-//			_allCodecTaskIDCount++;
-			break;
-		case DP_M2S_AVBIND_VDEC2VO:
-			_vVideoTaskID.push_back(it->TskId);
-//			LOG_INFO << "push back :::::::::::::::::::::::: " << it->TskId;
+
+		DP_M2S_AVBIND_TYPE_E bindType = it->AvBindAttr.enBindType;
+		if (bindType == DP_M2S_AVBIND_ADEC2AO) {
+			_vAudioTaskID.push_back(it->s32TskId);
 			_allCodecTaskIDCount++;
-			break;
-		case DP_M2S_AVBIND_ADEC2AO_VDEC2VO:
-			_vAuViTaskID.push_back(it->TskId);
+		} else if (bindType == DP_M2S_AVBIND_VDEC2VO) {
+			_vVideoTaskID.push_back(it->s32TskId);
 			_allCodecTaskIDCount++;
-			break;
-		case DP_M2S_AVBIND_AI2AO:
-			break;
-		case DP_M2S_AVBIND_VI2VENC:
-			break;
-		case DP_M2S_AVBIND_AI2AENC:
-			break;
-		case DP_M2S_AVBIND_VI2VO:
-			break;
-		case DP_M2S_AVBIND_AI2AENC_VI2VENC:
-			break;
-		case DP_M2S_AVBIND_BUTT:
-			break;
+		} else if (bindType == DP_M2S_AVBIND_ADEC2AO_VDEC2VO) {
+			_vAuViTaskID.push_back(it->s32TskId);
+			_allCodecTaskIDCount++;
+		} else {
+			LOG_WARN << "Another bind type: " << bindType;
 		}
 	}
 
@@ -730,45 +724,59 @@ void NodeInfo::setOutputTaskIDInMap(VctrAVDECGetInfoPtr avDecInfo) {
 	for (VctrWindowPriority::iterator it = _vWindowPriority->begin();
 			it != _vWindowPriority->end(); it++)
 		LOG_INFO << "_vWindowPriority: " << *it;
-//	LOG_INFO << "vSwmsChn size: " << vSwmsChn.size() << " vSwmsChn[0]: "
-//			<< *vSwmsChn.begin() << " vSwmsChn[1] " << vSwmsChn[1]
-//			<< " vSwmsChn[2] " << vSwmsChn[2];
 
 	for (VctrAVDECGetInfo::iterator it = avDecInfo->begin();
 			it != avDecInfo->end(); it++) {
 		if (it->stVdec.bSwms != DP_TRUE) {
-			it->stVdec.stSwms.s32SwmsChn = *vSwmsChn.begin();
+			it->stVdec.stSwms.u32SwmsChn = *vSwmsChn.begin();
 			vSwmsChn.erase(vSwmsChn.begin());
 		}
-		LOG_INFO << "after given swms chn " << it->stVdec.stSwms.s32SwmsChn;
+		LOG_INFO << "after given swms chn " << it->stVdec.stSwms.u32SwmsChn;
 	}
 
+	//jhbnote if used swms is true
 	_mOutCodecTaskIDBeUsed->insert(
 			MapOutCodecTaskIDBeUsed::value_type(_vAudioTaskID, 0));
 	_mOutCodecTaskIDBeUsed->insert(
 			MapOutCodecTaskIDBeUsed::value_type(_vVideoTaskID, 0));
 	_mOutCodecTaskIDBeUsed->insert(
 			MapOutCodecTaskIDBeUsed::value_type(_vAuViTaskID, 0));
-	LOG_INFO << "_allCodecTaskIDCount num ::           " << _allCodecTaskIDCount
-
-	<< " _mSwmsChCodecDecInfo size " << _mSwmsChCodecDecInfo->size()
+	LOG_INFO << "_allCodecTaskIDCount num : " << _allCodecTaskIDCount
+			<< " _mSwmsChCodecDecInfo size: " << _mSwmsChCodecDecInfo->size()
 			<< " _vVideoTaskID: " << _vVideoTaskID.size()
 			<< " _mOutCodecTaskIDBeUsed size: "
 			<< _mOutCodecTaskIDBeUsed->size()
-			<< " _mOutCodecTaskIDBeUsed[video]"
+			<< " _mOutCodecTaskIDBeUsed[video]: "
 			<< _mOutCodecTaskIDBeUsed->operator [](_vVideoTaskID);
-
 }
 
 int NodeInfo::recvCB(void* pData, int len) {
-// jhbnote add len tag!!!!!!!
-	DP_M2S_CMD_ACK_S *ack = (DP_M2S_CMD_ACK_S*) pData;
-	if (ack->u32Success == 0) {
-		return 0;
-	} else {
-		LOG_ERROR << "ACK from codec: " << ack->u32Success;
-		return ack->u32Success;
+	if (pData == NULL && len <= 0) {
+		return DP_ERR_PROTOCOL_PRASE;
 	}
+	DP_M2S_CMD_ACK_S *ack = (DP_M2S_CMD_ACK_S*) pData;
+	if (ack->stHeader.u16HeadTag == DP_M2S_INF_PROT_PKT_HEAD) {
+		if (ack->stHeader.u16PacketLen == len) {
+			if (ack->stHeader.u8CommandID != DP_M2S_CMD_BUTT) {
+				if (ack->u32Success == 0) {
+					return DP_SUCCESS;
+				} else if (ack->u32Success
+						== DP_ERR_COMMUNICATE_ABNORMAL_TIMEOUT) {
+					LOG_ERROR << "Wait from codec timeout: " << ack->u32Success;
+				} else {
+					LOG_ERROR << "ACK from codec: " << ack->u32Success;
+					return ack->u32Success;
+				}
+			} else {
+				return DP_ERR_PROTOCOL_PARAM_CMD;
+			}
+		} else {
+			return DP_ERR_PROTOCOL_TOTALLEN;
+		}
+	} else {
+		return DP_ERR_PROTOCOL_PRASE_HEAD;
+	}
+	return DP_ERR_PROTOCOL_PRASE;
 }
 //
 //		[0,256)，为音频编码任务ID，选中此ID范围时，仅可操作音频编码的相关属性；

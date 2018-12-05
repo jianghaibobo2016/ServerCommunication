@@ -56,35 +56,35 @@ DP_BOOL NodeInfo::getAVInfoFromCodec(VecCodecTaskID codecID,
 	typename T checkAVInfo;
 	DP_M2S_CMD_COMMON_GETINFO_S getAVDec(cmd);
 	DP_S32 retSend = 0;
-	UnixSockClientData client(NodeInfo::recvCB);
+//	UnixSockClientData client(NodeInfo::recvCB);
 	for (itID = codecID.begin(); itID != codecID.end(); itID++) {
 		LOG_INFO << "Ask av info  cmd: " << cmd
 				<< " ======================================task id : "
 				<< (DP_S32) *itID;
 		getAVDec.s32TskId = (DP_S32) *itID;
-		try {
-			retSend = client.doSendCommand(&getAVDec,
-					sizeof(DP_M2S_CMD_COMMON_GETINFO_S));
-			if (retSend != 0)
-				LOG_ERROR << "Send avdec failed taskiD in ask : "
-						<< getAVDec.s32TskId;
-				else {
-					DP_U8 *recvBuff = client.getRecvBuff();
-					S *getCodecRespond = (S*) recvBuff;
-					checkAVInfo->push_back(getCodecRespond->stInfo);
-					LOG_INFO << "Ask av task id : "
-							<< getCodecRespond->stInfo.s32TskId;
-					if (is__same<S, DP_M2S_AVENC_INFO_S>()) {
-						LOG_INFO << "S is same to DP_M2S_AVENC_INFO_S";
-						NodeInfo::printAVENC(&getCodecRespond->stInfo);
-					}
-					if (is__same<S, DP_M2S_AVDEC_INFO_S>()) {
-						LOG_INFO << "S is same to DP_M2S_AVDEC_INFO_S";
-						NodeInfo::printAVDEC(&getCodecRespond->stInfo);
-					}
+		DP_S32 retResult = 0;
+		DP_U8 *recvBuff = NodeInfo::sendToCodecAndRecv(retResult, &getAVDec,
+				sizeof(DP_M2S_CMD_COMMON_GETINFO_S));
+		if (retResult != 0) {
+			LOG_ERROR << "Send avdec failed taskiD in ask : "
+					<< getAVDec.s32TskId;
+		} else {
+			if (recvBuff == NULL) {
+				LOG_ERROR << "NULL recv back !";
+			} else {
+				S *getCodecRespond = (S*) recvBuff;
+				checkAVInfo->push_back(getCodecRespond->stInfo);
+				LOG_INFO << "Ask av task id : "
+						<< getCodecRespond->stInfo.s32TskId;
+				if (is__same<S, DP_M2S_AVENC_INFO_S>()) {
+					LOG_INFO << "S is same to DP_M2S_AVENC_INFO_S";
+					NodeInfo::printAVENC(&getCodecRespond->stInfo);
 				}
-		} catch (SystemException &ex) {
-			LOG_ERROR << ex.what() << " task id :" << getAVDec.s32TskId;
+				if (is__same<S, DP_M2S_AVDEC_INFO_S>()) {
+					LOG_INFO << "S is same to DP_M2S_AVDEC_INFO_S";
+					NodeInfo::printAVDEC(&getCodecRespond->stInfo);
+				}
+			}
 		}
 	}
 	LOG_INFO << "Size of checkAVDec: " << checkAVInfo->size();
@@ -96,14 +96,13 @@ DP_BOOL NodeInfo::setAVInfoToCodec(boost::shared_ptr<T> vAVInfo,
 	try {
 		boost::shared_ptr<S> setAVInfo(new S(cmd));
 		muduo::net::Buffer buffSend;
-		UnixSockClientDataPtr client(new UnixSockClientData(NodeInfo::recvCB));
 		DP_S32 ret = 0;
 		for (typename T::iterator it = vAVInfo.begin(); it != vAVInfo.end();
 				it++) {
 			setAVInfo->stInfo = *it;
 			buffSend.retrieveAll();
 			buffSend.append(setAVInfo.get(), sizeof(S));
-			ret = client->doSendCommand(buffSend.toStringPiece().data(),
+			NodeInfo::sendToCodecAndRecv(ret, buffSend.toStringPiece().data(),
 					sizeof(S));
 			if (ret != 0) {
 				LOG_ERROR << "Recv from codec : " << ret;

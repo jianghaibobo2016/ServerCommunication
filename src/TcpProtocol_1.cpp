@@ -48,6 +48,7 @@ void flushFunc() {
 }
 
 int main() {
+	LOG_INFO << "ServerCommunication program starting !";
 	//jhbnote todo : signal handle :sync data
 	signal(SIGPIPE, SIG_IGN);
 

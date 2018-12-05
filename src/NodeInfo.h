@@ -291,6 +291,37 @@ public:
 
 	static int recvCB(void* pData, int len);
 private:
+
+	inline static DP_U8* sendToCodecAndRecv(DP_S32 &retResult, const void* data,
+			DP_S32 len) {
+		UnixSockClientData client(NodeInfo::recvCB);
+		try {
+			retResult = client.doSendCommand(data, len);
+		} catch (SystemException &ex) {
+			LOG_ERROR << ex.what();
+			retResult = DP_ERR_COMMUNICATE_ABNORMAL_INNER;
+			return NULL;
+		}
+		if (retResult != 0) {
+//			LOG_ERROR << "Send and recv failed. ";
+			return NULL;
+		} else {
+			return client.getRecvBuff();
+		}
+		return NULL;
+	}
+
+	inline static DP_S32 sendToCodecOnly(const void* data, DP_S32 len) {
+		UnixSockClientData client;
+		try {
+			return client.onlySendMsg(data, len);
+		} catch (SystemException &ex) {
+			LOG_ERROR << ex.what();
+			return DP_ERR_COMMUNICATE_ABNORMAL_INNER;
+		}
+		return 0;
+	}
+
 	void initLocalInfo();
 
 	template<typename T, typename S>
