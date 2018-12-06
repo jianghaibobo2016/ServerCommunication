@@ -24,7 +24,8 @@ NodeInfo::NodeInfo() :
 				new MapThirdIDSrcVideoInfo), _mAODevIDCodecID(
 				new MapAODevIDCodecID), _mAODevAudioInfo(new MapAODevAudioInfo), _mAudioTaskID(
 				new MapServerTaskID), _mVideoTaskID(new MapServerTaskID), _mAuViTaskID(
-				new MapServerTaskID), _vWindowPriority(new VctrWindowPriority) {
+				new MapServerTaskID), _vWindowPriority(new VctrWindowPriority), _bCodecInited(
+				DP_FALSE) {
 	_netInfo.setIfname(IFNAMEDEV);
 	_netInfo.getNetworkConfig();
 	initLocalInfo();
@@ -35,9 +36,9 @@ NodeInfo::~NodeInfo() {
 
 //////////////////////////////////////////& type can modify info
 void print_DP_M2S_VO_GET_INFO_S_(DP_M2S_VO_INFO_S voInfo) {
-	LOG_INFO << "print_DP_M2S_VO_GET_INFO_S_　devid: " << voInfo.enDevId
+	LOG_DEBUG << "print_DP_M2S_VO_GET_INFO_S_　devid: " << voInfo.enDevId
 			<< " enable: " << voInfo.bEnable << " sync: " << voInfo.enSync;
-	LOG_INFO << "print_DP_M2S_VO_GET_INFO_S_　 stsw[0]::" << " stw.void: "
+	LOG_DEBUG << "print_DP_M2S_VO_GET_INFO_S_　 stsw[0]::" << " stw.void: "
 			<< voInfo.stSwms[0].enVoDevId << " chn: "
 			<< voInfo.stSwms[0].u32SwmsChn << " priority: "
 			<< voInfo.stSwms[0].u32Priority << " x "
@@ -45,7 +46,7 @@ void print_DP_M2S_VO_GET_INFO_S_(DP_M2S_VO_INFO_S voInfo) {
 			<< voInfo.stSwms[0].stRect.s32Y << " width: "
 			<< voInfo.stSwms[0].stRect.u32Width << " height: "
 			<< voInfo.stSwms[0].stRect.u32Height;
-	LOG_INFO << "print_DP_M2S_VO_GET_INFO_S_　 stsw[1]::" << " stw.void: "
+	LOG_DEBUG << "print_DP_M2S_VO_GET_INFO_S_　 stsw[1]::" << " stw.void: "
 			<< voInfo.stSwms[1].enVoDevId << " chn: "
 			<< voInfo.stSwms[1].u32SwmsChn << " priority: "
 			<< voInfo.stSwms[1].u32Priority << " x "
@@ -55,6 +56,33 @@ void print_DP_M2S_VO_GET_INFO_S_(DP_M2S_VO_INFO_S voInfo) {
 			<< voInfo.stSwms[1].stRect.u32Height;
 
 }
+
+void print_DP_M2S_VI_GET_INFO_S(DP_M2S_VI_GET_INFO_S viInfo) {
+	LOG_DEBUG << "viInfo.bConn" << viInfo.bConn;
+	LOG_DEBUG << "viInfo.bSignal" << viInfo.bSignal;
+	LOG_DEBUG << "viInfo.enDevId" << viInfo.enDevId;
+	LOG_DEBUG << "viInfo.u32FrmRate" << viInfo.u32FrmRate;
+	LOG_DEBUG << "viInfo.stCap.s32X" << viInfo.stCap.s32X;
+	LOG_DEBUG << "viInfo.stCap.s32Y" << viInfo.stCap.s32Y;
+	LOG_DEBUG << "viInfo.stCap.u32Height" << viInfo.stCap.u32Height;
+	LOG_DEBUG << "viInfo.stCap.u32Width" << viInfo.stCap.u32Width;
+	LOG_DEBUG << "viInfo.stDst.u32Height" << viInfo.stDst.u32Height;
+	LOG_DEBUG << "viInfo.stDst.u32Width" << viInfo.stDst.u32Width;
+}
+
+void print_DP_M2S_AI_GET_INFO_S(DP_M2S_AI_GET_INFO_S aiInfo) {
+	LOG_DEBUG << "aiInfo.bSignal" << aiInfo.bSignal;
+	LOG_DEBUG << "aiInfo.bsConn" << aiInfo.bsConn;
+	LOG_DEBUG << "aiInfo.enDevId" << aiInfo.enDevId;
+	LOG_DEBUG << "aiInfo.u8Vol" << aiInfo.u8Vol;
+	LOG_DEBUG << "aiInfo.stCommAttr.enBitwidth" << aiInfo.stCommAttr.enBitwidth;
+	LOG_DEBUG << "aiInfo.stCommAttr.enSamplerate"
+			<< aiInfo.stCommAttr.enSamplerate;
+	LOG_DEBUG << "aiInfo.stCommAttr.enSoundmode"
+			<< aiInfo.stCommAttr.enSoundmode;
+
+}
+
 void NodeInfo::initLocalInfo() {
 	LOG_INFO << "Codec init begin...";
 	if (initCodec() != DP_TRUE) {
@@ -62,190 +90,176 @@ void NodeInfo::initLocalInfo() {
 		return;
 	}
 	LOG_INFO << "Codec init end...";
-#if (InputDevice)
-	LOG_INFO << "########################  1  ####################";
-	//获取输入节点的音频输入的通道信息
-	VctrAIGetInfoPtr aiInfo = getAIGetInfo();
-	getAVInfoFromCodecInfo<VctrAIGetInfoPtr, DP_M2S_AI_GET_INFO_S>(aiInfo,
-			DP_M2S_INFO_TYPE_GET_AI,
-			DP_AI_DEV_MAX);
-	updateAIGetInfo(aiInfo);
+//#if (InputDevice)
+//	LOG_INFO << "########################  1  ####################";
+//	//获取输入节点的音频输入的通道信息
+//	VctrAIGetInfoPtr aiInfo = getAIGetInfo();
+//	getAVInfoFromCodecInfo<VctrAIGetInfoPtr, DP_M2S_AI_GET_INFO_S>(aiInfo,
+//			DP_M2S_INFO_TYPE_GET_AI,
+//			DP_AI_DEV_MAX);
+//	updateAIGetInfo(aiInfo);
+////
+//	LOG_INFO << "########################  2  ####################";
+//	VctrVIGetInfoPtr viInfo = getVIGetInfo();//获取输入节点的视频采集通道信息
+//	getAVInfoFromCodecInfo<VctrVIGetInfoPtr, DP_M2S_VI_GET_INFO_S>(viInfo,
+//			DP_M2S_INFO_TYPE_GET_VI,
+//			DP_M2S_VI_DEV_MAX);
+//	updateVIGetInfo(viInfo);
 //
-	LOG_INFO << "########################  2  ####################";
-	VctrVIGetInfoPtr viInfo = getVIGetInfo();//获取输入节点的视频采集通道信息
-	getAVInfoFromCodecInfo<VctrVIGetInfoPtr, DP_M2S_VI_GET_INFO_S>(viInfo,
-			DP_M2S_INFO_TYPE_GET_VI,
-			DP_M2S_VI_DEV_MAX);
-	updateVIGetInfo(viInfo);
-
-	LOG_INFO << "########################  3  ####################";
-
-	VctrAVENCGetInfoPtr AVEncInputNodeInfo = getAVEncGetInfo();
-	//for_each!!!!!!!
-	AVEncInputNodeInfo->clear();
-	//cmd_set_aenc_default（）//0 0 0 0 0
-	//cmd_set_venc_default（）//256 1920 1080 4000 0
-	//257 1920 1080 4000 1
-	//cmd_set_avenc_default（）//512 1920 1080 4000 1 2
-	//513 1920 1080 4000 2 3
-	DP_M2S_AVENC_GET_INFO_S avEncInfo;
-	cmd_set_aenc_default(&avEncInfo, 0, 0, 0, 0, 0);
-//	cmd_set_avenc_default_512(&avEncInfo);
+//	LOG_INFO << "########################  3  ####################";
+//
+//	VctrAVENCGetInfoPtr AVEncInputNodeInfo = getAVEncGetInfo();
+//	//for_each!!!!!!!
+//	AVEncInputNodeInfo->clear();
+//	//cmd_set_aenc_default（）//0 0 0 0 0
+//	//cmd_set_venc_default（）//256 1920 1080 4000 0
+//	//257 1920 1080 4000 1
+//	//cmd_set_avenc_default（）//512 1920 1080 4000 1 2
+//	//513 1920 1080 4000 2 3
+//	DP_M2S_AVENC_GET_INFO_S avEncInfo;
+//	cmd_set_aenc_default(&avEncInfo, 0, 0, 0, 0, 0);
+////	cmd_set_avenc_default_512(&avEncInfo);
+////	AVEncInputNodeInfo->push_back(avEncInfo);
+////	memset(&avEncInfo, 0, sizeof(DP_M2S_AVENC_GET_INFO_S));
+////	cmd_set_avenc_default_513(&avEncInfo);
 //	AVEncInputNodeInfo->push_back(avEncInfo);
 //	memset(&avEncInfo, 0, sizeof(DP_M2S_AVENC_GET_INFO_S));
-//	cmd_set_avenc_default_513(&avEncInfo);
-	AVEncInputNodeInfo->push_back(avEncInfo);
-	memset(&avEncInfo, 0, sizeof(DP_M2S_AVENC_GET_INFO_S));
-	cmd_set_avenc_default(&avEncInfo, 512, 1920, 1080, 4000, 1, 1);
-	AVEncInputNodeInfo->push_back(avEncInfo);
-	memset(&avEncInfo, 0, sizeof(DP_M2S_AVENC_GET_INFO_S));
-	cmd_set_avenc_default(&avEncInfo, 513, 1920, 1080, 4000, 2, 2);
-	AVEncInputNodeInfo->push_back(avEncInfo);
-
-	LOG_INFO << "Setting avenc ------------------";
-	setAVInfoToCodec<VctrAVENCGetInfo, DP_M2S_AVENC_SET_INFO_S>(
-			*AVEncInputNodeInfo.get(), DP_M2S_INFO_TYPE_SET_AVENC);
-	updateAVEncGetInfo(AVEncInputNodeInfo);
-
-	LOG_INFO << "########################  4  ####################";
-
-	VctrAVENCGetInfoPtr AVEncInfo = getAVEncGetInfo();
-	getAVInfoFromCodecInfo<VctrAVENCGetInfoPtr, DP_M2S_AVENC_GET_INFO_S>(
-			AVEncInfo, DP_M2S_INFO_TYPE_GET_AVENC,
-			DP_VI_DEV_MAX);
-	for (VctrAVENCGetInfo::iterator it = AVEncInfo->begin();
-			it != AVEncInfo->end(); it++) {
-		LOG_INFO << "print ------------------";
-		print_avenc_get_attr(*it);
-	}
-
-#elif (OutputDevice)
-// input / output  node -->enc info //获取输入节点的视频采集通道的流信息(output node echo video)
-	VctrAVENCGetInfoPtr AVEncInfo = getAVEncGetInfo();
-	LOG_INFO << "########################  1  ####################";
-	getAVInfoFromCodecInfo<VctrAVENCGetInfoPtr, DP_M2S_AVENC_GET_INFO_S>(
-			AVEncInfo, DP_M2S_INFO_TYPE_GET_AVENC,
-			DP_VI_DEV_MAX);
+//	cmd_set_avenc_default(&avEncInfo, 512, 1920, 1080, 4000, 1, 1);
+//	AVEncInputNodeInfo->push_back(avEncInfo);
+//	memset(&avEncInfo, 0, sizeof(DP_M2S_AVENC_GET_INFO_S));
+//	cmd_set_avenc_default(&avEncInfo, 513, 1920, 1080, 4000, 2, 2);
+//	AVEncInputNodeInfo->push_back(avEncInfo);
+//
+//	LOG_INFO << "Setting avenc ------------------";
+//	setAVInfoToCodec<VctrAVENCGetInfo, DP_M2S_AVENC_SET_INFO_S>(
+//			*AVEncInputNodeInfo.get(), DP_M2S_INFO_TYPE_SET_AVENC);
+//	updateAVEncGetInfo(AVEncInputNodeInfo);
+//
+//	LOG_INFO << "########################  4  ####################";
+//
+//	VctrAVENCGetInfoPtr AVEncInfo = getAVEncGetInfo();
+//	getAVInfoFromCodecInfo<VctrAVENCGetInfoPtr, DP_M2S_AVENC_GET_INFO_S>(
+//			AVEncInfo, DP_M2S_INFO_TYPE_GET_AVENC,
+//			DP_VI_DEV_MAX);
 //	for (VctrAVENCGetInfo::iterator it = AVEncInfo->begin();
 //			it != AVEncInfo->end(); it++) {
-//		LOG_INFO << "1111111111it url: "
-//				<< it->stStream._rtsp.stRtspServer.au8Url << " task ID: "
-//				<< it->TskId << " enType : " << it->stStream.enType;
+//		LOG_INFO << "print ------------------";
+//		print_avenc_get_attr(*it);
 //	}
-//	LOG_INFO << "avenc size: " << AVEncInfo->size() << " avenc get url : "
-//			<< AVEncInfo->begin()->stStream._rtsp.stRtspServer.au8Url;
-
-	for (VctrAVENCGetInfo::iterator it = AVEncInfo->begin();
-			it != AVEncInfo->end(); it++) {
-		it->stStream._rtsp.stRtspServer.bOpen = DP_TRUE;
-	}
-	LOG_INFO
-	<< "########################  2  #################### AVEncInfo size:: "
-	<< AVEncInfo->size();
-	setAVInfoToCodec<VctrAVENCGetInfo, DP_M2S_AVENC_SET_INFO_S>(
-			*AVEncInfo.get(), DP_M2S_INFO_TYPE_SET_AVENC);
-
-	LOG_INFO << "########################  3  ####################";
-	getAVInfoFromCodecInfo<VctrAVENCGetInfoPtr, DP_M2S_AVENC_GET_INFO_S>(
-			AVEncInfo, DP_M2S_INFO_TYPE_GET_AVENC,
-			DP_VI_DEV_MAX);
+//
+//#elif (OutputDevice)
+//// input / output  node -->enc info //获取输入节点的视频采集通道的流信息(output node echo video)
+//	VctrAVENCGetInfoPtr AVEncInfo = getAVEncGetInfo();
+//	LOG_INFO << "########################  1  ####################";
+//	getAVInfoFromCodecInfo<VctrAVENCGetInfoPtr, DP_M2S_AVENC_GET_INFO_S>(
+//			AVEncInfo, DP_M2S_INFO_TYPE_GET_AVENC,
+//			DP_VI_DEV_MAX);
+////	for (VctrAVENCGetInfo::iterator it = AVEncInfo->begin();
+////			it != AVEncInfo->end(); it++) {
+////		LOG_INFO << "1111111111it url: "
+////				<< it->stStream._rtsp.stRtspServer.au8Url << " task ID: "
+////				<< it->TskId << " enType : " << it->stStream.enType;
+////	}
+////	LOG_INFO << "avenc size: " << AVEncInfo->size() << " avenc get url : "
+////			<< AVEncInfo->begin()->stStream._rtsp.stRtspServer.au8Url;
+//
 //	for (VctrAVENCGetInfo::iterator it = AVEncInfo->begin();
 //			it != AVEncInfo->end(); it++) {
-//		LOG_INFO << "333333333333333it url: "
-//				<< it->stStream._rtsp.stRtspServer.au8Url << " task ID: "
-//				<< it->TskId << " enType : " << it->stStream.enType;
+//		it->stStream._rtsp.stRtspServer.bOpen = DP_TRUE;
 //	}
-	updateAVEncGetInfo(AVEncInfo);
+//	LOG_INFO
+//	<< "########################  2  #################### AVEncInfo size:: "
+//	<< AVEncInfo->size();
+//	setAVInfoToCodec<VctrAVENCGetInfo, DP_M2S_AVENC_SET_INFO_S>(
+//			*AVEncInfo.get(), DP_M2S_INFO_TYPE_SET_AVENC);
+//
+//	LOG_INFO << "########################  3  ####################";
+//	getAVInfoFromCodecInfo<VctrAVENCGetInfoPtr, DP_M2S_AVENC_GET_INFO_S>(
+//			AVEncInfo, DP_M2S_INFO_TYPE_GET_AVENC,
+//			DP_VI_DEV_MAX);
+////	for (VctrAVENCGetInfo::iterator it = AVEncInfo->begin();
+////			it != AVEncInfo->end(); it++) {
+////		LOG_INFO << "333333333333333it url: "
+////				<< it->stStream._rtsp.stRtspServer.au8Url << " task ID: "
+////				<< it->TskId << " enType : " << it->stStream.enType;
+////	}
+//	updateAVEncGetInfo(AVEncInfo);
+//
+////	initCodec();
+//// output node -->dec info
+//	//取音视频解码通道信息
+//	VctrAVDECGetInfoPtr AVDecInfo = getAVDecGetInfo();
+//	LOG_INFO
+//	<< "########################  4  #################### AVDecInfo size: "
+//	<< AVDecInfo->size();
+//	getAVInfoFromCodecInfo<VctrAVDECGetInfoPtr, DP_M2S_AVDEC_GET_INFO_S>(
+//			AVDecInfo, DP_M2S_INFO_TYPE_GET_AVDEC,
+//			DP_VO_DEV_MAX);
+//	LOG_INFO << " get avedc by out node : size: " << AVDecInfo->size();
+////	for (VctrAVDECGetInfo::iterator it = AVDecInfo->begin();
+////			it != AVDecInfo->end(); it++) {
+////		it->stStream._rtsp.stRtspClient.s8Open = DP_TRUE;
+////	}
+////	setAVInfoToCodec<VctrAVDECGetInfo, DP_M2S_AVDEC_SET_INFO_S>(
+////			*AVDecInfo.get(), DP_M2S_INFO_TYPE_SET_AVDEC);
+////	LOG_DEBUG << "AVDecInfo size:: in fun initLocalInfo : " << AVDecInfo->size()
+////			<< " DP_M2S_AVDEC_GET_INFO_S sizeof : "
+////			<< sizeof(DP_M2S_AVDEC_GET_INFO_S);
+//
+//	setOutputTaskIDInMap(AVDecInfo);
+//	updateAVDecGetInfo(AVDecInfo);
+//
+//	// output node -->vo get info
+//	// 获取视频输出信息
+//	VctrVOGetInfoPtr VOInfo = getVOGetInfo();
+//	LOG_INFO << "########################  5  ####################";
+//	getAVInfoFromCodecInfo<VctrVOGetInfoPtr, DP_M2S_VO_GET_INFO_S>(VOInfo,
+//			DP_M2S_INFO_TYPE_GET_VO,
+//			DP_VO_DEV_MAX);
+//	LOG_INFO << "VOInfo size:::: === " << VOInfo->size();
+//	for_each(VOInfo->begin(), VOInfo->end(), print_DP_M2S_VO_GET_INFO_S_);
+//	updateVOGetInfo(VOInfo);
+//
+////	LOG_INFO << "########################  6  ####################";
+//	//// 说明： 获取音频输出信息
+//	VctrAOGetInfoPtr AOInfo = getAOGetInfo();
+//	getAVInfoFromCodecInfo<VctrAOGetInfoPtr, DP_M2S_AO_GET_INFO_S>(AOInfo,
+//			DP_M2S_INFO_TYPE_GET_AO,
+//			DP_AO_DEV_MAX);
+//	updateAOGetInfo(AOInfo);
+//#endif
 
-//	initCodec();
-// output node -->dec info
-	//取音视频解码通道信息
-	VctrAVDECGetInfoPtr AVDecInfo = getAVDecGetInfo();
-	LOG_INFO
-	<< "########################  4  #################### AVDecInfo size: "
-	<< AVDecInfo->size();
-	getAVInfoFromCodecInfo<VctrAVDECGetInfoPtr, DP_M2S_AVDEC_GET_INFO_S>(
-			AVDecInfo, DP_M2S_INFO_TYPE_GET_AVDEC,
-			DP_VO_DEV_MAX);
-	LOG_INFO << " get avedc by out node : size: " << AVDecInfo->size();
-//	for (VctrAVDECGetInfo::iterator it = AVDecInfo->begin();
-//			it != AVDecInfo->end(); it++) {
-//		it->stStream._rtsp.stRtspClient.s8Open = DP_TRUE;
-//	}
-//	setAVInfoToCodec<VctrAVDECGetInfo, DP_M2S_AVDEC_SET_INFO_S>(
-//			*AVDecInfo.get(), DP_M2S_INFO_TYPE_SET_AVDEC);
-//	LOG_DEBUG << "AVDecInfo size:: in fun initLocalInfo : " << AVDecInfo->size()
-//			<< " DP_M2S_AVDEC_GET_INFO_S sizeof : "
-//			<< sizeof(DP_M2S_AVDEC_GET_INFO_S);
+///	//
+//	//		[0,256)，为音频编码任务ID，选中此ID范围时，仅可操作音频编码的相关属性；
+//	// *	[256,512)，为音频解码任务ID，选中此ID范围时，仅可操作音频解码的相关属性；
+//	// *	[512,1024)，为视频编码任务ID，选中此ID范围时，仅可操作视频编码的相关属性；
+//	// *	[1024,1280)，为视频解码任务ID，选中此ID范围时，仅可操作视频解码的相关属性；
+//	// *	[1280,1536)，为音视频编码任务ID，选中此ID范围时，仅可操作音视频编码的相关属性；
+//	// *	[1536,1792)，为音视频解码任务ID，选中此ID范围时，仅可操作音视频解码的相关属性；
+//	// *	其他预留，无效；
 
-	setOutputTaskIDInMap(AVDecInfo);
-	updateAVDecGetInfo(AVDecInfo);
+//#if (InputDevice)
+//init input node
 
-	// output node -->vo get info
-	// 获取视频输出信息
-	VctrVOGetInfoPtr VOInfo = getVOGetInfo();
-	LOG_INFO << "########################  5  ####################";
-	getAVInfoFromCodecInfo<VctrVOGetInfoPtr, DP_M2S_VO_GET_INFO_S>(VOInfo,
-			DP_M2S_INFO_TYPE_GET_VO,
-			DP_VO_DEV_MAX);
-	LOG_INFO << "VOInfo size:::: === " << VOInfo->size();
-	for_each(VOInfo->begin(), VOInfo->end(), print_DP_M2S_VO_GET_INFO_S_);
-	updateVOGetInfo(VOInfo);
+	initInGetVI();
+	initInGetAI();
 
-//	LOG_INFO << "########################  6  ####################";
-	//// 说明： 获取音频输出信息
-	VctrAOGetInfoPtr AOInfo = getAOGetInfo();
-	getAVInfoFromCodecInfo<VctrAOGetInfoPtr, DP_M2S_AO_GET_INFO_S>(AOInfo,
-			DP_M2S_INFO_TYPE_GET_AO,
-			DP_AO_DEV_MAX);
-	updateAOGetInfo(AOInfo);
-#endif
-
-	///	//
-	//	//		[0,256)，为音频编码任务ID，选中此ID范围时，仅可操作音频编码的相关属性；
-	//	// *	[256,512)，为音频解码任务ID，选中此ID范围时，仅可操作音频解码的相关属性；
-	//	// *	[512,1024)，为视频编码任务ID，选中此ID范围时，仅可操作视频编码的相关属性；
-	//	// *	[1024,1280)，为视频解码任务ID，选中此ID范围时，仅可操作视频解码的相关属性；
-	//	// *	[1280,1536)，为音视频编码任务ID，选中此ID范围时，仅可操作音视频编码的相关属性；
-	//	// *	[1536,1792)，为音视频解码任务ID，选中此ID范围时，仅可操作音视频解码的相关属性；
-	//	// *	其他预留，无效；
-
-	//#if (InputDevice)
-	//init input node
 	//#endif
 	//
+
 	//#if (OutputDevice)
 	//init output node
 
 	initOutAVEnc();
 	initOutAVDec();
-
-	// 获取视频输出信息
-	VecVODEV voDev;
-	voDev.push_back(DP_M2S_VO_DEV_HDMI0_HI3536);
-	VctrVOGetInfoPtr VOInfo = getVOGetInfo();
-
-	getAOVOInfoFromCodec<VctrVOGetInfoPtr, DP_M2S_CMD_VO_GETINFO_S, VecVODEV,
-			DP_M2S_CMD_VO_GETINFO_ACK_S>(VOInfo, DP_M2S_CMD_VO_GET, voDev);
-
-	for_each(VOInfo->begin(), VOInfo->end(), print_DP_M2S_VO_GET_INFO_S_);
-	LOG_INFO << "Get aovo size获取视频输出信息 : " << VOInfo->size();
-	updateVOGetInfo(VOInfo);
-
-//	//// 说明： 获取音频输出信息
-	VecAODEV aoDev;
-	aoDev.push_back(DP_M2S_AO_DEV_LINEOUT0_HI3536);
-	aoDev.push_back(DP_M2S_AO_DEV_HDMI0_HI3536);
-	VctrAOGetInfoPtr AOInfo = getAOGetInfo();
-	getAOVOInfoFromCodec<VctrAOGetInfoPtr, DP_M2S_CMD_AO_GETINFO_S, VecAODEV,
-			DP_M2S_CMD_AO_GETINFO_ACK_S>(AOInfo, DP_M2S_CMD_AO_GET, aoDev);
-	LOG_INFO << "Get aovo size获取音频输出信息 : " << AOInfo->size();
-	updateAOGetInfo(AOInfo);
-
+	initOutGetVO();
+	initOutGetAO();
 //	test<int>(5);
+	_bCodecInited = DP_TRUE;
 }
 
 DP_BOOL NodeInfo::initOutAVEnc() {
+#if (OutputDevice)
 	VctrAVENCGetInfoPtr AVEncInfo = getAVEncGetInfo();
 	LOG_INFO
 			<< "[ out ] ###################### [ init ] [ 1 ] [ set avenc ]  ###################";
@@ -311,10 +325,12 @@ DP_BOOL NodeInfo::initOutAVEnc() {
 	getAVInfoFromCodec<VctrAVENCGetInfoPtr, DP_M2S_CMD_AVENC_SETINFO_S>(vTaskID,
 			DP_M2S_CMD_AVENC_GET);
 
+#endif
 	return DP_TRUE;
 }
 
 DP_BOOL NodeInfo::initOutAVDec() {
+#if (OutputDevice)
 	LOG_INFO
 			<< "[ out ] ###################### [ init ] [ 2 ] [ set avdec ]  ###################";
 	DP_S32 taskID = 0;
@@ -380,6 +396,77 @@ DP_BOOL NodeInfo::initOutAVDec() {
 	getAVInfoFromCodec<VctrAVDECGetInfoPtr, DP_M2S_CMD_AVDEC_SETINFO_S>(codecID,
 			DP_M2S_CMD_AVDEC_GET);
 
+#endif
+	return DP_TRUE;
+}
+
+DP_BOOL NodeInfo::initOutGetVO() {
+#if (OutputDevice)
+	LOG_INFO
+			<< "[ out ] ###################### [ init ] [ 3 ] [ get VO ]  ###################";
+	// 获取视频输出信息
+	VecVODEV voDev;
+	voDev.push_back(DP_M2S_VO_DEV_HDMI0_HI3536);
+	VctrVOGetInfoPtr VOInfo = getVOGetInfo();
+
+	getAOVOInfoFromCodec<VctrVOGetInfoPtr, DP_M2S_CMD_VO_GETINFO_S, VecVODEV,
+			DP_M2S_CMD_VO_GETINFO_ACK_S>(VOInfo, DP_M2S_CMD_VO_GET, voDev);
+
+	for_each(VOInfo->begin(), VOInfo->end(), print_DP_M2S_VO_GET_INFO_S_);
+	LOG_INFO << "Get aovo size获取视频输出信息 : " << VOInfo->size();
+	updateVOGetInfo(VOInfo);
+#endif
+	return DP_TRUE;
+}
+DP_BOOL NodeInfo::initOutGetAO() {
+#if (OutputDevice)
+	LOG_INFO
+			<< "[ out ] ###################### [ init ] [ 4 ] [ get AO ]  ###################";
+	//	//// 说明： 获取音频输出信息
+	VecAODEV aoDev;
+	aoDev.push_back(DP_M2S_AO_DEV_LINEOUT0_HI3536);
+	aoDev.push_back(DP_M2S_AO_DEV_HDMI0_HI3536);
+	VctrAOGetInfoPtr AOInfo = getAOGetInfo();
+	getAOVOInfoFromCodec<VctrAOGetInfoPtr, DP_M2S_CMD_AO_GETINFO_S, VecAODEV,
+			DP_M2S_CMD_AO_GETINFO_ACK_S>(AOInfo, DP_M2S_CMD_AO_GET, aoDev);
+	LOG_INFO << "Get aovo size获取音频输出信息 : " << AOInfo->size();
+	updateAOGetInfo(AOInfo);
+#endif
+	return DP_TRUE;
+}
+
+DP_BOOL NodeInfo::initInGetVI() {
+#if (InputDevice)
+	LOG_INFO
+	<< "[ input ] ###################### [ init ] [ ? ] [ get VI ]  ###################";
+	VctrVIGetInfoPtr viInfo = getVIGetInfo();	//获取输入节点的视频采集通道信息
+	VecVIDEV viDev;
+	viDev.push_back(DP_M2S_VI_DEV_HDMI0_ITE6801);
+	getAOVOInfoFromCodec<VctrVIGetInfoPtr, DP_M2S_CMD_VI_GETINFO_S, VecVIDEV,
+	DP_M2S_CMD_VI_GETINFO_ACK_S>(viInfo, DP_M2S_CMD_VO_GET, viDev);
+
+	for_each(viInfo->begin(), viInfo->end(), print_DP_M2S_VI_GET_INFO_S);
+	LOG_INFO << "Get aovo size获取输入节点的视频采集通道信息 : " << viInfo->size();
+	updateVIGetInfo(viInfo);
+#endif
+	return DP_TRUE;
+}
+
+DP_BOOL NodeInfo::initInGetAI() {
+#if (InputDevice)
+	LOG_INFO
+	<< "[ input ] ###################### [ init ] [ ? ] [ get AI ]  ###################";
+	//获取输入节点的音频输入的通道信息
+	VctrAIGetInfoPtr aiInfo = getAIGetInfo();
+	VecAIDEV aiDev;
+	aiDev.push_back(DP_M2S_AI_DEV_LINEIN0_HI3536);
+	aiDev.push_back(DP_M2S_AI_DEV_HDMI0_ITE6801);
+	getAOVOInfoFromCodec<VctrAIGetInfoPtr, DP_M2S_CMD_AI_GETINFO_S, VecAIDEV,
+	DP_M2S_CMD_AI_GETINFO_ACK_S>(aiInfo, DP_M2S_CMD_VO_GET, aiDev);
+	for_each(aiInfo->begin(), aiInfo->end(), print_DP_M2S_AI_GET_INFO_S);
+	LOG_INFO << "Get aovo size获取输入节点的音频输入的通道信息 : " << aiInfo->size();
+	updateAIGetInfo(aiInfo);
+#endif
 	return DP_TRUE;
 }
 
@@ -392,7 +479,7 @@ DP_S32 NodeInfo::getNewCodecTaskID(DP_U32 thirdId, TaskObjectType_E taskType) {
 		break;
 	case _eVideoTask:
 		codecID = findNewID(thirdId, _vVideoTaskID);
-		LOG_INFO << "getNewCodecTaskID _vVideoTaskID: " << _vVideoTaskID.size()
+		LOG_DEBUG << "getNewCodecTaskID _vVideoTaskID: " << _vVideoTaskID.size()
 				<< " and codecID: " << codecID;
 		return codecID;
 		break;
@@ -405,8 +492,9 @@ DP_S32 NodeInfo::getNewCodecTaskID(DP_U32 thirdId, TaskObjectType_E taskType) {
 	case _eTaskObjectTypeButt:
 		break;
 	}
-	return -2; //error!!!!!!
+	return DP_ERR_PROTOCOL_PRASE_PACKET_TYPE; //error!!!!!!
 }
+
 DP_S32 NodeInfo::findNewID(DP_U32 thirdId, VctrOutCodecTaskID TaskID) {
 	LOG_INFO << "findNewID TaskID.size() : " << TaskID.size();
 	LOG_INFO << " _mOutCodecTaskIDBeUsed->operator [](TaskID) "
@@ -415,23 +503,22 @@ DP_S32 NodeInfo::findNewID(DP_U32 thirdId, VctrOutCodecTaskID TaskID) {
 //check thirdId!
 	if (_mOutThirdCodecTaskID->find(thirdId) != _mOutThirdCodecTaskID->end()) {
 		LOG_ERROR << "The repetition third id ";
-		return -3;
+		return DP_ERR_THIRD_TASK_ID;
 	}
 
 	if (TaskID.size() <= _mOutCodecTaskIDBeUsed->operator [](TaskID))
-		return -1; //error for full !!!!!!
+		return DP_ERR_FULL_CODEC_TASK_ID; //error for full !!!!!!
 	else {
 		muduo::MutexLockGuard lock(_mutexForUsedID);
 		for (VctrOutCodecTaskID::iterator it = TaskID.begin();
 				it != TaskID.end(); it++) {
 			if (find(_vAllUseCodecTaskID.begin(), _vAllUseCodecTaskID.end(),
 					*it) == _vAllUseCodecTaskID.end()) {
-//				TaskID.push_back(*it);
 				_vAllUseCodecTaskID.push_back(*it);
-				LOG_INFO << "_vAllUseCodecTaskIDsize1111: "
+				LOG_DEBUG << "_vAllUseCodecTaskIDsize1111: "
 						<< _vAllUseCodecTaskID.size();
 				_mOutCodecTaskIDBeUsed->operator [](TaskID) += 1;
-				LOG_INFO
+				LOG_DEBUG
 						<< "_mOutCodecTaskIDBeUsed->operator [](TaskID)second : "
 						<< _mOutCodecTaskIDBeUsed->operator [](TaskID);
 				_mOutThirdCodecTaskID->insert(
@@ -440,7 +527,7 @@ DP_S32 NodeInfo::findNewID(DP_U32 thirdId, VctrOutCodecTaskID TaskID) {
 			}
 		}
 	}
-	return -2;
+	return DP_ERR_TASK_SOURCE_NOTENOUGH;
 }
 DP_S32 NodeInfo::getUsedCodecTaskID(DP_U32 thirdId) {
 	muduo::MutexLockGuard lock(_mutexForUsedID);
@@ -635,11 +722,11 @@ DP_BOOL NodeInfo::initCodec() {
 					DP_M2S_AUDIO_SAMPLE_RATE_48000, DP_M2S_AUDIO_BIT_WIDTH_16,
 					DP_M2S_AUDIO_SOUND_MODE_STEREO));
 
-#if 0 // input
+#if (InputDevice)
 	boost::shared_ptr<DP_M2S_CMD_SYS_INIT_S> sysInit(
 			new DP_M2S_CMD_SYS_INIT_S(aiInfo.get(), 1, NULL, 0));
 #endif
-#if 1 // output
+#if (OutputDevice)
 	DP_M2S_RECT_S rect;
 	DP_M2S_SWMS_ATTR_S swms(DP_M2S_VO_DEV_HDMI0_HI3536, DP_M2S_SWMS_MAX + 1, 0,
 			rect);
@@ -753,7 +840,7 @@ void NodeInfo::setOutputTaskIDInMap(VctrAVDECGetInfoPtr avDecInfo) {
 			<< _mOutCodecTaskIDBeUsed->operator [](_vVideoTaskID);
 }
 
-int NodeInfo::recvCB(void* pData, int len) {
+DP_S32 NodeInfo::recvCB(void* pData, int len) {
 	if (pData == NULL && len <= 0) {
 		return DP_ERR_PROTOCOL_PRASE;
 	}
@@ -781,6 +868,7 @@ int NodeInfo::recvCB(void* pData, int len) {
 	}
 	return DP_ERR_PROTOCOL_PRASE;
 }
+
 //
 //		[0,256)，为音频编码任务ID，选中此ID范围时，仅可操作音频编码的相关属性；
 // *	[256,512)，为音频解码任务ID，选中此ID范围时，仅可操作音频解码的相关属性；
@@ -817,14 +905,21 @@ void NodeInfo::initAVDec(DP_M2S_AVDEC_INFO_S *avdec, DP_S32 taskID,
 	avdec->AvBindAttr.stAudio.stIn.u32DevId = 0;
 	avdec->AvBindAttr.stAudio.stOut.ModId = DP_M2S_MOD_AO;
 	avdec->AvBindAttr.stAudio.stOut.u32ChnId = 0;
+#if (InputDevice)
+	avdec->AvBindAttr.stAudio.stOut.u32DevId = DP_M2S_AO_DEV_LINEOUT0_HI3536;
+#elif (OutputDevice)
 	avdec->AvBindAttr.stAudio.stOut.u32DevId = DP_M2S_AO_DEV_HDMI0_HI3536;
-
+#endif
 	avdec->AvBindAttr.stVideo.stIn.ModId = DP_M2S_MOD_VDEC;
 	avdec->AvBindAttr.stVideo.stIn.u32ChnId = chnID;
 	avdec->AvBindAttr.stVideo.stIn.u32DevId = 0;
 	avdec->AvBindAttr.stVideo.stOut.ModId = DP_M2S_MOD_VO;
 	avdec->AvBindAttr.stVideo.stOut.u32ChnId = 0;
+#if (InputDevice)
+//	avdec->AvBindAttr.stVideo.stOut.u32DevId = DP_M2S_VO_DEV_HDMI0_HI3536;
+#elif (OutputDevice)
 	avdec->AvBindAttr.stVideo.stOut.u32DevId = DP_M2S_VO_DEV_HDMI0_HI3536;
+#endif
 
 	avdec->stStream._rtsp.stRtspClient.bMulticast = 0;
 	avdec->stStream._rtsp.stRtspClient.s32ConnTimeout = 0;

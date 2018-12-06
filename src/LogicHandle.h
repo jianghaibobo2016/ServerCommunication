@@ -57,8 +57,7 @@ private:
 
 	bool sendAckToCodec(const void *data, DP_S32 dataLen, DP_U8 needReply);
 
-	DP_S32 getNewCodecTaskID(DP_U32 thirdTaskID, TaskObjectType_E type,
-			DP_U32 &reply);
+	DP_S32 getNewCodecTaskID(DP_U32 thirdTaskID, TaskObjectType_E type);
 
 	void closeAAudio(DP_U8 AOChnID, DP_U8 voChnID,
 			DP_M2S_CMD_SETINFO_S &setInfo,
@@ -78,10 +77,8 @@ private:
 	template<typename T>
 	struct compareDevID: public std::binary_function<T, DP_U32, bool> {
 		bool operator()(const T &vInfo, const DP_U32 &devID) const {
-			if ((vInfo.AvBindAttr.enBindType == DP_M2S_AVBIND_AI2AENC
-					|| vInfo.AvBindAttr.enBindType
-							== DP_M2S_AVBIND_AI2AENC_VI2VENC)
-					&& vInfo.AvBindAttr.stAudio.stIn.u32DevId == devID)
+			if ((vInfo.stAvBind.enBindType == DP_M2S_AVBIND_AI2AENC)
+					&& vInfo.stAvBind.stAudio.stIn.u32DevId == devID)
 				return true;
 			else
 				return false;
@@ -91,7 +88,7 @@ private:
 	///change if terminal changed
 //	SetNetwork _netInfo;
 public:
-	/* remainnnnnnnnnnnnnnnn*/
+	/* remain */
 	struct findThirdIDByCodecID: public std::binary_function<
 			std::map<DP_U32, DP_U32>::value_type, DP_U32, bool> {
 		bool operator()(const std::map<DP_U32, DP_U32>::value_type &pair,
@@ -113,11 +110,21 @@ private:
 				return false;
 		}
 	};
-	/* remainnnnnnnnnnnnnnnn*/
+	/* remain */
 	template<typename S>
 	struct findEchoRtspURL: public std::binary_function<S, DP_M2S_VO_DEV_E, bool> {
 		bool operator()(const S & lhs, const DP_M2S_VO_DEV_E devID) const {
 			if (lhs.stAvBind.stVideo.stOut.u32DevId == devID)
+				return true;
+			else
+				return false;
+		}
+	};
+
+	template<typename S>
+	struct findAVDevID: public std::binary_function<S, DP_M2S_VO_DEV_E, bool> {
+		bool operator()(const S & lhs, const DP_M2S_VO_DEV_E devID) const {
+			if (lhs.enDevId == devID)
 				return true;
 			else
 				return false;
@@ -129,7 +136,7 @@ private:
 //	} AOChnID_E;
 
 	DP_U8 DP_MediaClient_CheckCropDateIsIegitimate(DP_M2S_CROP_ATTR_S crop,
-			DP_M2S_VIDEO_SYNC_E enSync)
+			DP_M2S_VIDEO_SYNC_E enSync);
 
 };
 #include "LogicHandle.hpp"

@@ -1424,6 +1424,7 @@ typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_EXIT_RESPOND_S;
 #define __DP_M2S_PROT_H__
 
 #include "./dp_sd_type.h"
+#include "DevStaticConfigure.h"
 #include <string.h>
 #pragma pack(push)
 #pragma pack(1)
@@ -1432,8 +1433,14 @@ typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_EXIT_RESPOND_S;
 #define IDMS4K_DEV_HI3536_IN 0x1f
 /* IDMS4K 输出设备 */
 #define IDMS4K_DEV_HI3536_OUT 0x2f
+#if (InputDevice)
+/* IDMS4K 设备类型定义 */
+#define IMDS4K_DEV IDMS4K_DEV_HI3536_IN
+#endif
+#if (OutputDevice)
 /* IDMS4K 设备类型定义 */
 #define IMDS4K_DEV IDMS4K_DEV_HI3536_OUT
+#endif
 
 /* 协议版本号 */
 #define DP_M2S_INF_PROT_VERSION			"02.01"
@@ -1451,7 +1458,8 @@ typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_EXIT_RESPOND_S;
 /* 叠加图片路径长度（Bytes） */
 #define DP_M2S_OSD_PIC_PATH_LEN 64
 
-#if (IMDS4K_DEV == IDMS4K_DEV_HI3536_IN)
+//#if (IMDS4K_DEV == IDMS4K_DEV_HI3536_IN)
+#if (InputDevice)
 
 /*********************************** 输入节点 ***********************************/
 /*说明： 音频输入设备枚举
@@ -1464,10 +1472,10 @@ typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_EXIT_RESPOND_S;
  */
 typedef enum _DP_M2S_AI_DEV_E {
 
-	DP_M2S_AI_DEV_LINEIN0_HI3536=0x0,
+	DP_M2S_AI_DEV_LINEIN0_HI3536 = 0x0,
 	DP_M2S_AI_DEV_HDMI0_ITE6801,
 	DP_M2S_AI_DEV_MAX
-}DP_M2S_AI_DEV_E;
+} DP_M2S_AI_DEV_E;
 
 /*说明： 视频输入设备枚举
  *定义： DP_M2S_VI_DEV_E
@@ -1478,9 +1486,8 @@ typedef enum _DP_M2S_AI_DEV_E {
  */
 typedef enum _DP_M2S_VI_DEV_E {
 
-	DP_M2S_VI_DEV_HDMI0_ITE6801=0x0,
-	DP_M2S_VI_DEV_MAX
-}DP_M2S_VI_DEV_E;
+	DP_M2S_VI_DEV_HDMI0_ITE6801 = 0x0, DP_M2S_VI_DEV_MAX
+} DP_M2S_VI_DEV_E;
 
 /*说明： 音频输出设备枚举
  *定义： DP_M2S_AO_DEV_E
@@ -1491,9 +1498,8 @@ typedef enum _DP_M2S_VI_DEV_E {
  */
 typedef enum _DP_M2S_AO_DEV_E {
 
-	DP_M2S_AO_DEV_LINEOUT0_HI3536=0x0,
-	DP_M2S_AO_DEV_MAX
-}DP_M2S_AO_DEV_E;
+	DP_M2S_AO_DEV_LINEOUT0_HI3536 = 0x0, DP_M2S_AO_DEV_MAX
+} DP_M2S_AO_DEV_E;
 
 /*说明： HI3535 输出节点的视频输出设备枚举
  *定义： DP_M2S_VO_DEV_E
@@ -1501,10 +1507,10 @@ typedef enum _DP_M2S_AO_DEV_E {
  *	DP_M2S_VO_DEV_MAX	: 视频输出设备枚举数量
  *注意：无
  */
-typedef enum DP_M2S_VO_DEV_E {
+typedef enum _DP_M2S_VO_DEV_E {
 
-	DP_M2S_VO_DEV_MAX=0x0
-}DP_M2S_VO_DEV_E;
+	DP_M2S_VO_DEV_MAX = 0x0
+} DP_M2S_VO_DEV_E;
 
 /* 音频编码通道最大数量 */
 #define DP_M2S_AENC_CHN_MAX 2
@@ -1526,8 +1532,8 @@ typedef enum DP_M2S_VO_DEV_E {
 #define DP_M2S_H264E_MAX_HEIGHT 2160
 #define DP_M2S_H264E_MIN_ALIGN 2
 
-#elif (IMDS4K_DEV == IDMS4K_DEV_HI3536_OUT)
-
+//#elif (IMDS4K_DEV == IDMS4K_DEV_HI3536_OUT)
+#elif (OutputDevice)
 /*********************************** 输出节点 ***********************************/
 /*说明： 音频输入设备枚举
  *定义： DP_M2S_AI_DEV_E
@@ -1539,7 +1545,7 @@ typedef enum DP_M2S_VO_DEV_E {
 typedef enum _DP_M2S_AI_DEV_E {
 
 	DP_M2S_AI_DEV_LINEIN0_HI3536 = 0x0, DP_M2S_AI_DEV_MAX
-} DP_M2S_AI_DEV_E;
+}DP_M2S_AI_DEV_E;
 
 /*说明： 视频输入设备枚举
  *定义： DP_M2S_VI_DEV_E
@@ -1551,7 +1557,7 @@ typedef enum _DP_M2S_AI_DEV_E {
 typedef enum _DP_M2S_VI_DEV_E {
 
 	DP_M2S_VI_DEV_WBC0_HI3536 = 0x0, DP_M2S_VI_DEV_MAX
-} DP_M2S_VI_DEV_E;
+}DP_M2S_VI_DEV_E;
 
 /*说明： 音频输出设备枚举
  *定义： DP_M2S_AO_DEV_E
@@ -1566,7 +1572,7 @@ typedef enum _DP_M2S_AO_DEV_E {
 	DP_M2S_AO_DEV_LINEOUT0_HI3536 = 0x0,
 	DP_M2S_AO_DEV_HDMI0_HI3536,
 	DP_M2S_AO_DEV_MAX
-} DP_M2S_AO_DEV_E;
+}DP_M2S_AO_DEV_E;
 
 /*说明： 视频输出设备枚举
  *定义： DP_M2S_VO_DEV_E
@@ -1578,7 +1584,7 @@ typedef enum _DP_M2S_AO_DEV_E {
 typedef enum _DP_M2S_VO_DEV_E {
 
 	DP_M2S_VO_DEV_HDMI0_HI3536 = 0x0, DP_M2S_VO_DEV_MAX
-} DP_M2S_VO_DEV_E;
+}DP_M2S_VO_DEV_E;
 
 /* 音频输入通道最大数量 */
 #define DP_M2S_AI_CHN_MAX 1

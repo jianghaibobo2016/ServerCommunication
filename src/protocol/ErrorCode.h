@@ -190,6 +190,9 @@ typedef enum _DP_ERROR_CODE_E {
 	DP_ERR_FILE_PARAM_ILLEGAL,				//文件参数非法
 	DP_ERR_FILE_NOTEXIST,					//文件不存在
 
+	DP_ERR_THIRD_TASK_ID = 0xCB01,			// third task id is repetition.
+	DP_ERR_FULL_CODEC_TASK_ID				// all codec task id is used.
+
 } DP_ERROR_CODE_E;
 
 #endif

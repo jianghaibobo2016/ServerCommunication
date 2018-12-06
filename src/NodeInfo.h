@@ -98,11 +98,15 @@ public:
 		DP_U8 u8AoChnVolume;   ///<音量 0~100
 	} AOAudioInfo_S;
 
+	//AO ------- AO info (audio)
 	typedef std::map<DP_M2S_AO_DEV_E, AOAudioInfo_S> MapAODevAudioInfo;
 	typedef boost::shared_ptr<MapAODevAudioInfo> MapMapAODevAudioInfoPtr;
 
 	typedef std::vector<DP_M2S_VO_DEV_E> VecVODEV;
 	typedef std::vector<DP_M2S_AO_DEV_E> VecAODEV;
+
+	typedef std::vector<DP_M2S_VI_DEV_E> VecVIDEV;
+	typedef std::vector<DP_M2S_AI_DEV_E> VecAIDEV;
 
 	//----------------------------get --------------------------//
 	inline const VctrAIGetInfoPtr getAIGetInfo() const {
@@ -173,6 +177,9 @@ public:
 	}
 	inline const SetNetwork getNetInfo() {
 		return _netInfo;
+	}
+	inline const DP_BOOL getCodecInited() {
+		return _bCodecInited;
 	}
 	//----------------------------get --------------------------//
 
@@ -308,7 +315,12 @@ public:
 	void removeCodecTaskID(DP_U32 thirdId);
 	void updateThirdTaskIDCodecTaskid(DP_U32 thirdId, DP_S32 codecID);
 
-	static int recvCB(void* pData, int len);
+	static DP_S32 recvCB(void* pData, int len);
+
+	template<typename T, typename S>
+	static DP_S32 sendCodecAVEncDecInfo(T info, DP_U8 isReply,
+			DP_M2S_CMD_ID_E cmd);
+
 private:
 
 	inline static DP_U8* sendToCodecAndRecv(DP_S32 &retResult, const void* data,
@@ -364,6 +376,7 @@ private:
 	VctrWindowPriorityPtr _vWindowPriority;
 
 	SetNetwork _netInfo;
+	DP_BOOL _bCodecInited;
 
 	//use in output node
 	void setInputTaskIDInMap(VctrAVENCGetInfoPtr avEncInfo);
@@ -374,6 +387,10 @@ private:
 
 	DP_BOOL initOutAVEnc();
 	DP_BOOL initOutAVDec();
+	DP_BOOL initOutGetVO();
+	DP_BOOL initOutGetAO();
+	DP_BOOL initInGetVI();
+	DP_BOOL initInGetAI();
 
 private:
 	DP_U32 setID(MapServerTaskIDPtr mTaskID, DP_U32 taskID, DP_U32 min,

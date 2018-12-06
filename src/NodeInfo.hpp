@@ -93,29 +93,44 @@ DP_BOOL NodeInfo::getAVInfoFromCodec(VecCodecTaskID codecID,
 template<typename T, typename S> //VctrAVDECGetInfoPtr DP_M2S_CMD_AVDEC_SETINFO_S
 DP_BOOL NodeInfo::setAVInfoToCodec(boost::shared_ptr<T> vAVInfo,
 		DP_M2S_CMD_ID_E cmd) {
-	try {
-		boost::shared_ptr<S> setAVInfo(new S(cmd));
-		muduo::net::Buffer buffSend;
-		DP_S32 ret = 0;
-		for (typename T::iterator it = vAVInfo.begin(); it != vAVInfo.end();
-				it++) {
-			setAVInfo->stInfo = *it;
-			buffSend.retrieveAll();
-			buffSend.append(setAVInfo.get(), sizeof(S));
-			NodeInfo::sendToCodecAndRecv(ret, buffSend.toStringPiece().data(),
-					sizeof(S));
-			if (ret != 0) {
-				LOG_ERROR << "Recv from codec : " << ret;
-				return DP_FALSE;
-			} else {
-				LOG_INFO << "Set to codec task id: " << it->stInfo.s32TskId;
-			}
+	boost::shared_ptr<S> setAVInfo(new S(cmd));
+	muduo::net::Buffer buffSend;
+	DP_S32 ret = 0;
+	for (typename T::iterator it = vAVInfo.begin(); it != vAVInfo.end(); it++) {
+		setAVInfo->stInfo = *it;
+		buffSend.retrieveAll();
+		buffSend.append(setAVInfo.get(), sizeof(S));
+		NodeInfo::sendToCodecAndRecv(ret, buffSend.toStringPiece().data(),
+				sizeof(S));
+		if (ret != 0) {
+			LOG_ERROR << "Recv from codec : " << ret;
+			return DP_FALSE;
+		} else {
+			LOG_INFO << "Set to codec task id: " << it->stInfo.s32TskId;
 		}
-	} catch (const std::string& selfreason) {
-		std::cout << "Error: " << selfreason << endl;
-		return DP_FALSE;
 	}
 	return DP_TRUE;
+}
+
+template<typename T, typename S> // DP_M2S_AVDEC_INFO_S  DP_M2S_CMD_AVDEC_SETINFO_S
+DP_S32 NodeInfo::sendCodecAVEncDecInfo(T info, DP_U8 isReply,
+		DP_M2S_CMD_ID_E cmd) {
+	boost::shared_ptr<S> setAVInfo(new S(cmd));
+	muduo::net::Buffer buffSend;
+	setAVInfo->stInfo = info;
+	buffSend.retrieveAll();
+	buffSend.append(setAVInfo.get(), sizeof(S));
+	DP_S32 ret = 0;
+	if (isReply == NoNeedReply) {
+		sendToCodecOnly(buffSend.toStringPiece().data(), sizeof(S));
+	} else if (isReply == NeedReply) {
+		NodeInfo::sendToCodecAndRecv(ret, buffSend.toStringPiece().data(),
+				sizeof(S));
+		if (ret != 0) {
+			LOG_ERROR << "Recv from codec : " << ret;
+		}
+	}
+	return ret;
 }
 
 //VctrVOGetInfoPtr DP_M2S_CMD_VO_GETINFO_S VecVODEV DP_M2S_CMD_VO_GETINFO_ACK_S

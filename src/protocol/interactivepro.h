@@ -382,7 +382,10 @@ typedef struct _sAllAiChnInfo_tag {
 						aiDevIntfBitwidth, aiDevIntfSoundMode, aencType) {
 			memset(au8PreviewRtspURL, 0, DP_URL_LEN);
 			strcpy((DP_CHAR*) au8PreviewRtspURL, (DP_CHAR*) RtspURL);
-//			memcpy(au8PreviewRtspURL, RtspURL, urlLen);
+		}
+		_sSingleAiChnInfo_tag() :
+				u8AiSignalStatus(), srcAudioInfo() {
+			memset(au8PreviewRtspURL, 0, DP_URL_LEN);
 		}
 		DP_U8 u8AiSignalStatus;		 ///<接入信号有无
 		DP_U8 au8PreviewRtspURL[DP_URL_LEN]; ///<预览流RTSP地址
@@ -704,7 +707,7 @@ typedef struct _sRemote_CreateWindow_tag {
 	_sDstVideoInfo dstVideoInfo;	  ///<显示目标信息 \a _sDstVideoInfo
 	_sPhyScreenInfo phyScreenInfo;	///<物理屏幕，用于视频像素对齐，暂时保留 //add 2018.10.22
 	//音频信息
-	//0 关闭 1切换 2维持
+	//0 关闭 1切换 2维持 // update : create win without audio
 	DP_U8 u8AudioEnable;   ///<是否同时启用音频，当启用音频时，u8AiChnID、u8AoChnID才有效
 	DP_U8 u8AoChnID;	 ///<音频播放通道ID \a eDeviceAudioChannelID
 	_sSrcAudioInfo srcAudioInfo;//invalided if audio is enabled. // 2018/11/13

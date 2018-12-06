@@ -16,7 +16,7 @@
 //
 //#define OutputDevice 0
 //#define InputDevice  1
-
+//
 #if (InputDevice)
 static const eDeviceType g_DevType = Type_DeviceInput;
 static const DP_CHAR *LogFileName = "/root/APPDIR/InputNodeServer";
@@ -43,7 +43,9 @@ static const DP_CHAR *INIFILE = "./NET_CONF.ini";
 static const DP_CHAR *IFNAMEDEV = "eth0";
 //static const DP_CHAR *IFNAMEDEV = "ens33";
 
-
 static const DP_U32 LogFileMaxSize = 2 * 1024 * 1024;
+
+static DP_U8 NeedReply = 0x01;
+static DP_U8 NoNeedReply = 0x00;
 
 #endif /* SRC_DEVSTATICCONFIGURE_H_ */
