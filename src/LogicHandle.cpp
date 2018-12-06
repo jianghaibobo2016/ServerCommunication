@@ -21,8 +21,6 @@
 #include "PrintBuff.h"
 
 LogicHandle::LogicHandle() {
-//	_netInfo.setIfname(IFNAMEDEV);
-//	_netInfo.getNetworkConfig();
 }
 
 LogicHandle::~LogicHandle() {
@@ -42,19 +40,15 @@ void LogicHandle::getInfo(const muduo::net::TcpConnectionPtr connPtr,
 		Get_VideoChnVencInfo(connPtr);
 	}
 		break;
-	case Property_Get_InputAudioChnInfo: {
-		//获取输入节点的音频输入的通道信息
+	case Property_Get_InputAudioChnInfo: { //获取输入节点的音频输入的通道信息
 		Get_InputAudioChnInfo(connPtr);
 	}
 		break;
-	case Property_Get_OutputVideoChnInfo: {
-		/// real time
-		//获取输出节点的显示视频通道信息
+	case Property_Get_OutputVideoChnInfo: { //获取输出节点的显示视频通道信息
 		Get_OutputVideoChnInfo(connPtr);
 	}
 		break;
-		//获取输出节点的音频输入输出的通道信息
-	case Property_Get_OutputAudioChnInfo: {
+	case Property_Get_OutputAudioChnInfo: { //获取输出节点的音频输入输出的通道信息
 		Get_OutputAudioChnInfo(connPtr);
 	}
 		break;
@@ -1350,97 +1344,89 @@ void LogicHandle::Get_OutputVideoChnInfo(
 			<< connPtr->peerAddress().toIpPort();
 	NodeInfo::VctrVOGetInfoPtr VOInfo =
 			muduo::Singleton<NodeInfo>::instance().getVOGetInfo();
+	muduo::net::Buffer buffSend;
+	if (VOInfo->empty()) {
+		replyGetInfoToThird(Property_Get_OutputVideoChnInfo,
+				DP_ERR_STATE_ABNORMAL, buffSend, connPtr);
+		return;
+	}
+	DP_U32 voCount = VOInfo->size();
 	NodeInfo::MapOutSWMSChCodecDecInfoPtr swmsChInfo =
 			muduo::Singleton<NodeInfo>::instance().getOutSWMSChCodecDecInfo();
 	DP_U32 taskCount = swmsChInfo->size();
 	DP_U32 propertyLen = sizeof(_sAllVoChnInfo)
-			+ VOInfo->size() * sizeof(_sSingleVoChnInfo)
+			+ voCount * sizeof(_sSingleVoChnInfo)
 			+ taskCount * sizeof(_sVideoTaskInfo);
 
-	DP_U32 cmdLen = DP_DEV_ID_LEN + sizeof(eRemotePropertyName) + sizeof(DP_U32)
-			+ sizeof(DP_U16) + propertyLen;
+	_sAllVoChnInfo allVOChInfo(voCount, taskCount);
 
-	DP_U32 packageLen = sizeof(_sRemote_Header) + cmdLen;
-	LOG_INFO << "VOInfo->size()  : " << VOInfo->size() << " taskCount　: "
-			<< taskCount << " propertyLen : " << propertyLen << " cmdLen : "
-			<< cmdLen << " packageLen: " << packageLen;
-
-	_sRemote_Reply_GetInfo replyGetInfo(_netInfo.ip2U32(), g_DevType, 0x01,
-			packageLen, Command_GetInfo, cmdLen,
-			muduo::Singleton<LocalInfo>::instance().getLocalInfo()->au8DevID,
-			Property_Get_OutputVideoChnInfo, 0x00, propertyLen);
-
-	_sAllVoChnInfo allVOChInfo(VOInfo->size(), taskCount);
-	muduo::net::Buffer buffSend;
-	buffSend.append(&replyGetInfo, packageLen - propertyLen);
 	buffSend.append(&allVOChInfo, sizeof(_sAllVoChnInfo));
 	NodeInfo::VctrAVENCGetInfoPtr AVEncInfo =
 			muduo::Singleton<NodeInfo>::instance().getAVEncGetInfo();
 	NodeInfo::VctrAVENCGetInfo::iterator iter_AVEnc;
+	NodeInfo::MapMapAODevAudioInfoPtr aoAudioInfo =
+			muduo::Singleton<NodeInfo>::instance().AODevAudioInfo();
+
 	//append _sSingleVoChnInfo
+	DP_U32 voRealCount = 0;
 	for (NodeInfo::VctrVOGetInfo::iterator it = VOInfo->begin();
 			it != VOInfo->end(); it++) {
 		iter_AVEnc = find_if(AVEncInfo->begin(), AVEncInfo->end(),
-				bind2nd(findEchoRtspURL<DP_M2S_AVENC_GET_INFO_S>(),
-						it->s32DevId));
-		if (it->s32DevId == 0) {
+				bind2nd(findEchoRtspURL<DP_M2S_AVENC_INFO_S>(), it->enDevId));
+
+		if (it->enDevId == DP_M2S_VO_DEV_HDMI0_HI3536) {
 			boost::shared_ptr<_sSingleVoChnInfo> singleVoInfo(
 					new _sSingleVoChnInfo(it->bEnable, ID_VO_CHN_VIDEOOUT1,
-					NULL, 0, 0, 0, 0)); /////////////////// null
+					NULL, 0, ID_AO_CHN_VIDEOOUT1, 0, 0));
 			if (iter_AVEnc != AVEncInfo->end()) {
 				memset(singleVoInfo->au8PreviewRtspURL, 0, DP_URL_LEN);
 				strcpy((DP_CHAR*) singleVoInfo->au8PreviewRtspURL,
 						(DP_CHAR*) iter_AVEnc->stStream._rtsp.stRtspServer.au8Url);
-				//					LOG_WARN << "check url 1 and len: "
-				//							<< iter_AVEnc->stStream._rtsp.stRtspServer.au8Url
-				//							<< " "
-				//							<< strlen(
-				//									(DP_CHAR*) iter_AVEnc->stStream._rtsp.stRtspServer.au8Url)
-				//							<< " Check url 2: and len :"
-				//							<< singleVoInfo->au8PreviewRtspURL << " "
-				//							<< strlen(
-				//									(DP_CHAR*) singleVoInfo->au8PreviewRtspURL);
+				if (!aoAudioInfo->empty()) {
+					singleVoInfo->u8AoChnMute = aoAudioInfo->operator [](
+							DP_M2S_AO_DEV_HDMI0_HI3536).u8AoChnMute;
+					singleVoInfo->u8AoChnVolume = aoAudioInfo->operator [](
+							DP_M2S_AO_DEV_HDMI0_HI3536).u8AoChnVolume;
+				} else {
+					LOG_INFO << "aoAudioInfo is empty !";
+				}
+			} else {
+				LOG_ERROR << "Can not find devid: " << it->enDevId
+						<< " in avenc!";
 			}
 			buffSend.append(singleVoInfo.get(), sizeof(_sSingleVoChnInfo));
-			LOG_INFO << "singleVoInfo attr: u8VoChnOpenStatus: "
+			voRealCount++;
+			LOG_DEBUG << "singleVoInfo attr: u8VoChnOpenStatus: "
 					<< singleVoInfo->u8VoChnOpenStatus << " VOchiD : "
 					<< singleVoInfo->u8VoChnID << " URL : "
 					<< singleVoInfo->au8PreviewRtspURL << " ao chid : "
-					<< singleVoInfo->u8RelateAoChnID << " ao volume : "
+					<< singleVoInfo->u8RelateAoChnID << " ao mute : "
+					<< singleVoInfo->u8AoChnMute << " ao volume : "
 					<< singleVoInfo->u8AoChnVolume;
-			printf("url : %s\n", singleVoInfo->au8PreviewRtspURL);
-		} else if (it->s32DevId == 0x01) {
-			boost::shared_ptr<_sSingleVoChnInfo> singleVoInfo(
-					new _sSingleVoChnInfo(it->bEnable, ID_VO_CHN_VIDEOOUT2,
-					NULL, 0, 0, 0, 0)); /////////////////// null
-			if (iter_AVEnc != AVEncInfo->end()) {
-				memset(singleVoInfo->au8PreviewRtspURL, 0, DP_URL_LEN);
-				strcpy((DP_CHAR*) singleVoInfo->au8PreviewRtspURL,
-						(DP_CHAR*) iter_AVEnc->stStream._rtsp.stRtspServer.au8Url);
-				//					LOG_WARN << "check url 1: and len:  "
-				//							<< iter_AVEnc->stStream._rtsp.stRtspServer.au8Url
-				//							<< " "
-				//							<< strlen(
-				//									(DP_CHAR*) iter_AVEnc->stStream._rtsp.stRtspServer.au8Url)
-				//							<< " Check url 2: and len : "
-				//							<< singleVoInfo->au8PreviewRtspURL
-				//							<< strlen(
-				//									(DP_CHAR*) singleVoInfo->au8PreviewRtspURL);
-			}
-			buffSend.append(singleVoInfo.get(), sizeof(_sSingleVoChnInfo));
+		} else {
+			LOG_ERROR << "Error dev id : " << it->enDevId;
+			replyGetInfoToThird(Property_Get_OutputVideoChnInfo,
+					DP_ERR_VO_ID_INVALID, buffSend, connPtr);
+			return;
 		}
 	}
-	boost::shared_ptr<_sVideoTaskInfo> videoInfo(new _sVideoTaskInfo);
+	/// judge vo count num voCount == voRealCount?
+	if (voRealCount != voCount) {
+		LOG_ERROR << "Send vo count conflicted voRealCount : " << voRealCount
+				<< " voCount: " << voCount;
+		replyGetInfoToThird(Property_Get_OutputVideoChnInfo, DP_ERR_VO_OPERATE,
+				buffSend, connPtr);
+		return;
+	}
 
+	//video task info //append pVideoTaskInfo
+	boost::shared_ptr<_sVideoTaskInfo> videoInfo(new _sVideoTaskInfo);
 	NodeInfo::MapOutThirdCodecTaskIDPtr thirdCodecID =
 			muduo::Singleton<NodeInfo>::instance().getOutThirdCodecTaskID();
-
 	DP_U32 codecTaskID = 0;
 	NodeInfo::MapOutThirdCodecTaskID::iterator it_ID;
-	LOG_INFO << "swmsChInfo size :: " << swmsChInfo->size();
-	if (!swmsChInfo->empty())
-		//equal task info
-		LOG_INFO << "Video task count: " << swmsChInfo->size();
+	LOG_DEBUG << "swmsChInfo size :: " << swmsChInfo->size();
+	DP_U32 realVideoCount = 0;
 	for (NodeInfo::MapOutSWMSChCodecDecInfo::iterator it = swmsChInfo->begin();
 			it != swmsChInfo->end(); it++) {
 		// without audio
@@ -1448,24 +1434,32 @@ void LogicHandle::Get_OutputVideoChnInfo(
 		//			if (it->second.AvBindAttr.enBindType == DP_M2S_AVBIND_ADEC2AO){
 		//				continue;
 		//			}
-		codecTaskID = it->second.TskId;
+		codecTaskID = it->second.s32TskId;
 		it_ID = std::find_if(thirdCodecID->begin(), thirdCodecID->end(),
 				bind2nd(findThirdIDByCodecID(), codecTaskID));
 		if (it_ID != thirdCodecID->end()) {
 			videoInfo->u32TaskID = it_ID->first;
-			LOG_INFO << " third task ID: " << videoInfo->u32TaskID
+			LOG_DEBUG << " third task ID: " << videoInfo->u32TaskID
 					<< " codec task ID: " << codecTaskID;
 		} else {
 			LOG_ERROR << "Can not find third task id by codec task id: "
 					<< codecTaskID;
+			replyGetInfoToThird(Property_Get_OutputVideoChnInfo,
+					DP_ERR_TASK_ID_NOTEXIST, buffSend, connPtr);
 			return;
 		}
 		if (it->second.stVdec.bSwms) {
-			videoInfo->u8VoChnID =
-					it->second.stVdec.stSwms.s32VoDevId == 0x00 ?
-							ID_VO_CHN_VIDEOOUT1 : ID_VO_CHN_VIDEOOUT2;
+			if (it->second.stVdec.stSwms.enVoDevId
+					== DP_M2S_VO_DEV_HDMI0_HI3536) {
+				videoInfo->u8VoChnID = ID_VO_CHN_VIDEOOUT1;
+			} else {
+				LOG_ERROR << "Error dev id : "
+						<< it->second.stVdec.stSwms.enVoDevId;
+				replyGetInfoToThird(Property_Get_OutputVideoChnInfo,
+						DP_ERR_VO_ID_INVALID, buffSend, connPtr);
+				return;
+			}
 			videoInfo->u8WinZIndex = it->second.stVdec.stSwms.u32Priority;
-			//				videoInfo->u8VStreamStatus  // none
 			videoInfo->dstVideoInfo.u16StartX =
 					it->second.stVdec.stSwms.stRect.s32X;
 			videoInfo->dstVideoInfo.u16StartY =
@@ -1474,50 +1468,53 @@ void LogicHandle::Get_OutputVideoChnInfo(
 					it->second.stVdec.stSwms.stRect.u32Height;
 			videoInfo->dstVideoInfo.u16VideoWidth =
 					it->second.stVdec.stSwms.stRect.u32Width;
-			LOG_INFO << "Dst video info:: x: y: H: W: "
+			LOG_INFO << "Dst video info:: x: y: W: H: "
 					<< videoInfo->dstVideoInfo.u16StartX << " "
 					<< videoInfo->dstVideoInfo.u16StartY << " "
-					<< videoInfo->dstVideoInfo.u16VideoHeight << " "
-					<< videoInfo->dstVideoInfo.u16VideoWidth;
+					<< videoInfo->dstVideoInfo.u16VideoWidth << " "
+					<< videoInfo->dstVideoInfo.u16VideoHeight;
 		}
 
 		memset(videoInfo->au8InputRtspURL, 0, DP_URL_LEN);
 		strcpy((DP_CHAR*) videoInfo->au8InputRtspURL,
 				(DP_CHAR*) it->second.stStream._rtsp.stRtspClient.au8Url);
-		//				LOG_WARN << "check url 1: and len:  "
-		//						<< it->second.stStream._rtsp.stRtspClient.au8Url << " "
-		//						<< strlen(
-		//								(DP_CHAR*) it->second.stStream._rtsp.stRtspClient.au8Url)
-		//						<< " Check url 2: and len : "
-		//						<< videoInfo->au8InputRtspURL
-		//						<< strlen((DP_CHAR*) videoInfo->au8InputRtspURL);
 		LOG_INFO << "videoInfo->au8InputRtspURL: " << videoInfo->au8InputRtspURL
 				<< " from : " << it->second.stStream._rtsp.stRtspClient.au8Url;
-		//				muduo::PrintBuff::printBufferByHex("stRtspClient",
-		//						it->second.stStream._rtsp.stRtspClient.au8Url,
-		//						DP_M2S_URL_LEN);
-		//				muduo::PrintBuff::printBufferByHex("videoInfo",
-		//						videoInfo->au8InputRtspURL,
-		//						DP_M2S_URL_LEN);
-		if (!muduo::Singleton<NodeInfo>::instance().getThirdIDSrcVideoInfo()->empty())
-			videoInfo->srcVideoInfo =
-					muduo::Singleton<NodeInfo>::instance().getThirdIDSrcVideoInfo()->operator [](
-							videoInfo->u32TaskID);
-		//jhbnote error src info occasionally
-		LOG_INFO << "src video infoHeight : "
-				<< videoInfo->srcVideoInfo.u16VideoHeight << " width: "
-				<< videoInfo->srcVideoInfo.u16VideoWidth;
-		LOG_INFO << "src video start: x: y: end: x: y:  "
-				<< videoInfo->srcVideoInfo.u16StartX << " "
-				<< videoInfo->srcVideoInfo.u16StartY << " "
-				<< videoInfo->srcVideoInfo.u16EndX << " "
-				<< videoInfo->srcVideoInfo.u16EndY;
-		buffSend.append(videoInfo.get(), sizeof(_sVideoTaskInfo));
 
+		NodeInfo::MapThirdIDSrcVideoInfoPtr srcVideoInfo = muduo::Singleton<
+				NodeInfo>::instance().getThirdIDSrcVideoInfo();
+
+		if (!srcVideoInfo->empty()) {
+			if (NodeInfo::MapThirdIDSrcVideoInfo::iterator iter =
+					srcVideoInfo->find(videoInfo->u32TaskID)
+							!= srcVideoInfo->end()) {
+				videoInfo->srcVideoInfo = iter->second;
+				//jhbnote error src info occasionally
+				LOG_INFO << "srcVideoInfo size: " << srcVideoInfo->size()
+						<< "src video width : "
+						<< videoInfo->srcVideoInfo.u16VideoWidth
+						<< " infoHeight: "
+						<< videoInfo->srcVideoInfo.u16VideoHeight;
+				LOG_INFO << "src video start: x: y: end: x: y:  "
+						<< videoInfo->srcVideoInfo.u16StartX << " "
+						<< videoInfo->srcVideoInfo.u16StartY << " "
+						<< videoInfo->srcVideoInfo.u16EndX << " "
+						<< videoInfo->srcVideoInfo.u16EndY;
+			}
+		}
+		buffSend.append(videoInfo.get(), sizeof(_sVideoTaskInfo));
+		realVideoCount++;
 	}
-	LOG_INFO << "Get info send to remote " << buffSend.readableBytes()
-			<< " bytes !";
-	connPtr->send(&buffSend);
+
+	if (realVideoCount != taskCount) {
+		LOG_ERROR << "Send video task count conflicted realVideoCount : "
+				<< realVideoCount << " taskCount: " << taskCount;
+		replyGetInfoToThird(Property_Get_OutputVideoChnInfo,
+				DP_ERR_TASK_OPERATE, buffSend, connPtr);
+		return;
+	}
+
+	replyGetInfoToThird(Property_Get_OutputVideoChnInfo, 0, buffSend, connPtr);
 }
 
 void LogicHandle::Get_OutputAudioChnInfo(
@@ -1526,7 +1523,14 @@ void LogicHandle::Get_OutputAudioChnInfo(
 			<< connPtr->peerAddress().toIpPort();
 	NodeInfo::VctrAOGetInfoPtr AOInfo =
 			muduo::Singleton<NodeInfo>::instance().getAOGetInfo();
+	muduo::net::Buffer buffSend;
+	if (AOInfo->empty()) {
+		replyGetInfoToThird(Property_Get_OutputAudioChnInfo,
+				DP_ERR_STATE_ABNORMAL, buffSend, connPtr);
+		return;
+	}
 	DP_U32 audioCount = AOInfo->size();
+	DP_U32 realCount = 0;
 
 	_sAllAoChnInfo allAOChnInfo(audioCount);
 	LOG_INFO << "audioCount size: " << audioCount;
@@ -1539,102 +1543,207 @@ void LogicHandle::Get_OutputAudioChnInfo(
 			muduo::Singleton<NodeInfo>::instance().getOutThirdCodecTaskID();
 	NodeInfo::MapOutThirdCodecTaskID::iterator it_ID;
 
-	DP_U8 AOChnID = 0;
+	eDeviceAudioChannelID AOChnID = 0;
 	DP_U8 audioIn = 0;
 	boost::shared_ptr<_sAudioTaskInfo> audioTask(new _sAudioTaskInfo());
-	DP_U32 propertyLen = sizeof(_sAllAoChnInfo)
-			+ audioCount * sizeof(_sAllAoChnInfo::_sSingleAoChnInfo);
+
+	buffSend.append(&allAOChnInfo, sizeof(_sAllAoChnInfo));
+//	DP_BOOL success = DP_TRUE;
+	for (NodeInfo::VctrAOGetInfo::iterator it = AOInfo->begin();
+			it != AOInfo->end(); it++) {
+
+		if (it->enDevId == DP_M2S_AO_DEV_LINEOUT0_HI3536) {
+			AOChnID = ID_AO_CHN_LINEOUT1;
+		} else if (it->enDevId == DP_M2S_AO_DEV_HDMI0_HI3536) {
+			AOChnID = ID_AO_CHN_VIDEOOUT1;
+		} else {
+			LOG_ERROR << "Error dev id : " << it->enDevId;
+			replyGetInfoToThird(Property_Get_OutputAudioChnInfo,
+					DP_ERR_AO_ID_INVALID, buffSend, connPtr);
+			return;
+		}
+		boost::shared_ptr<_sAllAoChnInfo::_sSingleAoChnInfo> singleAO(
+				new _sAllAoChnInfo::_sSingleAoChnInfo(0x00, AOChnID, it->u8Vol,
+						0x00, *audioTask.get()));
+
+		if (AODEVCodecID->find(it->enDevId) == AODEVCodecID->end()) {
+			//jhbnote when thinking about uninit condition.
+			LOG_ERROR << "Can not find devID: " << it->enDevId << " in prog.";
+			buffSend.append(singleAO.get(),
+					sizeof(_sAllAoChnInfo::_sSingleAoChnInfo));
+			realCount++;
+//			success = DP_FALSE;
+//			continue;
+		} else {
+			codecID = AODEVCodecID->operator [](it->enDevId);
+
+			NodeInfo::VctrAVDECGetInfo::iterator itAVDec = find_if(
+					vAVDecInfo->begin(), vAVDecInfo->end(),
+					std::bind2nd(findAVDecInfoByCodecID(), codecID));
+
+			if (itAVDec == vAVDecInfo->end()) {
+				LOG_ERROR << "Can not find avDec by codec id : " << codecID
+						<< " in prog.";
+				buffSend.append(singleAO.get(),
+						sizeof(_sAllAoChnInfo::_sSingleAoChnInfo));
+				realCount++;
+				//			success = DP_FALSE;
+//				continue;
+			} else {
+//				if (itAVDec->AvBindAttr.enBindType != DP_M2S_AVBIND_VDEC2VO) {
+//
+//					audioIn = 0;
+//				} else {
+				audioIn = 0x01;
+				//jhbnote volume : dev's or chn's?
+				it_ID = std::find_if(thirdCodecID->begin(), thirdCodecID->end(),
+						bind2nd(findThirdIDByCodecID(), codecID));
+				if (it_ID == thirdCodecID->end()) {
+					LOG_ERROR << "Can not find third task id  by codec id : "
+							<< codecID << " in prog.";
+					buffSend.append(singleAO.get(),
+							sizeof(_sAllAoChnInfo::_sSingleAoChnInfo));
+					realCount++;
+					//				success = DP_FALSE;
+//						continue;
+				} else {
+					_sSrcAudioInfo audioInfo(SampleRate_AUDIO_44K, 0x10, 1,
+							AUDIO_ENCODE_AAC);
+					audioTask.reset(
+							new _sAudioTaskInfo(it_ID->first, 0x01,
+									itAVDec->stStream._rtsp.stRtspClient.au8Url,
+									audioInfo, AOChnID));
+					boost::shared_ptr<_sAllAoChnInfo::_sSingleAoChnInfo> singleAO(
+							new _sAllAoChnInfo::_sSingleAoChnInfo(0x01, AOChnID,
+									it->u8Vol, audioIn, *audioTask.get()));
+					buffSend.append(singleAO.get(),
+							sizeof(_sAllAoChnInfo::_sSingleAoChnInfo));
+					realCount++;
+				}
+			}
+//			}
+		}
+
+//		if (success == DP_FALSE) {
+//			DP_U32 successResult = 1;
+//			memcpy(
+//					const_cast<DP_CHAR*>(buffSend.toStringPiece().data())
+//							+ sizeof(_sRemote_Header) + DP_DEV_ID_LEN
+//							+ sizeof(eRemotePropertyName), &successResult,
+//					sizeof(DP_U32));
+//		}
+//		LOG_INFO << "Get info send to remote " << buffSend.readableBytes()
+//				<< " bytes !";
+//		connPtr->send(&buffSend);
+	}
+
+	if (realCount != audioCount) {
+		LOG_ERROR << "Send audio task count conflicted realCount : "
+				<< realCount << " audioCount: " << audioCount;
+		replyGetInfoToThird(Property_Get_OutputAudioChnInfo,
+				DP_ERR_TASK_OPERATE, buffSend, connPtr);
+		return;
+	} else {
+		replyGetInfoToThird(Property_Get_OutputAudioChnInfo, 0, buffSend,
+				connPtr);
+	}
+}
+
+void LogicHandle::commonReplyToThird(eRemoteCommand cmd, DP_U32 taskID,
+		DP_U32 success, const muduo::net::TcpConnectionPtr connPtr) {
+	_sRemote_Header head(
+			muduo::Singleton<NodeInfo>::instance().getNetInfo().ip2U32(),
+			g_DevType, 0x01, sizeof(Remote_Common_Reply_S), cmd,
+			DP_DEV_ID_LEN + sizeof(DP_U32) * 2);
+	Remote_Common_Reply_S reply(head,
+			muduo::Singleton<LocalInfo>::instance().getLocalInfo()->au8DevID,
+			taskID, success);
+	muduo::net::Buffer sendBuff;
+	sendBuff.append(&reply, reply.header.u16PackageLen);
+	connPtr->send(&sendBuff);
+}
+
+void LogicHandle::replyGetInfoToThird(eRemotePropertyName proterty,
+		DP_U32 success, muduo::net::Buffer buffSend,
+		const muduo::net::TcpConnectionPtr connPtr) {
+
+	DP_U32 propertyLen = buffSend.readableBytes();
 	DP_U32 cmdLen = DP_DEV_ID_LEN + sizeof(eRemotePropertyName) + sizeof(DP_U32)
 			+ sizeof(DP_U16) + propertyLen;
 	DP_U32 packageLen = sizeof(_sRemote_Header) + cmdLen;
+//	LOG_INFO << "VOInfo->size()  : " << VOInfo->size() << " taskCount　: "
+//			<< taskCount << " propertyLen : " << propertyLen << " cmdLen : "
+//			<< cmdLen << " packageLen: " << packageLen;
 
-	_sRemote_Reply_GetInfo replyGetInfo(_netInfo.ip2U32(), g_DevType, 0x01,
-			packageLen, Command_GetInfo, cmdLen,
+	_sRemote_Reply_GetInfo replyGetInfo(
+			muduo::Singleton<NodeInfo>::instance().getNetInfo().ip2U32(),
+			g_DevType, 0x01, packageLen, Command_GetInfo, cmdLen,
 			muduo::Singleton<LocalInfo>::instance().getLocalInfo()->au8DevID,
-			Property_Get_OutputAudioChnInfo, 0x00, propertyLen);
-	muduo::net::Buffer buffSend;
-	buffSend.append(&replyGetInfo, packageLen - propertyLen);
-	buffSend.append(&allAOChnInfo, sizeof(_sAllAoChnInfo));
-	DP_BOOL success = DP_TRUE;
-	for (NodeInfo::VctrAOGetInfo::iterator it = AOInfo->begin();
-			it != AOInfo->end(); it++) {
-		switch (it->s32DevId) {
-		case _videoAudioChn:
-			AOChnID = ID_AO_CHN_VIDEOOUT1;
-			break;
-		case _pureAudioChn:
-			AOChnID = ID_AO_CHN_LINEOUT1;
-			break;
-		default:
-			break;
-		}
-		if (AODEVCodecID->find(it->s32DevId) == AODEVCodecID->end()) {
-			LOG_ERROR << "Can not find devID: " << it->s32DevId << " in prog.";
-			boost::shared_ptr<_sAllAoChnInfo::_sSingleAoChnInfo> singleAO(
-					new _sAllAoChnInfo::_sSingleAoChnInfo(0x00, AOChnID,
-							it->u8Vol, 0x00, *audioTask.get()));
-			buffSend.append(singleAO.get(),
-					sizeof(_sAllAoChnInfo::_sSingleAoChnInfo));
-//			success = DP_FALSE;
-			continue;
-		}
-		codecID = AODEVCodecID->operator [](it->s32DevId);
-
-		NodeInfo::VctrAVDECGetInfo::iterator itAVDec = find_if(
-				vAVDecInfo->begin(), vAVDecInfo->end(),
-				std::bind2nd(findAVDecInfoByCodecID(), codecID));
-		if (itAVDec == vAVDecInfo->end()) {
-			LOG_ERROR << "Can not find avDec by codec id : " << codecID
-					<< " in prog.";
-			boost::shared_ptr<_sAllAoChnInfo::_sSingleAoChnInfo> singleAO(
-					new _sAllAoChnInfo::_sSingleAoChnInfo(0x00, AOChnID,
-							it->u8Vol, 0x00, *audioTask.get()));
-			buffSend.append(singleAO.get(),
-					sizeof(_sAllAoChnInfo::_sSingleAoChnInfo));
-//			success = DP_FALSE;
-			continue;
-		}
-		if (itAVDec->AvBindAttr.enBindType == DP_M2S_AVBIND_VDEC2VO) {
-			audioIn = 0;
-		} else {
-			audioIn = 0x01;
-			it_ID = std::find_if(thirdCodecID->begin(), thirdCodecID->end(),
-					bind2nd(findThirdIDByCodecID(), codecID));
-			if (it_ID == thirdCodecID->end()) {
-				LOG_ERROR << "Can not find third task id  by codec id : "
-						<< codecID << " in prog.";
-				boost::shared_ptr<_sAllAoChnInfo::_sSingleAoChnInfo> singleAO(
-						new _sAllAoChnInfo::_sSingleAoChnInfo(0x00, AOChnID,
-								it->u8Vol, 0x00, *audioTask.get()));
-				buffSend.append(singleAO.get(),
-						sizeof(_sAllAoChnInfo::_sSingleAoChnInfo));
-//				success = DP_FALSE;
-				continue;
-			}
-			//				DP_U8 u8VStreamStatus;		 ///<视频输入网络流媒体信号有无???????
-			_sSrcAudioInfo audioInfo(it->stCommAttr.enSamplerate,
-					it->stCommAttr.enBitwidth, it->stCommAttr.enSoundmode,
-					AUDIO_ENCODE_AAC);
-			audioTask.reset(
-					new _sAudioTaskInfo(it_ID->first, 0x01,
-							itAVDec->stStream._rtsp.stRtspClient.au8Url,
-							audioInfo, AOChnID));
-		}
-		boost::shared_ptr<_sAllAoChnInfo::_sSingleAoChnInfo> singleAO(
-				new _sAllAoChnInfo::_sSingleAoChnInfo(0x01, AOChnID, it->u8Vol,
-						audioIn, *audioTask.get()));
-		buffSend.append(singleAO.get(),
-				sizeof(_sAllAoChnInfo::_sSingleAoChnInfo));
+			Property_Get_OutputVideoChnInfo, success, propertyLen);
+	muduo::net::Buffer buff;
+	buff.append(&replyGetInfo, packageLen - propertyLen);
+	if (success == 0) {
+		buff.append(buffSend.toStringPiece());
 	}
-	if (success == DP_FALSE) {
-		DP_U32 successResult = 1;
-		memcpy(
-				const_cast<DP_CHAR*>(buffSend.toStringPiece().data())
-						+ sizeof(_sRemote_Header) + DP_DEV_ID_LEN
-						+ sizeof(eRemotePropertyName), &successResult,
-				sizeof(DP_U32));
-	}
-	LOG_INFO << "Get info send to remote " << buffSend.readableBytes()
+	LOG_INFO << "Get info send to remote: " << buff.readableBytes()
 			<< " bytes !";
-	connPtr->send(&buffSend);
+	connPtr->send(&buff);
+}
+
+DP_U8 LogicHandle::DP_MediaClient_CheckCropDateIsIegitimate(
+		DP_M2S_CROP_ATTR_S crop, DP_M2S_VIDEO_SYNC_E enSync) {
+	DP_U32 width = 0, height = 0;
+
+	if (enSync == DP_M2S_VIDEO_SYNC_720P60) {
+		width = 1280;
+		height = 720;
+	} else if (enSync == DP_M2S_VIDEO_SYNC_1080P60) {
+		width = 1920;
+		height = 1080;
+	} else if (enSync == DP_M2S_VIDEO_SYNC_4K30) {
+		width = 3840;
+		height = 2160;
+	} else {
+		LOG_ERROR << "crop param check is error,sync: " << enSync
+				<< " is not support!";
+		return DP_FALSE;
+	}
+
+	if (crop.s32X % 2 != 0 || crop.s32Y % 2 != 0) {
+		LOG_ERROR << "crop param check is error,x(: " << crop.s32X
+				<< ") %2 !=0 y(" << crop.s32Y << ") %2 !=0";
+		return DP_FALSE;
+	}
+	if (crop.u32Width % 2 != 0 || crop.u32Height % 4 != 0) {
+		LOG_ERROR << "crop param check is error,w( " << crop.u32Width
+				<< ") %2 !=0 h(" << crop.u32Height << ") %4 !=0";
+		return DP_FALSE;
+	}
+	if (crop.u32Width < DP_M2S_H264D_MIN_WIDTH
+			|| crop.u32Width > DP_M2S_H264D_MAX_WIDTH) {
+		LOG_ERROR
+				<< "crop param check is error,u32Width(%d) < %d || u32Width(%d)>%d "
+				<< crop.u32Width << " " << DP_M2S_H264D_MIN_WIDTH << " "
+				<< crop.u32Width << " " << DP_M2S_H264D_MAX_WIDTH;
+		return DP_FALSE;
+	}
+	if (crop.u32Height < DP_M2S_H264D_MIN_HEIGHT
+			|| crop.u32Height > DP_M2S_H264D_MAX_HEIGHT) {
+		LOG_ERROR
+				<< "crop param check is error,u32Height(%d) < %d || u32Height(%d)>%d "
+				<< crop.u32Height << " " << DP_M2S_H264D_MIN_HEIGHT << " "
+				<< crop.u32Height << " " << DP_M2S_H264D_MAX_HEIGHT;
+		return DP_FALSE;
+	}
+	if (crop.u32Width < (width / 16)) {
+		LOG_ERROR << "crop param check is error,u32Width(%d) < %d "
+				<< crop.u32Width << " " << (width / 16);
+		return DP_FALSE;
+	}
+	if (crop.u32Height < (height / 16)) {
+		LOG_ERROR << "crop param check is error,u32Height(%d) < %d "
+				<< crop.u32Height << " " << (height / 16);
+		return DP_FALSE;
+	}
+	return DP_TRUE;
 }

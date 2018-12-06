@@ -33,10 +33,9 @@ public:
 	NodeInfo();
 	~NodeInfo();
 
-	typedef boost::shared_ptr<DP_M2S_CMD_SYS_INIT_S> InitPtr;
-	typedef boost::shared_ptr<DP_M2S_CMD_DEINIT_S> DeinitPtr;
+//	typedef boost::shared_ptr<DP_M2S_CMD_SYS_INIT_S> InitPtr;
 
-	//获取音频输入设备信息
+//获取音频输入设备信息
 	typedef std::vector<DP_M2S_AI_GET_INFO_S> VctrAIGetInfo;
 	typedef boost::shared_ptr<VctrAIGetInfo> VctrAIGetInfoPtr;
 
@@ -88,11 +87,19 @@ public:
 	typedef std::vector<DP_U32> VctrWindowPriority;
 	typedef boost::shared_ptr<VctrWindowPriority> VctrWindowPriorityPtr;
 
-	//AO Dev id -- codec Task id
-	typedef std::map<DP_U8, DP_U32> MapAODevIDCodecID;
+	//AO Dev id -- codec Task id (audio)
+	typedef std::map<DP_M2S_AO_DEV_E, DP_U32> MapAODevIDCodecID;
 	typedef boost::shared_ptr<MapAODevIDCodecID> MapAODevIDCodecIDPtr;
 
 	typedef std::vector<DP_S32> VecCodecTaskID;
+
+	typedef struct _AOAudioInfo_S {
+		DP_U8 u8AoChnMute;	 ///<是否静音 0否 1是
+		DP_U8 u8AoChnVolume;   ///<音量 0~100
+	} AOAudioInfo_S;
+
+	typedef std::map<DP_M2S_AO_DEV_E, AOAudioInfo_S> MapAODevAudioInfo;
+	typedef boost::shared_ptr<MapAODevAudioInfo> MapMapAODevAudioInfoPtr;
 
 	typedef std::vector<DP_M2S_VO_DEV_E> VecVODEV;
 	typedef std::vector<DP_M2S_AO_DEV_E> VecAODEV;
@@ -142,6 +149,10 @@ public:
 		muduo::MutexLockGuard lock(_mutex);
 		return _mAODevIDCodecID;
 	}
+	inline const MapMapAODevAudioInfoPtr AODevAudioInfo() const {
+		muduo::MutexLockGuard lock(_mutex);
+		return _mAODevAudioInfo;
+	}
 	inline const MapServerTaskIDPtr getAudioTaskIDMap() const {
 		muduo::MutexLockGuard lock(_mutex);
 		return _mAudioTaskID;
@@ -159,6 +170,9 @@ public:
 	}
 	inline const VctrWindowPriorityPtr getVctrWindowPriority() {
 		return _vWindowPriority;
+	}
+	inline const SetNetwork getNetInfo() {
+		return _netInfo;
 	}
 	//----------------------------get --------------------------//
 
@@ -232,6 +246,12 @@ public:
 			_mAODevIDCodecID.swap(newData);
 		}
 	}
+	inline void updateAODevAudioInfo(MapMapAODevAudioInfoPtr newData) {
+		if (newData) {
+			muduo::MutexLockGuard lock(_mutex);
+			_mAODevAudioInfo.swap(newData);
+		}
+	}
 	inline void updateVctrWindowPriority(VctrWindowPriorityPtr newData) {
 		if (newData) {
 			muduo::MutexLockGuard lock(_mutex);
@@ -262,8 +282,6 @@ public:
 	//----------------------------update --------------------------//
 
 private:
-//	InitPtr _sInit;
-//	DeinitPtr _sDeinit;
 	mutable muduo::MutexLock _mutex;
 	muduo::MutexLock _mutexForUsedID;
 	VctrAIGetInfoPtr _vAIGetInfo;
@@ -281,6 +299,7 @@ private:
 	MapOutSWMSChCodecDecInfoPtr _mSwmsChCodecDecInfo;
 	MapThirdIDSrcVideoInfoPtr _mThirdIDSrcVideoInfo;
 	MapAODevIDCodecIDPtr _mAODevIDCodecID;
+	MapMapAODevAudioInfoPtr _mAODevAudioInfo;
 public:
 	//new method
 	DP_S32 getNewCodecTaskID(DP_U32 thirdId, TaskObjectType_E taskType);
@@ -333,6 +352,9 @@ private:
 	template<typename T, typename ST, typename V, typename ACK>
 	DP_BOOL getAOVOInfoFromCodec(T AOVOInfo, DP_M2S_CMD_ID_E cmd, V aovoDev);
 
+//	template<typename T>
+//	void test(T tmp);
+
 public:
 	MapServerTaskIDPtr _mAudioTaskID, _mVideoTaskID, _mAuViTaskID;
 	DP_U32 setServerTaskID(DP_U32 taskID);
@@ -341,7 +363,7 @@ public:
 private:
 	VctrWindowPriorityPtr _vWindowPriority;
 
-	static SetNetwork _netInfo;
+	SetNetwork _netInfo;
 
 	//use in output node
 	void setInputTaskIDInMap(VctrAVENCGetInfoPtr avEncInfo);

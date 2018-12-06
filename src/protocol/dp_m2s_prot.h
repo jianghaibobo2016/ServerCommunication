@@ -1767,7 +1767,7 @@ typedef struct _DP_M2S_AVBIND_ATTR_S {
  *	u16PacketLen：
  *		Bit[15]表示确认包返回标识，0表示不需要返回，1表示需要返回；
  *		Bit[14:0]表示数据包长度（固定包头长度+业务数据长度），范围[5~32767]Bytes；
- *	u8CommandID	：数据指令类型，引用DP_M2S_CMD_ID_E
+ *	u8CommandID	：数据指令类型，引用 DP_M2S_CMD_ID_E
  *注意：无
  */
 typedef struct _DP_M2S_INF_PROT_HEAD_S {

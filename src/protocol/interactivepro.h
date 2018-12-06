@@ -128,6 +128,7 @@ typedef enum _eAudioSampleRate {
 	SampleRate_AUDIO_16K = 16,   ///<16000
 	SampleRate_AUDIO_22K = 22,   ///<22050
 	SampleRate_AUDIO_44K = 44,   ///<44100
+	// jhbnote 48K?
 	SampleRate_AUDIO_96K = 96,   ///<96000
 	SampleRate_AUDIO_192K = 192, ///<192000
 } eAudioSampleRate;
@@ -293,8 +294,9 @@ typedef struct _sPhyScreenInfo_tag {
 //视频输出通道信号的信息
 typedef struct _sSingleVoChnInfo_tag {
 	_sSingleVoChnInfo_tag(DP_U8 voChnOpenStatus, DP_U8 voChnID,
-			DP_U8 *previewRtspURL, DP_U32 urlLen, DP_U8 relateAoChnID,
-			DP_U8 aoChnMute, DP_U8 aoChnVolume) :
+			DP_U8 *previewRtspURL, DP_U32 urlLen,
+			eDeviceAudioChannelID relateAoChnID, DP_U8 aoChnMute,
+			DP_U8 aoChnVolume) :
 			u8VoChnOpenStatus(voChnOpenStatus), u8VoChnID(voChnID), u8RelateAoChnID(
 					relateAoChnID), u8AoChnMute(aoChnMute), u8AoChnVolume(
 					aoChnVolume) {
@@ -307,7 +309,8 @@ typedef struct _sSingleVoChnInfo_tag {
 	DP_U8 u8VoChnID;					 ///<显示通道ID @see eDeviceVideoChannelID
 	DP_U8 au8PreviewRtspURL[DP_URL_LEN]; ///<回显信号的RTSP URL
 //	DP_U8 u8VideoTaskCount;				 ///<视频任务数量（窗口数量）
-	DP_U8 u8RelateAoChnID; ///<与当前现实通道一起的音频通道ID //add 2018.10.25
+	DP_U8 u8RelateAoChnID; ///<与当前present通道一起的音频通道ID //add 2018.10.25
+	//jhbnote restore mute status
 	DP_U8 u8AoChnMute;	 ///<是否静音 0否 1是 //add 2018.10.25
 	DP_U8 u8AoChnVolume;   ///<音量 0~100 //add 2018.10.25
 } _sSingleVoChnInfo;
@@ -504,6 +507,7 @@ typedef struct _s_AVServer_Header_tag {
 	DP_U32 u32SrcIP;			   ///<源IP地址，小端模式数据
 	DP_U16 u8DeviceType;			   ///<源设备类型
 	DP_U16 u16Version;			   ///<协议版本号
+	//jhbnote
 	DP_U32 u32RequestID;		   ///<命令请求ID，自增字段
 	DP_U8 u8PackageType;		   ///<0:request data 1:reply data
 	DP_U16 u16PackageLen;		   ///<数据包长，是指该协议包长度
@@ -722,6 +726,8 @@ typedef struct _sRemote_Reply_CreateWindow_tag {
 	DP_U32 u32TaskID;			   ///<见任务ID注释
 	DP_U32 u32Success;			   ///<0成功 其他失败，含错误码
 } _sRemote_Reply_CreateWindow;
+
+typedef _sRemote_Reply_CreateWindow Remote_Common_Reply_S;
 ///@}
 ////////////////////////////////////////////////////5.窗口调整（调整时置顶窗口）命令///////////////////////////////////////////////////
 //输出节点需要实现

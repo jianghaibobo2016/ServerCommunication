@@ -12,7 +12,7 @@
 #include "UnixSockClientData.h"
 #include "LogicHandle.h"
 
-SetNetwork NodeInfo::_netInfo;
+//SetNetwork NodeInfo::_netInfo;
 
 NodeInfo::NodeInfo() :
 		_vAIGetInfo(new VctrAIGetInfo), _vVIGetInfo(new VctrVIGetInfo), _vAVEncGetInfo(
@@ -22,9 +22,9 @@ NodeInfo::NodeInfo() :
 				new MapOutThirdCodecTaskID), _mSwmsChCodecDecInfo(
 				new MapOutSWMSChCodecDecInfo), _mThirdIDSrcVideoInfo(
 				new MapThirdIDSrcVideoInfo), _mAODevIDCodecID(
-				new MapAODevIDCodecID), _mAudioTaskID(new MapServerTaskID), _mVideoTaskID(
-				new MapServerTaskID), _mAuViTaskID(new MapServerTaskID), _vWindowPriority(
-				new VctrWindowPriority) {
+				new MapAODevIDCodecID), _mAODevAudioInfo(new MapAODevAudioInfo), _mAudioTaskID(
+				new MapServerTaskID), _mVideoTaskID(new MapServerTaskID), _mAuViTaskID(
+				new MapServerTaskID), _vWindowPriority(new VctrWindowPriority) {
 	_netInfo.setIfname(IFNAMEDEV);
 	_netInfo.getNetworkConfig();
 	initLocalInfo();
@@ -224,8 +224,10 @@ void NodeInfo::initLocalInfo() {
 	VecVODEV voDev;
 	voDev.push_back(DP_M2S_VO_DEV_HDMI0_HI3536);
 	VctrVOGetInfoPtr VOInfo = getVOGetInfo();
+
 	getAOVOInfoFromCodec<VctrVOGetInfoPtr, DP_M2S_CMD_VO_GETINFO_S, VecVODEV,
 			DP_M2S_CMD_VO_GETINFO_ACK_S>(VOInfo, DP_M2S_CMD_VO_GET, voDev);
+
 	for_each(VOInfo->begin(), VOInfo->end(), print_DP_M2S_VO_GET_INFO_S_);
 	LOG_INFO << "Get aovo size获取视频输出信息 : " << VOInfo->size();
 	updateVOGetInfo(VOInfo);
@@ -240,6 +242,7 @@ void NodeInfo::initLocalInfo() {
 	LOG_INFO << "Get aovo size获取音频输出信息 : " << AOInfo->size();
 	updateAOGetInfo(AOInfo);
 
+//	test<int>(5);
 }
 
 DP_BOOL NodeInfo::initOutAVEnc() {

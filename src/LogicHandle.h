@@ -16,7 +16,6 @@
 //#include <boost/noncopyable.hpp>
 #include <map>
 
-
 #include "NodeInfo.h"
 #include "dp_m2s_prot.h"
 //#include "NodeInfo.h"
@@ -25,6 +24,8 @@ class LogicHandle {
 public:
 	LogicHandle();
 	~LogicHandle();
+
+	//jhbnote third communication after terminal initialization.
 
 	void getInfo(const muduo::net::TcpConnectionPtr connPtr, std::string data);
 	//in out node
@@ -38,7 +39,7 @@ public:
 	void closeWindow(const muduo::net::TcpConnectionPtr connPtr,
 			std::string data);
 	void clearAllTask(const muduo::net::TcpConnectionPtr connPtr,
-				std::string data);
+			std::string data);
 	void openAudio(const muduo::net::TcpConnectionPtr connPtr,
 			std::string data);
 	void closeAudio(const muduo::net::TcpConnectionPtr connPtr,
@@ -63,6 +64,12 @@ private:
 			DP_M2S_CMD_SETINFO_S &setInfo,
 			NodeInfo::VctrAVDECGetInfoPtr vAVDecInfo);
 
+	void commonReplyToThird(eRemoteCommand cmd, DP_U32 taskID, DP_U32 success,
+			const muduo::net::TcpConnectionPtr connPtr);
+
+	void replyGetInfoToThird(eRemotePropertyName proterty, DP_U32 success,
+			muduo::net::Buffer buffSend,
+			const muduo::net::TcpConnectionPtr connPtr);
 
 	template<typename S, typename T>
 	void sendCMD(const muduo::net::TcpConnectionPtr connPtr, const S *data,
@@ -97,10 +104,10 @@ public:
 	};
 private:
 	struct findAVDecInfoByCodecID: public std::binary_function<
-			DP_M2S_AVDEC_GET_INFO_S, DP_U32, bool> {
-		bool operator()(const DP_M2S_AVDEC_GET_INFO_S &avDec,
+			DP_M2S_AVDEC_INFO_S, DP_U32, bool> {
+		bool operator()(const DP_M2S_AVDEC_INFO_S &avDec,
 				const DP_U32 &codecID) const {
-			if (avDec.TskId == codecID)
+			if (avDec.s32TskId == codecID)
 				return true;
 			else
 				return false;
@@ -108,18 +115,21 @@ private:
 	};
 	/* remainnnnnnnnnnnnnnnn*/
 	template<typename S>
-	struct findEchoRtspURL: public std::binary_function<S, DP_U32, bool> {
-		bool operator()(const S & lhs, const DP_U32 devID) const {
-			if (lhs.AvBindAttr.stVideo.stOut.u32DevId == devID)
+	struct findEchoRtspURL: public std::binary_function<S, DP_M2S_VO_DEV_E, bool> {
+		bool operator()(const S & lhs, const DP_M2S_VO_DEV_E devID) const {
+			if (lhs.stAvBind.stVideo.stOut.u32DevId == devID)
 				return true;
 			else
 				return false;
 		}
 	};
 
-	typedef enum _AOChnID_E {
-		_pureAudioChn = 0x00, _videoAudioChn
-	} AOChnID_E;
+//	typedef enum _AOChnID_E {
+//		_pureAudioChn = 0x00, _videoAudioChn
+//	} AOChnID_E;
+
+	DP_U8 DP_MediaClient_CheckCropDateIsIegitimate(DP_M2S_CROP_ATTR_S crop,
+			DP_M2S_VIDEO_SYNC_E enSync)
 
 };
 #include "LogicHandle.hpp"

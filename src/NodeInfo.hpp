@@ -145,4 +145,9 @@ DP_BOOL NodeInfo::getAOVOInfoFromCodec(T AOVOInfo, DP_M2S_CMD_ID_E cmd,
 	LOG_INFO << "Get aovo size: " << AOVOInfo->size();
 }
 
+//template<typename T>
+//void NodeInfo::test(T tmp) {
+//	return;
+//}
+
 #endif /* SRC_NODEINFO_HPP_ */
