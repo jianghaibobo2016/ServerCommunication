@@ -121,9 +121,9 @@ DP_S32 NodeInfo::sendCodecAVEncDecInfo(T info, DP_U8 isReply,
 	buffSend.retrieveAll();
 	buffSend.append(setAVInfo.get(), sizeof(S));
 	DP_S32 ret = 0;
-	if (isReply == NoNeedReply) {
+	if (isReply == g_NoNeedReply) {
 		sendToCodecOnly(buffSend.toStringPiece().data(), sizeof(S));
-	} else if (isReply == NeedReply) {
+	} else if (isReply == g_NeedReply) {
 		NodeInfo::sendToCodecAndRecv(ret, buffSend.toStringPiece().data(),
 				sizeof(S));
 		if (ret != 0) {

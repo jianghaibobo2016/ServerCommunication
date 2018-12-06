@@ -54,7 +54,7 @@ int main() {
 
 	//	muduo::Logger::setLogLevel(muduo::Logger::DEBUG);
 	//logging setting
-	g_logFile.reset(new muduo::LogFile(LogFileName, LogFileMaxSize));
+	g_logFile.reset(new muduo::LogFile(LogFileName, g_LogFileMaxSize));
 	muduo::Logger::setOutput(outputFunc);
 	muduo::Logger::setFlush(flushFunc);
 

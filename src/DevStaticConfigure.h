@@ -33,19 +33,19 @@ static const DP_U32 MultiCastRecvPort = 15011;
 static const DP_U32 MultiCastSendPort = 15012;
 static const DP_U32 UDPBufferSizeMax = 1400;
 
-static const DP_CHAR* ServerProgVersion = "V00.01";
+static const DP_CHAR* g_ServerProgVersion = "V00.01";
 
-static const DP_CHAR* DevIDPR = "0066";
+static const DP_CHAR* g_DevIDPR = "0066";
 
 static const DP_CHAR* DevModelType = " ";
 
 static const DP_CHAR *INIFILE = "./NET_CONF.ini";
-static const DP_CHAR *IFNAMEDEV = "eth0";
+static const DP_CHAR *g_IFNAMEDEV = "eth0";
 //static const DP_CHAR *IFNAMEDEV = "ens33";
 
-static const DP_U32 LogFileMaxSize = 2 * 1024 * 1024;
+static const DP_U32 g_LogFileMaxSize = 2 * 1024 * 1024;
 
-static DP_U8 NeedReply = 0x01;
-static DP_U8 NoNeedReply = 0x00;
+static DP_U8 g_NeedReply = 0x01;
+static DP_U8 g_NoNeedReply = 0x00;
 
 #endif /* SRC_DEVSTATICCONFIGURE_H_ */

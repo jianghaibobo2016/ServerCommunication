@@ -35,7 +35,7 @@ void LocalInfo::updateLocalInfo(RRSPtr newData) {
 void LocalInfo::initLocalInfo() {
 	DP_DEV_BASE_INFO_S stBaseInfoTemp;
 	SetNetwork netInfo;
-	netInfo.setIfname(IFNAMEDEV);
+	netInfo.setIfname(g_IFNAMEDEV);
 	netInfo.getNetworkConfig();
 	DP_U8 mac[13] = { 0 };
 	netInfo.mac2U8(mac);

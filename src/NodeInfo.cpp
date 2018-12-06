@@ -26,7 +26,7 @@ NodeInfo::NodeInfo() :
 				new MapServerTaskID), _mVideoTaskID(new MapServerTaskID), _mAuViTaskID(
 				new MapServerTaskID), _vWindowPriority(new VctrWindowPriority), _bCodecInited(
 				DP_FALSE) {
-	_netInfo.setIfname(IFNAMEDEV);
+	_netInfo.setIfname(g_IFNAMEDEV);
 	_netInfo.getNetworkConfig();
 	initLocalInfo();
 
@@ -536,6 +536,14 @@ DP_S32 NodeInfo::getUsedCodecTaskID(DP_U32 thirdId) {
 	else
 		return -2;
 }
+
+//*	[0,256)，为音频编码任务ID，选中此ID范围时，仅可操作音频编码的相关属性；
+//*	[256,512)，为音频解码任务ID，选中此ID范围时，仅可操作音频解码的相关属性；
+//*	[512,1024)，为视频编码任务ID，选中此ID范围时，仅可操作视频编码的相关属性；
+//*	[1024,1280)，为视频解码任务ID，选中此ID范围时，仅可操作视频解码的相关属性；
+//*	[1280,1536)，为音视频编码任务ID，选中此ID范围时，仅可操作音视频编码的相关属性；
+//*	[1536,1792)，为音视频解码任务ID，选中此ID范围时，仅可操作音视频解码的相关属性；
+
 void NodeInfo::removeCodecTaskID(DP_U32 thirdId) {
 	LOG_INFO << "Remove third task id :" << thirdId;
 	MapOutThirdCodecTaskIDPtr thirdCodecID = getOutThirdCodecTaskID();
@@ -543,11 +551,11 @@ void NodeInfo::removeCodecTaskID(DP_U32 thirdId) {
 	TaskObjectType_E taskType;
 	if (thirdCodecID->find(thirdId) != thirdCodecID->end())
 		id = thirdCodecID->operator [](thirdId);
-	if (id <= 255)
+	if (id >= 256 && id < 512)
 		taskType = _eAudioTask;
-	else if (id >= 256 && id <= 511)
+	else if (id >= 1024 && id < 1280)
 		taskType = _eVideoTask;
-	else if (id >= 512)
+	else if (id >= 1536 && id < 1792)
 		taskType = _eAudioAndVideoTask;
 	LOG_INFO << "codec id in remove :" << id << " taskType: " << taskType;
 	switch (taskType) {
@@ -631,19 +639,13 @@ void NodeInfo::updateThirdTaskIDCodecTaskid(DP_U32 thirdId, DP_S32 codecID) {
 		return;
 	}
 }
-/*
- * 范围定义：
- * 	[0~255]，为音频任务ID，选中此ID范围时，仅可操作音频的相关属性；
- *	[256~511]，为视频任务ID，选中此ID范围时，仅可操作音频的相关属性；
- *	[512~767]，为音视频任务ID，选中此ID范围时，可操作音频和视频的相关属性；
- *	其他预留，无效；
- */
+
 DP_U32 NodeInfo::setServerTaskID(DP_U32 taskID) {
 	MapOutThirdCodecTaskIDPtr thirdCodecID = getOutThirdCodecTaskID();
 	if (thirdCodecID->find(taskID) != thirdCodecID->end()) {
 		return thirdCodecID->operator [](taskID);
 	}
-	return 0xffff;
+	return DP_ERR_TASK_ID_NOTEXIST;
 }
 
 DP_U32 NodeInfo::setID(MapServerTaskIDPtr mTaskID, DP_U32 taskID, DP_U32 min,
