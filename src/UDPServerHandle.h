@@ -22,8 +22,8 @@ public:
 private:
 	EventLoop *_loop;
 	void runUdp();
-	void parserDataRecv(DP_U8 *buff, DP_U32 len);
-	void devSearchHandle();
+	void parserDataRecv(DP_U8 *buff, DP_U32 len, struct sockaddr_in recvAddr);
+	void devSearchHandle(DP_BOOL isMulticast, struct sockaddr_in recvAddr);
 
 };
 

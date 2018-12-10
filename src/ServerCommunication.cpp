@@ -15,6 +15,7 @@
 #include <muduo/base/LogFile.h>
 #include <muduo/base/FileUtil.h>
 #include <signal.h>
+#include <stdlib.h>
 
 #include <stdio.h>
 #include <unistd.h>
@@ -47,12 +48,39 @@ void flushFunc() {
 	g_logFile->flush();
 }
 
-int main() {
-	LOG_INFO << "ServerCommunication program starting !";
-	//jhbnote todo : signal handle :sync data
-	signal(SIGPIPE, SIG_IGN);
+void signalCB(int sig) {
+	if (sig == SIGSEGV) {
+		LOG_ERROR << "[SIGSEGV] Got a interrupt signal  =====prog exit !";
+	} else if (sig == SIGINT) {  //<2>2 中断（等同 Ctrl + C）
+		LOG_ERROR
+				<< "[SIGINT] Got a segmentation violation signal  =====prog exit !";
+	} else if (sig == SIGILL) {
+		LOG_ERROR
+				<< "[SIGILL] Got an illegal instruction signal  =====prog exit !";
+	} else if (sig == SIGKILL) {  //9 强制终止
+		LOG_ERROR << "[SIGKILL] Got an kill 9 signal  =====prog exit !";
+	} else if (sig == SIGABRT) { //abort : stack
+		LOG_ERROR << "[SIGABRT] Got an abort signal  =====prog exit !";
+	} else {
+		LOG_ERROR << "Got an unknow signal  =====prog exit ! sig: " << sig;
+	}
+	exit(0);
+}
 
+void signalHandle() {
+	signal(SIGPIPE, SIG_IGN);
+	signal(SIGSEGV, signalCB);
+	signal(SIGINT, signalCB);
+	signal(SIGILL, signalCB);
+	signal(SIGKILL, signalCB);
+	signal(SIGABRT, signalCB);
+}
+
+int main() {
 	//	muduo::Logger::setLogLevel(muduo::Logger::DEBUG);
+	LOG_ERROR
+			<< "===========ServerCommunication program starting !==============";
+	signalHandle();
 	//logging setting
 	g_logFile.reset(new muduo::LogFile(LogFileName, g_LogFileMaxSize));
 	muduo::Logger::setOutput(outputFunc);

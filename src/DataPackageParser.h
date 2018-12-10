@@ -34,7 +34,8 @@ typedef enum _E_RemoteCMD_ {
 	_eOpenAudio,
 	_eCloseAudio,
 	_eSetAudio,
-	_eClearTask=0x0b,
+	_eClearTask = 0x0b,
+	_eUnicastSearch = 0xf1,
 	_eButt
 } _E_RemoteCMD;
 
@@ -47,8 +48,7 @@ public:
 
 private:
 
-	static bool parserDataHead(_S_DataHeadInfo *dataHeadInfo,
-			std::string data);
+	static bool parserDataHead(_S_DataHeadInfo *dataHeadInfo, std::string data);
 };
 
 #endif /* SRC_DATAPACKAGEPARSER_H_ */

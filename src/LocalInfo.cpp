@@ -47,7 +47,7 @@ void LocalInfo::initLocalInfo() {
 			sizeof(_sRemote_Reply_Search)
 					+ sizeof(_sRemote_Reply_Search_ExtendDeviceOutput),
 					//jhbnote
-			Command_Search,
+					Command_MulticastSearch,
 			sizeof(_sRemote_Reply_Search) - sizeof(_sRemote_Header)
 					+ sizeof(_sRemote_Reply_Search_ExtendDeviceInput));
 	_sLocalSearchInfo->header = head;

@@ -55,30 +55,50 @@ void UDPServerHandle::runUdp() {
 		if (FD_ISSET(m_socket, &readfd)) {
 			_loop->runInLoop(
 					boost::bind(&UDPServerHandle::parserDataRecv, this, buffer,
-							ret_recv));
+							ret_recv, recvSendAddr));
 		}
 	}
 }
-void UDPServerHandle::parserDataRecv(DP_U8 *buff, DP_U32 len) {
+void UDPServerHandle::parserDataRecv(DP_U8 *buff, DP_U32 len,
+		struct sockaddr_in recvAddr) {
 	_sRemote_Search * search = (_sRemote_Search*) buff;
 	//jhbnote
+	printBufferByHex("UDP recv :", buff, len);
 	if (search->header.stFunctionMsg.u8CommandID == Command_MulticastSearch) {
-//		printBufferByHex("UDP recv :", buff, len);
-		devSearchHandle();
-	} else
-		printBufferByHex("UDP recv 2 ", buff, len);
+		devSearchHandle((DP_BOOL) DP_TRUE, recvAddr);
+	} else if (search->header.stFunctionMsg.u8CommandID
+			== Command_UnicastSearch) {
+		devSearchHandle((DP_BOOL) DP_FALSE, recvAddr);
+	} else {
+		LOG_ERROR << "CMD id error: "
+				<< search->header.stFunctionMsg.u8CommandID;
+//		printBufferByHex("UDP recv 2 ", buff, len);
+	}
 }
 
-void UDPServerHandle::devSearchHandle() {
+void UDPServerHandle::devSearchHandle(DP_BOOL isMulticast,
+		struct sockaddr_in recvAddr) {
 	LocalInfo::RRSPtr localInfo =
 			muduo::Singleton<LocalInfo>::instance().getLocalInfo();
 
-	struct sockaddr_in sendAddr;
 	DP_S32 tmp_server_addr_len = sizeof(struct sockaddr_in);
-	memset(&sendAddr, 0, sizeof(struct sockaddr_in));
-	sendAddr.sin_family = AF_INET;
-	sendAddr.sin_addr.s_addr = inet_addr(MultiCastAddrSEND); //任何主机地址
-	sendAddr.sin_port = htons(MultiCastSendPort);
+	struct sockaddr_in sendAddr;
+	if (isMulticast) {
+		memset(&sendAddr, 0, sizeof(struct sockaddr_in));
+		sendAddr.sin_family = AF_INET;
+		sendAddr.sin_addr.s_addr = inet_addr(MultiCastAddrSEND); //任何主机地址
+		sendAddr.sin_port = htons(MultiCastSendPort);
+		sendAddr.sin_addr.s_addr = inet_addr(MultiCastAddrSEND); //任何主机地址
+	} else {
+		localInfo->header.stFunctionMsg.u8CommandID = Command_UnicastSearch;
+		if (&recvAddr) {
+			memcpy(&sendAddr, &recvAddr, sizeof(struct sockaddr_in));
+		} else {
+			LOG_ERROR << "recvAddr is NULL!";
+			return;
+		}
+	}
+
 	DP_U8 sendBuf[UDPBufferSizeMax] = { 0 };
 	memcpy(sendBuf, localInfo.get(), sizeof(_sRemote_Reply_Search));
 
@@ -91,10 +111,10 @@ void UDPServerHandle::devSearchHandle() {
 		memcpy(sendBuf + sizeof(_sRemote_Reply_Search), &info,
 				sizeof(_sRemote_Reply_Search_ExtendDeviceInput));
 	}
-
-	int ret = sendto(m_socket, sendBuf, localInfo->header.u16PackageLen, 0,
+	int ret = 0;
+	ret = sendto(m_socket, sendBuf, localInfo->header.u16PackageLen, 0,
 			(struct sockaddr *) &sendAddr, tmp_server_addr_len);
-//	if (ret > 0)
-//		LOG_INFO << "Dev search ok, return " << ret << " bytes.";
+	if (ret > 0)
+		LOG_DEBUG << "Dev search ok, return " << ret << " bytes.";
 
 }

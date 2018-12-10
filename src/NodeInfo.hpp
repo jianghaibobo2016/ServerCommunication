@@ -53,7 +53,7 @@ template<typename T, typename S>
 DP_BOOL NodeInfo::getAVInfoFromCodec(VecCodecTaskID codecID,
 		DP_M2S_CMD_ID_E cmd) {
 	vector<DP_S32>::iterator itID;
-	typename T checkAVInfo;
+	T checkAVInfo;
 	DP_M2S_CMD_COMMON_GETINFO_S getAVDec(cmd);
 	DP_S32 retSend = 0;
 //	UnixSockClientData client(NodeInfo::recvCB);
@@ -88,6 +88,7 @@ DP_BOOL NodeInfo::getAVInfoFromCodec(VecCodecTaskID codecID,
 		}
 	}
 	LOG_INFO << "Size of checkAVDec: " << checkAVInfo->size();
+	return DP_TRUE;
 }
 
 template<typename T, typename S> //VctrAVDECGetInfoPtr DP_M2S_CMD_AVDEC_SETINFO_S
@@ -96,7 +97,8 @@ DP_BOOL NodeInfo::setAVInfoToCodec(boost::shared_ptr<T> vAVInfo,
 	boost::shared_ptr<S> setAVInfo(new S(cmd));
 	muduo::net::Buffer buffSend;
 	DP_S32 ret = 0;
-	for (typename T::iterator it = vAVInfo.begin(); it != vAVInfo.end(); it++) {
+	typename T::iterator it;
+	for (it = vAVInfo->begin(); it != vAVInfo->end(); it++) {
 		setAVInfo->stInfo = *it;
 		buffSend.retrieveAll();
 		buffSend.append(setAVInfo.get(), sizeof(S));
@@ -106,7 +108,7 @@ DP_BOOL NodeInfo::setAVInfoToCodec(boost::shared_ptr<T> vAVInfo,
 			LOG_ERROR << "Recv from codec : " << ret;
 			return DP_FALSE;
 		} else {
-			LOG_INFO << "Set to codec task id: " << it->stInfo.s32TskId;
+			LOG_INFO << "Set to codec task id: " << setAVInfo->stInfo.s32TskId;
 		}
 	}
 	return DP_TRUE;
@@ -157,11 +159,12 @@ DP_BOOL NodeInfo::getAOVOInfoFromCodec(T AOVOInfo, DP_M2S_CMD_ID_E cmd,
 		}
 	}
 	LOG_INFO << "Get aovo size: " << AOVOInfo->size();
+	return DP_TRUE;
 }
 
-//template<typename T>
-//void NodeInfo::test(T tmp) {
-//	return;
-//}
+template<typename T>
+void NodeInfo::test(T tmp) {
+	return;
+}
 
 #endif /* SRC_NODEINFO_HPP_ */

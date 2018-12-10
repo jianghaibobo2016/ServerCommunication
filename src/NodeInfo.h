@@ -19,6 +19,8 @@
 #include "SetNetwork.h"
 #include "interactivepro.h"
 #include "dp_m2s_prot.h"
+#include "ErrorCode.h"
+#include "UnixSockClientData.h"
 
 typedef enum _TaskObjectType_E {
 	_eAudioTask = 0,
@@ -32,8 +34,6 @@ class NodeInfo: boost::noncopyable {
 public:
 	NodeInfo();
 	~NodeInfo();
-
-//	typedef boost::shared_ptr<DP_M2S_CMD_SYS_INIT_S> InitPtr;
 
 //获取音频输入设备信息
 	typedef std::vector<DP_M2S_AI_GET_INFO_S> VctrAIGetInfo;
@@ -378,8 +378,8 @@ private:
 	template<typename T, typename ST, typename V, typename ACK>
 	DP_BOOL getAOVOInfoFromCodec(T AOVOInfo, DP_M2S_CMD_ID_E cmd, V aovoDev);
 
-//	template<typename T>
-//	void test(T tmp);
+	template<typename T>
+	void test(T tmp);
 
 public:
 	MapServerTaskIDPtr _mAudioTaskID, _mVideoTaskID, _mAuViTaskID;
@@ -403,6 +403,9 @@ private:
 	DP_BOOL initOutAVDec();
 	DP_BOOL initOutGetVO();
 	DP_BOOL initOutGetAO();
+
+	DP_BOOL initInAVEnc();
+
 	DP_BOOL initInGetVI();
 	DP_BOOL initInGetAI();
 
@@ -414,24 +417,22 @@ private:
 
 	void initAVDec(DP_M2S_AVDEC_INFO_S *avdec, DP_S32 taskID, DP_U32 chnID);
 
-	DP_S32 cmd_set_aenc_default(DP_VOID *pPtr, DP_S32 s32TskId, DP_U32 u32Width,
-			DP_U32 u32Height, DP_U32 u32Bitrate, DP_S32 AencChn);
-	DP_S32 cmd_set_venc_default(DP_VOID *pPtr, DP_S32 s32TskId, DP_U32 u32Width,
-			DP_U32 u32Height, DP_U32 u32Bitrate, DP_S32 VencChn);
-	DP_S32 cmd_set_avenc_default(DP_VOID *pPtr, DP_S32 s32TskId,
+	static int cmd_set_aenc_default(DP_VOID *pPtr, DP_S32 s32TskId,
+			DP_U32 u32Width, DP_U32 u32Height, DP_U32 u32Bitrate,
+			DP_S32 AencChn);
+	static int cmd_set_venc_default(DP_VOID *pPtr, DP_S32 s32TskId,
+			DP_U32 u32Width, DP_U32 u32Height, DP_U32 u32Bitrate,
+			DP_S32 VencChn);
+	static int cmd_set_avenc_default(DP_VOID *pPtr, DP_S32 s32TskId,
 			DP_U32 u32Width, DP_U32 u32Height, DP_U32 u32Bitrate,
 			DP_S32 AencChn, DP_S32 VencChn);
-//	DP_S32 cmd_set_avenc_default_512(DP_VOID*pPtr);
-//	DP_S32 cmd_set_avenc_default_513(DP_VOID*pPtr);
-//	DP_S32 print_avenc_get_attr(DP_M2S_AVENC_INFO_S info);
-
 	//sync
 	void syncToJson();
 	void syncFromJson();
 
 public:
-	static void printAVDEC(DP_M2S_AVDEC_INFO_S *avdec);
-	static void printAVENC(DP_M2S_AVENC_INFO_S *avenc);
+	static void printAVDEC(void *args);
+	static void printAVENC(void *args);
 
 //	inline void print_DP_M2S_VO_GET_INFO_S_(DP_M2S_VO_GET_INFO_S *voInfo) {
 //		LOG_INFO << "print_DP_M2S_VO_GET_INFO_S_　devid: " << voInfo->s32DevId

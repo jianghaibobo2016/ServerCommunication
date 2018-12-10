@@ -25,7 +25,7 @@ _E_RemoteCMD DataPackageParser::parserDataPackage(std::string data) {
 		return _eButt;
 	}
 	switch (dataHeadInfo->u8CommandID) {
-	case Command_Search:
+	case Command_MulticastSearch:
 		return _eSearch;
 	case Command_CreateWindow:
 		return _eCreateWindow;
@@ -45,6 +45,8 @@ _E_RemoteCMD DataPackageParser::parserDataPackage(std::string data) {
 		return _eSetAudio;
 	case Command_ClearTask:
 		return _eClearTask;
+	case Command_UnicastSearch:
+		return _eUnicastSearch;
 	}
 
 	return _eButt;

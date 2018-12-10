@@ -99,7 +99,7 @@ private:
 	struct findAVDecInfoByCodecID: public std::binary_function<
 			DP_M2S_AVDEC_INFO_S, DP_U32, bool> {
 		bool operator()(const DP_M2S_AVDEC_INFO_S &avDec,
-				const DP_U32 &codecID) const {
+				const DP_S32 &codecID) const {
 			if (avDec.s32TskId == codecID)
 				return true;
 			else
