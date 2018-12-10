@@ -118,7 +118,6 @@ DP_S32 NodeInfo::sendCodecAVEncDecInfo(T info, DP_U8 isReply,
 	boost::shared_ptr<S> setAVInfo(new S(cmd));
 	muduo::net::Buffer buffSend;
 	setAVInfo->stInfo = info;
-	buffSend.retrieveAll();
 	buffSend.append(setAVInfo.get(), sizeof(S));
 	DP_S32 ret = 0;
 	if (isReply == g_NoNeedReply) {

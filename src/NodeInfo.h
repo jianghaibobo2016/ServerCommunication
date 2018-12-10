@@ -93,6 +93,9 @@ public:
 
 	typedef std::vector<DP_S32> VecCodecTaskID;
 
+	//err code info array
+	typedef std::vector<DP_U32> VecErrInfo;
+
 	typedef struct _AOAudioInfo_S {
 		DP_U8 u8AoChnMute;	 ///<是否静音 0否 1是
 		DP_U8 u8AoChnVolume;   ///<音量 0~100
@@ -320,6 +323,17 @@ public:
 	template<typename T, typename S>
 	static DP_S32 sendCodecAVEncDecInfo(T info, DP_U8 isReply,
 			DP_M2S_CMD_ID_E cmd);
+
+	static DP_U32 batchSetting(DP_M2S_CMD_ID_E cmd, VecCodecTaskID &vTaskID,
+			VecErrInfo &errInfo);
+
+	template<typename S>
+	static DP_U32 batchSetting(DP_M2S_CMD_ID_E cmd, VecCodecTaskID &vTaskID,
+			std::vector<S> &info, VecErrInfo &errInfo);
+
+	template<typename S>
+	static DP_U32 batchGetting(DP_M2S_CMD_ID_E cmd, VecCodecTaskID &vTaskID,
+			std::vector<S> &info, VecErrInfo &errInfo);
 
 private:
 

@@ -558,6 +558,7 @@ void NodeInfo::removeCodecTaskID(DP_U32 thirdId) {
 	else if (id >= 1536 && id < 1792)
 		taskType = _eAudioAndVideoTask;
 	LOG_INFO << "codec id in remove :" << id << " taskType: " << taskType;
+	muduo::MutexLockGuard lock(_mutexForUsedID);
 	switch (taskType) {
 	case _eAudioTask: {
 		LOG_INFO << "_mOutCodecTaskIDBeUsed->operator [](TaskID)in remove  : "
@@ -755,9 +756,11 @@ DP_BOOL NodeInfo::initCodec() {
 }
 
 DP_BOOL NodeInfo::deinitCodec() {
-	DP_M2S_CMD_ACK_S deinit(DP_M2S_CMD_SYS_DEINIT, 0);
+	DP_M2S_INF_PROT_HEAD_S deinit(sizeof(DP_M2S_INF_PROT_HEAD_S),
+			DP_M2S_CMD_SYS_DEINIT, g_NeedReply);
 	DP_S32 retSend = 0;
-	NodeInfo::sendToCodecAndRecv(retSend, &deinit, sizeof(DP_M2S_CMD_ACK_S));
+	NodeInfo::sendToCodecAndRecv(retSend, &deinit,
+			sizeof(DP_M2S_INF_PROT_HEAD_S));
 	if (retSend != 0) {
 		LOG_ERROR << "Deinit failed.";
 		return DP_FALSE;
@@ -869,6 +872,46 @@ DP_S32 NodeInfo::recvCB(void* pData, int len) {
 		return DP_ERR_PROTOCOL_PRASE_HEAD;
 	}
 	return DP_ERR_PROTOCOL_PRASE;
+}
+
+DP_U32 NodeInfo::batchSetting(DP_M2S_CMD_ID_E cmd, VecCodecTaskID &vTaskID,
+		VecErrInfo &errInfo) {
+	DP_U32 count = vTaskID.size();
+	DP_U32 packageLen = sizeof(DP_M2S_INF_PROT_HEAD_S)
+			+ sizeof(DP_U32) * (count + 1);
+	boost::shared_ptr<DP_M2S_CMD_BATCH_COMMON_S> setAVInfo(
+			new DP_M2S_CMD_BATCH_COMMON_S(packageLen, cmd, count));
+	muduo::net::Buffer buffSend;
+	DP_S32 taskID;
+	buffSend.append(&setAVInfo, sizeof(DP_M2S_CMD_BATCH_COMMON_S));
+	for (VecCodecTaskID::iterator it = vTaskID.begin(); it != vTaskID.end();
+			it++) {
+		taskID = *it;
+		buffSend.append(&taskID, sizeof(taskID));
+	}
+	DP_S32 retResult = 0;
+	DP_U8 *recvBuff = NodeInfo::sendToCodecAndRecv(retResult,
+			buffSend.toStringPiece().data(), packageLen);
+	if (retResult == 0) {
+		LOG_DEBUG << "Batch setting ok, cmd-- " << cmd;
+		return retResult;
+	} else {
+		LOG_ERROR << "Set info to codec failed : " << retResult;
+		DP_M2S_CMD_BATCH_ACK_S *ack = (DP_M2S_CMD_BATCH_ACK_S*) recvBuff;
+		DP_U32 numsRecv = ack->u32Nums;
+		if (numsRecv != count) {
+			LOG_ERROR << "numsRecv!=count! numsRecv: " << numsRecv << " count: "
+					<< count;
+			return DP_ERR_PROTOCOL_CONTENT;
+		} else {
+			recvBuff += sizeof(DP_M2S_CMD_BATCH_ACK_S);
+			DP_U32 *errCode = (DP_U32*) recvBuff;
+			for (DP_U32 i = 0; i < count; i++) {
+				errInfo.push_back(errCode[i]);
+			}
+		}
+	}
+	return retResult;
 }
 
 //
@@ -1096,7 +1139,7 @@ DP_S32 NodeInfo::cmd_set_venc_default(DP_VOID *pPtr, DP_S32 s32TskId,
 	stRtspServer.s32TransType = 0;//udp
 	stRtspServer.s32ConnTimeout = 60;
 	stRtspServer.s32ConnMax = 128;
-	stRtspServer.s32ConnNums = 0;//not use
+	stRtspServer.s32ConnNums = 0; //not use
 //stRtspServer.au8Url[] = NULL;//not use
 	memcpy(&stAttr.stStream._rtsp.stRtspServer, &stRtspServer,
 			sizeof(DP_M2S_RTSP_SERVER_ATTR_S));

@@ -330,6 +330,7 @@ typedef enum _eRemotePropertyName
 
 //协议命令号定义
 typedef enum _eRemoteCommand {
+	//jhbnote notify
 	Command_MulticastSearch = 0x01, //20181203 modify
 	Command_GetInfo,
 	Command_SetInfo,
@@ -860,14 +861,19 @@ typedef struct _sRemote_ClearTask_tag {
 
 typedef struct _sRemote_Reply_ClearTask_tag {
 	_sRemote_Reply_ClearTask_tag(_sRemote_Header head, DP_U8 *devID,
-			DP_U32 u32Success) :
-			header(head), u32Success(u32Success) {
+			DP_U32 u32Success, DP_U32 errTaskCount) :
+			header(head), u32Success(u32Success), u32ErrTaskCount(errTaskCount) {
 		memset(au8DevID, 0, DP_DEV_ID_LEN);
 		strcpy((DP_CHAR*) au8DevID, (DP_CHAR*) devID);
 	}
 	_sRemote_Header header;
 	DP_U8 au8DevID[DP_DEV_ID_LEN];		///< 节点ID
 	DP_U32 u32Success; 					///<0成功 其他失败，含错误码
+
+	DP_U32 u32ErrTaskCount; // add 20181207
+	//DP_U32 u32ErrTaskID[u32ErrTaskCount];
+	//DP_U32 u32ErrCode[u32ErrTaskCount];
+
 } _sRemote_Reply_ClearTask;
 //add new protocol 2018/11/26
 #pragma pack()
@@ -894,3 +900,6 @@ typedef struct _sRemote_Reply_ClearTask_tag {
 //2. _sSingleVoChnInfo 添加变量 u8RelateAoChnID 、u8AoChnMute 、u8AoChnVolumn
 //3._sRemote_CreateWindow修改变量u8AudioEnable为u8AudioMute
 //4.添加设置音量命令
+
+// add 20181207
+//clear task count err

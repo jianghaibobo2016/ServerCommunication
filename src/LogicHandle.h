@@ -55,24 +55,21 @@ private:
 	void Get_OutputAudioChnInfo(const muduo::net::TcpConnectionPtr connPtr);
 	void Get_OutputVideoChnInfo(const muduo::net::TcpConnectionPtr connPtr);
 
-	bool sendAckToCodec(const void *data, DP_S32 dataLen, DP_U8 needReply);
-
 	DP_S32 getNewCodecTaskID(DP_U32 thirdTaskID, TaskObjectType_E type);
 
-	void closeAAudio(DP_U8 AOChnID, DP_U8 voChnID,
-			DP_M2S_CMD_SETINFO_S &setInfo,
-			NodeInfo::VctrAVDECGetInfoPtr vAVDecInfo);
-
 	void commonReplyToThird(eRemoteCommand cmd, DP_U32 taskID, DP_U32 success,
+			const muduo::net::TcpConnectionPtr connPtr);
+	void replyClearToThird(DP_U32 success, NodeInfo::VecErrInfo errTaskID,
+			NodeInfo::VecErrInfo errCode,
 			const muduo::net::TcpConnectionPtr connPtr);
 
 	void replyGetInfoToThird(eRemotePropertyName proterty, DP_U32 success,
 			muduo::net::Buffer buffSend,
 			const muduo::net::TcpConnectionPtr connPtr);
 
-	template<typename S, typename T>
-	void sendCMD(const muduo::net::TcpConnectionPtr connPtr, const S *data,
-			T &reply);
+//	template<typename S, typename T>
+//	void sendCMD(const muduo::net::TcpConnectionPtr connPtr, const S *data,
+//			T &reply);
 
 	template<typename T>
 	struct compareDevID: public std::binary_function<T, DP_U32, bool> {
@@ -86,7 +83,6 @@ private:
 	};
 
 	///change if terminal changed
-//	SetNetwork _netInfo;
 public:
 	/* remain */
 	struct findThirdIDByCodecID: public std::binary_function<

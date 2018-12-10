@@ -1416,8 +1416,8 @@ typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_EXIT_RESPOND_S;
  * 详述：
  该协议主要是用于（设备节点）编解码模块与服务逻辑模块之间的内部控制操作。
  * 作者：lyw
- * 版本：v02.01
- * 日期：2018/11/22
+ * 版本：v02.10
+ * 日期：2018/12/07
  */
 
 #ifndef __DP_M2S_PROT_H__
@@ -1475,7 +1475,7 @@ typedef enum _DP_M2S_AI_DEV_E {
 	DP_M2S_AI_DEV_LINEIN0_HI3536 = 0x0,
 	DP_M2S_AI_DEV_HDMI0_ITE6801,
 	DP_M2S_AI_DEV_MAX
-} DP_M2S_AI_DEV_E;
+}DP_M2S_AI_DEV_E;
 
 /*说明： 视频输入设备枚举
  *定义： DP_M2S_VI_DEV_E
@@ -1487,7 +1487,7 @@ typedef enum _DP_M2S_AI_DEV_E {
 typedef enum _DP_M2S_VI_DEV_E {
 
 	DP_M2S_VI_DEV_HDMI0_ITE6801 = 0x0, DP_M2S_VI_DEV_MAX
-} DP_M2S_VI_DEV_E;
+}DP_M2S_VI_DEV_E;
 
 /*说明： 音频输出设备枚举
  *定义： DP_M2S_AO_DEV_E
@@ -1499,7 +1499,7 @@ typedef enum _DP_M2S_VI_DEV_E {
 typedef enum _DP_M2S_AO_DEV_E {
 
 	DP_M2S_AO_DEV_LINEOUT0_HI3536 = 0x0, DP_M2S_AO_DEV_MAX
-} DP_M2S_AO_DEV_E;
+}DP_M2S_AO_DEV_E;
 
 /*说明： HI3535 输出节点的视频输出设备枚举
  *定义： DP_M2S_VO_DEV_E
@@ -1508,9 +1508,9 @@ typedef enum _DP_M2S_AO_DEV_E {
  *注意：无
  */
 typedef enum _DP_M2S_VO_DEV_E {
-
+	DP_M2S_VO_DEV_HDMI0_HI3536=0x0,
 	DP_M2S_VO_DEV_MAX = 0x0
-} DP_M2S_VO_DEV_E;
+}DP_M2S_VO_DEV_E;
 
 /* 音频编码通道最大数量 */
 #define DP_M2S_AENC_CHN_MAX 2
@@ -1545,7 +1545,7 @@ typedef enum _DP_M2S_VO_DEV_E {
 typedef enum _DP_M2S_AI_DEV_E {
 
 	DP_M2S_AI_DEV_LINEIN0_HI3536 = 0x0, DP_M2S_AI_DEV_MAX
-}DP_M2S_AI_DEV_E;
+} DP_M2S_AI_DEV_E;
 
 /*说明： 视频输入设备枚举
  *定义： DP_M2S_VI_DEV_E
@@ -1557,7 +1557,7 @@ typedef enum _DP_M2S_AI_DEV_E {
 typedef enum _DP_M2S_VI_DEV_E {
 
 	DP_M2S_VI_DEV_WBC0_HI3536 = 0x0, DP_M2S_VI_DEV_MAX
-}DP_M2S_VI_DEV_E;
+} DP_M2S_VI_DEV_E;
 
 /*说明： 音频输出设备枚举
  *定义： DP_M2S_AO_DEV_E
@@ -1572,7 +1572,7 @@ typedef enum _DP_M2S_AO_DEV_E {
 	DP_M2S_AO_DEV_LINEOUT0_HI3536 = 0x0,
 	DP_M2S_AO_DEV_HDMI0_HI3536,
 	DP_M2S_AO_DEV_MAX
-}DP_M2S_AO_DEV_E;
+} DP_M2S_AO_DEV_E;
 
 /*说明： 视频输出设备枚举
  *定义： DP_M2S_VO_DEV_E
@@ -1584,7 +1584,7 @@ typedef enum _DP_M2S_AO_DEV_E {
 typedef enum _DP_M2S_VO_DEV_E {
 
 	DP_M2S_VO_DEV_HDMI0_HI3536 = 0x0, DP_M2S_VO_DEV_MAX
-}DP_M2S_VO_DEV_E;
+} DP_M2S_VO_DEV_E;
 
 /* 音频输入通道最大数量 */
 #define DP_M2S_AI_CHN_MAX 1
@@ -2671,10 +2671,22 @@ typedef struct _DP_M2S_WINS_INFO_S {
  *	DP_M2S_CMD_VI_SET			： 设置视频输入设备信息 ，引用结构  DP_M2S_CMD_VI_SETINFO_S 和 DP_M2S_CMD_VI_SETINFO_ACK_S
  *	DP_M2S_CMD_AVENC_GET		： 获取音视频编码信息 ，引用结构 DP_M2S_CMD_AVENC_GETINFO_S 和 DP_M2S_CMD_AVENC_GETINFO_ACK_S
  *	DP_M2S_CMD_AVENC_SET		： 设置音视频编码信息 ，引用结构 DP_M2S_CMD_AVENC_SETINFO_S 和 DP_M2S_CMD_AVENC_SETINFO_ACK_S
+ *	DP_M2S_CMD_AVENC_GET_BATCH		: 批量获取音视频编码信息，引用结构 DP_M2S_CMD_AVENC_GETBATCHINFO_S 和 DP_M2S_CMD_AVENC_GETBATCHINFO_ACK_S
+ *	DP_M2S_CMD_AVENC_SET_BATCH		: 批量设置音视频编码信息，引用结构 DP_M2S_CMD_AVENC_SETBATCHINFO_S 和 DP_M2S_CMD_AVENC_SETBATCHINFO_ACK_S
+ *	DP_M2S_CMD_AVENC_OPEN_BATCH		: 批量打开音视频编码，引用结构 DP_M2S_CMD_AVENC_OPENINFO_S 和 DP_M2S_CMD_AVENC_OPENINFO_ACK_S
+ *	DP_M2S_CMD_AVENC_CLOSE_BATCH	: 批量关闭音视频编码，引用结构 DP_M2S_CMD_AVENC_CLOSEINFO_S 和 DP_M2S_CMD_AVENC_CLOSEINFO_ACK_S
  *	DP_M2S_CMD_AVDEC_GET		： 获取音视频解码信息 ，引用结构 DP_M2S_CMD_AVDEC_GETINFO_S 和 DP_M2S_CMD_AVDEC_GETINFO_ACK_S
  *	DP_M2S_CMD_AVDEC_SET		： 设置音视频解码信息 ，引用结构 DP_M2S_CMD_AVDEC_SETINFO_S 和 DP_M2S_CMD_AVDEC_SETINFO_ACK_S
+ * 	DP_M2S_CMD_AVDEC_GET_BATCH		： 批量获取音视频解码信息，引用结构 DP_M2S_CMD_AVDEC_GETBATCHINFO_S 和 DP_M2S_CMD_AVDEC_GETBATCHINFO_ACK_S
+ * 	DP_M2S_CMD_AVDEC_SET_BATCH		： 批量设置音视频解码信息，引用结构 DP_M2S_CMD_AVDEC_SETBATCHINFO_S 和 DP_M2S_CMD_AVDEC_SETBATCHINFO_ACK_S
+ *	DP_M2S_CMD_AVDEC_OPEN_BATCH		： 批量打开音视频解码，引用结构 DP_M2S_CMD_AVDEC_OPENINFO_S 和 DP_M2S_CMD_AVDEC_OPENINFO_ACK_S
+ *	DP_M2S_CMD_AVDEC_CLOSE_BATCH	： 批量关闭音视频解码，引用结构 DP_M2S_CMD_AVDEC_CLOSEINFO_S 和 DP_M2S_CMD_AVDEC_CLOSEINFO_ACK_S
  *	DP_M2S_CMD_WINS_GET			： 获取音视频解码的窗口信息 ，引用结构 DP_M2S_CMD_WINS_GETINFO_S 和 DP_M2S_CMD_WINS_GETINFO_ACK_S
  *	DP_M2S_CMD_WINS_SET			： 设置音视频解码的窗口信息 ，引用结构 DP_M2S_CMD_WINS_SETINFO_S 和 DP_M2S_CMD_WINS_SETINFO_ACK_S
+ * 	DP_M2S_CMD_WINS_GET_BATCH		： 批量获取（视频）窗口信息，引用结构 DP_M2S_CMD_WINS_GETBATCHINFO_S 和 DP_M2S_CMD_WINS_GETBATCHINFO_ACK_S
+ * 	DP_M2S_CMD_WINS_SET_BATCH		： 批量设置（视频）窗口信息，引用结构 DP_M2S_CMD_WINS_SETBATCHINFO_S 和 DP_M2S_CMD_WINS_SETBATCHINFO_ACK_S
+ *	DP_M2S_CMD_WINS_OPEN_BATCH		： 批量打开（视频）窗口，引用结构 DP_M2S_CMD_WINS_OPENINFO_S 和 DP_M2S_CMD_WINS_OPENINFO_ACK_S
+ *	DP_M2S_CMD_WINS_CLOSE_BATCH		： 批量关闭（视频）窗口，引用结构 DP_M2S_CMD_WINS_CLOSEINFO_S 和 DP_M2S_CMD_WINS_CLOSEINFO_ACK_S
  *	DP_M2S_CMD_AO_GET			： 获取音频输出设备信息 ，引用结构 DP_M2S_CMD_AO_GETINFO_S 和 DP_M2S_CMD_AO_GETINFO_ACK_S
  *	DP_M2S_CMD_AO_SET			： 设置音频输出设备信息 ，引用结构 DP_M2S_CMD_AO_SETINFO_S 和 DP_M2S_CMD_AO_SETINFO_ACK_S
  *	DP_M2S_CMD_VO_GET			： 获取视频输出设备信息 ，引用结构 DP_M2S_CMD_VO_GETINFO_S 和 DP_M2S_CMD_VO_GETINFO_ACK_S
@@ -2687,27 +2699,52 @@ typedef struct _DP_M2S_WINS_INFO_S {
 typedef enum {
 
 	/* system */
-	DP_M2S_CMD_SYS_INIT = 0x0, DP_M2S_CMD_SYS_DEINIT, DP_M2S_CMD_EXIT,
+	DP_M2S_CMD_SYS_INIT = 0x0,
+	DP_M2S_CMD_SYS_DEINIT,
+	DP_M2S_CMD_EXIT,
 
 	/* audio capture */
-	DP_M2S_CMD_AI_GET, DP_M2S_CMD_AI_SET,
+	DP_M2S_CMD_AI_GET,
+	DP_M2S_CMD_AI_SET,
 
 	/* video capture */
-	DP_M2S_CMD_VI_GET, DP_M2S_CMD_VI_SET,
+	DP_M2S_CMD_VI_GET,
+	DP_M2S_CMD_VI_SET,
 
 	/* audio & video encode */
-	DP_M2S_CMD_AVENC_GET, DP_M2S_CMD_AVENC_SET,
+	DP_M2S_CMD_AVENC_GET,
+	DP_M2S_CMD_AVENC_SET,
+	DP_M2S_CMD_AVENC_GET_BATCH,
+	DP_M2S_CMD_AVENC_SET_BATCH,
+
+	DP_M2S_CMD_AVENC_OPEN_BATCH,
+	DP_M2S_CMD_AVENC_CLOSE_BATCH,
 
 	/* audio & video decode */
-	DP_M2S_CMD_AVDEC_GET, DP_M2S_CMD_AVDEC_SET,
+	DP_M2S_CMD_AVDEC_GET,
+	DP_M2S_CMD_AVDEC_SET,
+	DP_M2S_CMD_AVDEC_GET_BATCH,
+	DP_M2S_CMD_AVDEC_SET_BATCH,
 
-	DP_M2S_CMD_WINS_GET, DP_M2S_CMD_WINS_SET,
+	DP_M2S_CMD_AVDEC_OPEN_BATCH,
+	DP_M2S_CMD_AVDEC_CLOSE_BATCH,
+
+	/* video wins */
+	DP_M2S_CMD_WINS_GET,
+	DP_M2S_CMD_WINS_SET,
+	DP_M2S_CMD_WINS_GET_BATCH,
+	DP_M2S_CMD_WINS_SET_BATCH,
+
+	DP_M2S_CMD_WINS_OPEN_BATCH,
+	DP_M2S_CMD_WINS_CLOSE_BATCH,
 
 	/* audio output */
-	DP_M2S_CMD_AO_GET, DP_M2S_CMD_AO_SET,
+	DP_M2S_CMD_AO_GET,
+	DP_M2S_CMD_AO_SET,
 
 	/* video output */
-	DP_M2S_CMD_VO_GET, DP_M2S_CMD_VO_SET,
+	DP_M2S_CMD_VO_GET,
+	DP_M2S_CMD_VO_SET,
 
 	DP_M2S_CMD_BUTT
 
@@ -2730,6 +2767,24 @@ typedef struct _DP_M2S_CMD_ACK_S {
 	DP_M2S_INF_PROT_HEAD_S stHeader;
 	DP_U32 u32Success;
 } DP_M2S_CMD_ACK_S;
+
+/*
+ *说明： 通用批量式的返回结果的结构参数
+ *定义： DP_M2S_CMD_BATCH_ACK_S
+ *成员：
+ *	u32Success	： 0:成功，其他失败，返回错误码
+ *	u32Nums		： 数组个数，须大于0
+ *	au32ErrInfo	： 错误信息数据内容（可变），成员个数等于 u32Nums ， 数据成员结构类型为 DP_U32（0:成功，非0；失败）
+ *注意：
+ *	本结构为可变结构，成员 u32Nums 影响整个结构的大小；
+ */
+typedef struct _DP_M2S_CMD_BATCH_ACK_S {
+
+	DP_M2S_INF_PROT_HEAD_S stHeader;
+	DP_U32 u32Success;
+	DP_U32 u32Nums;
+	// DP_U32 au32ErrInfo[u32Nums];
+} DP_M2S_CMD_BATCH_ACK_S;
 
 /*************************************1. DP_M2S_CMD_SYS_INIT *************************/
 /*
@@ -2777,7 +2832,8 @@ typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_SYS_INIT_ACK_S;
  *	stHeader：协议头，其内容：u16HeadTag + u16PacketLen + DP_M2S_CMD_SYS_DEINIT ；
  *注意：无
  */
-typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_SYS_DEINIT_S;
+//typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_SYS_DEINIT_S;
+typedef DP_M2S_INF_PROT_HEAD_S DP_M2S_CMD_SYS_DEINIT_S;
 
 /* 去初始化系统资源 应答 */
 typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_SYS_DEINIT_ACK_S;
@@ -2790,7 +2846,8 @@ typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_SYS_DEINIT_ACK_S;
  *	stHeader：协议头，其内容：u16HeadTag + u16PacketLen + DP_M2S_CMD_EXIT ；
  *注意：无
  */
-typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_EXIT_S;
+//typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_EXIT_S;
+typedef DP_M2S_INF_PROT_HEAD_S DP_M2S_CMD_EXIT_S;
 
 /* 去初始化系统资源 应答 */
 typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_EXIT_ACK_S;
@@ -2950,7 +3007,113 @@ typedef struct _DP_M2S_CMD_AVENC_SETINFO_S {
 /* 设置音视频编码信息 应答 */
 typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_AVENC_SETINFO_ACK_S;
 
-/*************************************10. DP_M2S_CMD_AVDEC_GET *************************/
+/*************************************10. DP_M2S_CMD_AVENC_GET_BATCH *************************/
+/*
+ *说明： 批量获取音视频编码信息
+ *定义： DP_M2S_CMD_AVENC_GETBATCHINFO_S
+ *成员：
+ *	stHeader	：协议头，其内容：u16HeadTag + u16PacketLen+ DP_M2S_CMD_AVENC_GET_BATCH ；
+ *	u32Nums		：音视频编码信息个数，须大于0
+ *	as32TskId	：任务ID数组(可变)，成员个数等于 u32Nums ，数组成员结构类型为DP_S32；任务ID，详细参看“任务ID分配”介绍；
+ *注意：无
+ */
+typedef struct _DP_M2S_CMD_AVENC_GETBATCHINFO_S {
+	_DP_M2S_CMD_AVENC_GETBATCHINFO_S(DP_U32 packageLen, DP_M2S_CMD_ID_E cmd,
+			DP_U32 nums) :
+			stHeader(packageLen, cmd, 0x01), u32Nums(nums) {
+	}
+	DP_M2S_INF_PROT_HEAD_S stHeader;
+	DP_U32 u32Nums;
+	// DP_S32 as32TskId[u32Nums];
+} DP_M2S_CMD_AVENC_GETBATCHINFO_S;
+
+typedef DP_M2S_CMD_AVENC_GETBATCHINFO_S DP_M2S_CMD_BATCH_COMMON_S;
+
+/*
+ *说明： 批量获取音视频编码信息 应答
+ *定义： DP_M2S_CMD_AVENC_GETBATCHINFO_ACK_S
+ *成员：
+ *	stHeader	： 协议头，其内容：u16HeadTag + u16PacketLen+ DP_M2S_CMD_AVENC_GET_BATCH ；
+ *	u32Success	： 0:成功，其他失败，返回错误码
+ *	u32Nums		： 音视频编码信息个数，须大于0
+ *	au32ErrInfo	： 错误信息数据（可变），成员个数等于 u32Nums ， 数据成员结构类型为 DP_U32（0:成功，非0；失败）
+ *  astInfo		:  音视频编码信息数组（可变），成员个数等于 u32Nums ，数组成员结构类型为 DP_M2S_AVENC_INFO_S ;
+ *注意：无
+ */
+typedef struct _DP_M2S_CMD_AVENC_GETBATCHINFO_ACK_S {
+
+	DP_M2S_INF_PROT_HEAD_S stHeader;
+	DP_U32 u32Success;
+	DP_U32 u32Nums; // equal set nums
+	// DP_U32 au32ErrInfo[u32Nums];
+	// DP_M2S_AVENC_INFO_S astInfo[u32Nums];
+} DP_M2S_CMD_AVENC_GETBATCHINFO_ACK_S;
+
+/*************************************11. DP_M2S_CMD_AVENC_SET_BATCH *************************/
+/*
+ *说明： 批量设置音视频编码信息
+ *定义： DP_M2S_CMD_AVENC_SETBATCHINFO_S
+ *成员：
+ *	stHeader	： 协议头，其内容：u16HeadTag + u16PacketLen+ DP_M2S_CMD_AVENC_SET_BATCH ；
+ *	u32Nums		： 音视频编码信息个数，须大于0
+ *	as32TskId	： 任务ID数组(可变)，成员个数等于 u32Nums ，数组成员结构类型为DP_S32；任务ID，详细参看“任务ID分配”介绍；
+ *  astInfo		:  音视频编码信息数组（可变），成员个数等于 u32Nums ，数组成员结构类型为 DP_M2S_AVENC_INFO_S ;
+ *注意：无
+ */
+typedef struct _DP_M2S_CMD_AVENC_SETBATCHINFO_S {
+
+	DP_M2S_INF_PROT_HEAD_S stHeader;
+	DP_U32 u32Nums;
+	// DP_S32 as32TskId[u32Nums];
+	// DP_M2S_AVENC_INFO_S astInfo[u32Nums];
+} DP_M2S_CMD_AVENC_SETBATCHINFO_S;
+
+/* 批量设置音视频编码信息 应答 */
+typedef DP_M2S_CMD_BATCH_ACK_S DP_M2S_CMD_AVENC_SETBATCHINFO_ACK_S;
+
+/*************************************12. DP_M2S_CMD_AVENC_OPEN_BATCH *************************/
+/*
+ *说明： 批量打开音视频编码
+ *定义： DP_M2S_CMD_AVENC_OPENINFO_S
+ *成员：
+ *	stHeader	： 协议头，其内容：u16HeadTag + u16PacketLen+ DP_M2S_CMD_AVENC_OPEN_BATCH ；
+ *	u32Nums		： 窗口数量，须大于0；
+ *	as32TskId	： 任务ID数组(可变)，成员个数等于 u32Nums ，数组成员结构类型为DP_S32；任务ID，详细参看“任务ID分配”介绍；
+ *注意：
+ *	本结构为可变结构，成员 u32Nums 影响整个结构的大小；
+ */
+typedef struct _DP_M2S_CMD_AVENC_OPENINFO_S {
+
+	DP_M2S_INF_PROT_HEAD_S stHeader;
+	DP_U32 u32Nums;
+	// DP_S32 as32TskId[u32Nums];
+} DP_M2S_CMD_AVENC_OPENINFO_S;
+
+/* 批量打开音视频编码 应答 */
+typedef DP_M2S_CMD_BATCH_ACK_S DP_M2S_CMD_AVENC_OPENINFO_ACK_S;
+
+/*************************************13. DP_M2S_CMD_AVENC_CLOSE_BATCH *************************/
+/*
+ *说明： 批量关闭音视频编码
+ *定义： DP_M2S_CMD_AVENC_CLOSEINFO_S
+ *成员：
+ *	stHeader	： 协议头，其内容：u16HeadTag + u16PacketLen+ DP_M2S_CMD_AVENC_CLOSE_BATCH ；
+ *	u32Nums		： 窗口数量，须大于0；
+ *	as32TskId	： 任务ID数组(可变)，成员个数等于 u32Nums ，数组成员结构类型为DP_S32；任务ID，详细参看“任务ID分配”介绍；
+ *注意：
+ *	本结构为可变结构，成员 u32Nums 影响整个结构的大小；
+ */
+typedef struct _DP_M2S_CMD_AVENC_CLOSEINFO_S {
+
+	DP_M2S_INF_PROT_HEAD_S stHeader;
+	DP_U32 u32Nums;
+	// DP_S32 as32TskId[u32Nums];
+} DP_M2S_CMD_AVENC_CLOSEINFO_S;
+
+/* 批量关闭音视频编码 应答 */
+typedef DP_M2S_CMD_BATCH_ACK_S DP_M2S_CMD_AVENC_CLOSEINFO_ACK_S;
+
+/*************************************14. DP_M2S_CMD_AVDEC_GET *************************/
 /*
  *说明： 获取音视频解码信息
  *定义： DP_M2S_CMD_AVDEC_GETINFO_S
@@ -2983,7 +3146,7 @@ typedef struct _DP_M2S_CMD_AVDEC_GETINFO_ACK_S {
 	DP_M2S_AVDEC_INFO_S stInfo;
 } DP_M2S_CMD_AVDEC_GETINFO_ACK_S;
 
-/*************************************11. DP_M2S_CMD_AVDEC_SET *************************/
+/*************************************15. DP_M2S_CMD_AVDEC_SET *************************/
 /*
  *说明： 设置音视频解码信息
  *定义： DP_M2S_CMD_AVDEC_SETINFO_S
@@ -3003,7 +3166,108 @@ typedef struct _DP_M2S_CMD_AVDEC_SETINFO_S {
 /* 设置音视频解码信息 应答 */
 typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_AVDEC_SETINFO_ACK_S;
 
-/*************************************12. DP_M2S_CMD_WINS_GET *************************/
+/*************************************16. DP_M2S_CMD_AVDEC_GET_BATCH *************************/
+/*
+ *说明： 批量获取音视频解码信息
+ *定义： DP_M2S_CMD_AVDEC_GETBATCHINFO_S
+ *成员：
+ *	stHeader	：协议头，其内容：u16HeadTag + u16PacketLen+ DP_M2S_CMD_AVDEC_GET_BATCH ；
+ *	u32Nums		：音视频解码信息个数，须大于0
+ *	as32TskId	：任务ID数组(可变)，成员个数等于 u32Nums ，数组成员结构类型为DP_S32；任务ID，详细参看“任务ID分配”介绍；
+ *注意：无
+ */
+typedef struct _DP_M2S_CMD_AVDEC_GETBATCHINFO_S {
+
+	DP_M2S_INF_PROT_HEAD_S stHeader;
+	DP_U32 u32Nums;
+	// DP_S32 as32TskId[u32Nums];
+} DP_M2S_CMD_AVDEC_GETBATCHINFO_S;
+
+/*
+ *说明： 批量获取音视频解码信息 应答
+ *定义： DP_M2S_CMD_AVDEC_GETBATCHINFO_ACK_S
+ *成员：
+ *	stHeader	： 协议头，其内容：u16HeadTag + u16PacketLen+ DP_M2S_CMD_AVDEC_GET_BATCH ；
+ *	u32Success	： 0:成功，其他失败，返回错误码
+ *	u32Nums		： 音视频解码信息个数，须大于0
+ *	au32ErrInfo	： 错误信息数据（可变），成员个数等于 u32Nums ， 数据成员结构类型为 DP_U32（0:成功，非0；失败）
+ *  astInfo		:  视频解码信息数组（可变），成员个数等于 u32Nums ，数组成员结构类型为 DP_M2S_AVDEC_INFO_S ;
+ *注意：无
+ */
+typedef struct _DP_M2S_CMD_AVDEC_GETBATCHINFO_ACK_S {
+
+	DP_M2S_INF_PROT_HEAD_S stHeader;
+	DP_U32 u32Success;
+	DP_U32 u32Nums;
+	// DP_U32 au32ErrInfo[u32Nums];
+	// DP_M2S_AVDEC_INFO_S astInfo[u32Nums];
+} DP_M2S_CMD_AVDEC_GETBATCHINFO_ACK_S;
+
+/*************************************17. DP_M2S_CMD_AVDEC_SET_BATCH *************************/
+/*
+ *说明： 批量设置音视频解码信息
+ *定义： DP_M2S_CMD_AVDEC_SETBATCHINFO_S
+ *成员：
+ *	stHeader	： 协议头，其内容：u16HeadTag + u16PacketLen+ DP_M2S_CMD_AVDEC_SET_BATCH ；
+ *	u32Nums		： 音视频解码信息个数，须大于0
+ *	as32TskId	： 任务ID数组(可变)，成员个数等于 u32Nums ，数组成员结构类型为DP_S32；任务ID，详细参看“任务ID分配”介绍；
+ *  astInfo		:  视频解码信息数组（可变），成员个数等于 u32Nums ，数组成员结构类型为 DP_M2S_AVDEC_INFO_S ;
+ *注意：无
+ */
+typedef struct _DP_M2S_CMD_AVDEC_SETBATCHINFO_S {
+
+	DP_M2S_INF_PROT_HEAD_S stHeader;
+	DP_U32 u32Nums;
+	// DP_S32 as32TskId[u32Nums];
+	// DP_M2S_AVDEC_INFO_S astInfo[u32Nums];
+} DP_M2S_CMD_AVDEC_SETBATCHINFO_S;
+
+/* 批量设置音视频解码信息 应答 */
+typedef DP_M2S_CMD_BATCH_ACK_S DP_M2S_CMD_AVDEC_SETBATCHINFO_ACK_S;
+
+/*************************************18. DP_M2S_CMD_AVDEC_OPEN_BATCH *************************/
+/*
+ *说明： 批量打开音视频解码
+ *定义： DP_M2S_CMD_AVDEC_OPENINFO_S
+ *成员：
+ *	stHeader	： 协议头，其内容：u16HeadTag + u16PacketLen+ DP_M2S_CMD_AVDEC_OPEN_BATCH ；
+ *	u32Nums		： 窗口数量，须大于0；
+ *	as32TskId	： 任务ID数组(可变)，成员个数等于 u32Nums ，数组成员结构类型为DP_S32；任务ID，详细参看“任务ID分配”介绍；
+ *注意：
+ *	本结构为可变结构，成员 u32Nums 影响整个结构的大小；
+ */
+typedef struct _DP_M2S_CMD_AVDEC_OPENINFO_S {
+
+	DP_M2S_INF_PROT_HEAD_S stHeader;
+	DP_U32 u32Nums;
+	// DP_S32 as32TskId[u32Nums];
+} DP_M2S_CMD_AVDEC_OPENINFO_S;
+
+/* 批量打开音视频解码 应答 */
+typedef DP_M2S_CMD_BATCH_ACK_S DP_M2S_CMD_AVDEC_OPENINFO_ACK_S;
+
+/*************************************19. DP_M2S_CMD_AVDEC_CLOSE_BATCH *************************/
+/*
+ *说明： 批量关闭音视频解码
+ *定义： DP_M2S_CMD_AVDEC_CLOSEINFO_S
+ *成员：
+ *	stHeader	： 协议头，其内容：u16HeadTag + u16PacketLen+ DP_M2S_CMD_AVDEC_CLOSE_BATCH ；
+ *	u32Nums		： 窗口数量，须大于0；
+ *	as32TskId	： 任务ID数组(可变)，成员个数等于 u32Nums ，数组成员结构类型为DP_S32；任务ID，详细参看“任务ID分配”介绍；
+ *注意：
+ *	本结构为可变结构，成员 u32Nums 影响整个结构的大小；
+ */
+typedef struct _DP_M2S_CMD_AVDEC_CLOSEINFO_S {
+
+	DP_M2S_INF_PROT_HEAD_S stHeader;
+	DP_U32 u32Nums;
+	// DP_S32 as32TskId[u32Nums];
+} DP_M2S_CMD_AVDEC_CLOSEINFO_S;
+
+/* 批量关闭音视频解码 应答 */
+typedef DP_M2S_CMD_BATCH_ACK_S DP_M2S_CMD_AVDEC_CLOSEINFO_ACK_S;
+
+/*************************************20. DP_M2S_CMD_WINS_GET *************************/
 /*
  *说明： 获取（视频）窗口信息
  *定义： DP_M2S_CMD_WINS_GETINFO_S
@@ -3036,7 +3300,7 @@ typedef struct _DP_M2S_CMD_WINS_GETINFO_ACK_S {
 	DP_M2S_WINS_INFO_S stInfo;
 } DP_M2S_CMD_WINS_GETINFO_ACK_S;
 
-/*************************************13. DP_M2S_CMD_WINS_SET *************************/
+/*************************************21. DP_M2S_CMD_WINS_SET *************************/
 /*
  *说明： 设置（视频）窗口信息
  *定义： DP_M2S_CMD_WINS_SETINFO_S
@@ -3056,7 +3320,111 @@ typedef struct _DP_M2S_CMD_WINS_SETINFO_ACK_S {
 /* 设置（视频）窗口信息 应答 */
 typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_WINS_SETINFO_ACK_S;
 
-/*************************************14. DP_M2S_CMD_AO_GET *************************/
+/*************************************22. DP_M2S_CMD_WINS_GET_BATCH *************************/
+/*
+ *说明： 批量获取（视频）窗口信息
+ *定义： DP_M2S_CMD_WINS_GETBATCHINFO_S
+ *成员：
+ *	stHeader	： 协议头，其内容：u16HeadTag + u16PacketLen+ DP_M2S_CMD_WINS_GET_BATCH ；
+ *	u32Nums		： 窗口数量，须大于0；
+ *	as32TskId	： 任务ID数组(可变)，成员个数等于 u32Nums ，数组成员结构类型为DP_S32；任务ID，详细参看“任务ID分配”介绍；
+ *注意：
+ *	本结构为可变结构，成员s32WinNums影响整个结构的大小；
+ */
+typedef struct _DP_M2S_CMD_WINS_GETBATCHINFO_S {
+
+	DP_M2S_INF_PROT_HEAD_S stHeader;
+	DP_U32 u32Nums;
+	// DP_S32 as32TskId[u32Nums];
+} DP_M2S_CMD_WINS_GETBATCHINFO_S;
+
+/*
+ *说明： 批量获取（视频）窗口信息 应答
+ *定义： DP_M2S_CMD_WINS_GETBATCHINFO_ACK_S
+ *成员：
+ *	stHeader	： 协议头，其内容：u16HeadTag + u16PacketLen+ DP_M2S_CMD_WINS_GET_BATCH ；
+ *	u32Success	： 0:成功，其他失败，返回错误码
+ *	u32Nums		： 窗口数量，须大于0；
+ *	au32ErrInfo	： 错误信息数据（可变），成员个数等于 u32Nums ， 数据成员结构类型为 DP_U32（0:成功，非0；失败）
+ *  astInfo		:  窗口信息数组（可变），成员个数等于 u32Nums ，数组成员结构类型为 DP_M2S_WINS_INFO_S；
+ *注意：无
+ */
+typedef struct _DP_M2S_CMD_WINS_GETBATCHINFO_ACK_S {
+
+	DP_M2S_INF_PROT_HEAD_S stHeader;
+	DP_U32 u32Success;
+	DP_U32 u32Nums;
+	// DP_U32 au32ErrInfo[u32Nums];
+	// DP_M2S_WINS_INFO_S astInfo[u32Nums];
+} DP_M2S_CMD_WINS_GETBATCHINFO_ACK_S;
+
+/*************************************23. DP_M2S_CMD_WINS_SET_BATCH *************************/
+/*
+ *说明： 批量设置（视频）窗口信息 应答
+ *定义： DP_M2S_CMD_WINS_SETBATCHINFO_S
+ *成员：
+ *	stHeader	： 协议头，其内容：u16HeadTag + u16PacketLen+ DP_M2S_CMD_WINS_SET_BATCH ；
+ *	u32Success	： 0:成功，其他失败，返回错误码
+ *	u32Nums		： 窗口数量，须大于0；
+ *	as32TskId	： 任务ID数组(可变)，成员个数等于 u32Nums ，数组成员结构类型为DP_S32；任务ID，详细参看“任务ID分配”介绍；
+ *  astInfo		:  窗口信息数组（可变），成员个数等于 u32Nums ，数组成员结构类型为 DP_M2S_WINS_INFO_S；
+ *注意：无
+ */
+typedef struct _DP_M2S_CMD_WINS_SETBATCHINFO_S {
+
+	DP_M2S_INF_PROT_HEAD_S stHeader;
+	DP_U32 u32Success;
+	DP_U32 u32Nums;
+	// DP_S32 as32TskId[u32Nums];
+	// DP_M2S_WINS_INFO_S astInfo[u32Nums];
+} DP_M2S_CMD_WINS_SETBATCHINFO_S;
+
+/* 批量设置（视频）窗口信息 应答 */
+typedef DP_M2S_CMD_BATCH_ACK_S DP_M2S_CMD_WINS_SETBATCHINFO_ACK_S;
+
+/*************************************24. DP_M2S_CMD_WINS_OPEN_BATCH *************************/
+/*
+ *说明： 批量打开（视频）窗口
+ *定义： DP_M2S_CMD_WINS_OPENINFO_S
+ *成员：
+ *	stHeader	： 协议头，其内容：u16HeadTag + u16PacketLen+ DP_M2S_CMD_WINS_OPEN_BATCH ；
+ *	u32Nums		： 窗口数量，须大于0；
+ *	as32TskId	： 任务ID数组(可变)，成员个数等于 u32Nums ，数组成员结构类型为DP_S32；任务ID，详细参看“任务ID分配”介绍；
+ *注意：
+ *	本结构为可变结构，成员 u32Nums 影响整个结构的大小；
+ */
+typedef struct _DP_M2S_CMD_WINS_OPENINFO_S {
+
+	DP_M2S_INF_PROT_HEAD_S stHeader;
+	DP_U32 u32Nums;
+	// DP_S32 as32TskId[u32Nums];
+} DP_M2S_CMD_WINS_OPENINFO_S;
+
+/* 批量打开（视频）窗口 应答 */
+typedef DP_M2S_CMD_BATCH_ACK_S DP_M2S_CMD_WINS_OPENINFO_ACK_S;
+
+/*************************************25. DP_M2S_CMD_WINS_CLOSE_BATCH *************************/
+/*
+ *说明： 批量关闭（视频）窗口
+ *定义： DP_M2S_CMD_WINS_CLOSEINFO_S
+ *成员：
+ *	stHeader	： 协议头，其内容：u16HeadTag + u16PacketLen+ DP_M2S_CMD_WINS_CLOSE_BATCH ；
+ *	u32Nums		： 窗口数量，须大于0；
+ *	as32TskId	： 任务ID数组(可变)，成员个数等于 u32Nums ，数组成员结构类型为DP_S32；任务ID，详细参看“任务ID分配”介绍；
+ *注意：
+ *	本结构为可变结构，成员 u32Nums 影响整个结构的大小；
+ */
+typedef struct _DP_M2S_CMD_WINS_CLOSEINFO_S {
+
+	DP_M2S_INF_PROT_HEAD_S stHeader;
+	DP_U32 u32Nums;
+	// DP_S32 as32TskId[u32Nums];
+} DP_M2S_CMD_WINS_CLOSEINFO_S;
+
+/* 批量打开（视频）窗口 应答 */
+typedef DP_M2S_CMD_BATCH_ACK_S DP_M2S_CMD_WINS_CLOSEINFO_ACK_S;
+
+/*************************************26. DP_M2S_CMD_AO_GET *************************/
 /*
  *说明： 获取音频输出设备信息
  *定义： DP_M2S_CMD_AO_GETINFO_S
@@ -3089,7 +3457,7 @@ typedef struct _DP_M2S_CMD_AO_GETINFO_ACK_S {
 	DP_M2S_AO_INFO_S stInfo;
 } DP_M2S_CMD_AO_GETINFO_ACK_S;
 
-/*************************************15. DP_M2S_CMD_AO_SET *************************/
+/*************************************27. DP_M2S_CMD_AO_SET *************************/
 /*
  *说明： 设置音频输出设备信息
  *定义： DP_M2S_CMD_AO_SETINFO_S
@@ -3107,7 +3475,7 @@ typedef struct _DP_M2S_CMD_AO_SETINFO_S {
 /* 设置音频输出设备信息 应答 */
 typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_AO_SETINFO_ACK_S;
 
-/*************************************16. DP_M2S_CMD_VO_GET *************************/
+/*************************************28. DP_M2S_CMD_VO_GET *************************/
 /*
  *说明： 获取视频输出设备信息
  *定义： DP_M2S_CMD_VO_GETINFO_S
@@ -3140,7 +3508,7 @@ typedef struct _DP_M2S_CMD_VO_GETINFO_ACK_S {
 	DP_M2S_VO_INFO_S stInfo;
 } DP_M2S_CMD_VO_GETINFO_ACK_S;
 
-/*************************************17. DP_M2S_CMD_VO_SET *************************/
+/*************************************29. DP_M2S_CMD_VO_SET *************************/
 /*
  *说明： 设置视频输出设备信息
  *定义： DP_M2S_CMD_VO_SETINFO_S

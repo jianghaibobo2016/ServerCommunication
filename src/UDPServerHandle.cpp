@@ -61,7 +61,8 @@ void UDPServerHandle::runUdp() {
 }
 void UDPServerHandle::parserDataRecv(DP_U8 *buff, DP_U32 len) {
 	_sRemote_Search * search = (_sRemote_Search*) buff;
-	if (search->header.stFunctionMsg.u8CommandID == Command_Search) {
+	//jhbnote
+	if (search->header.stFunctionMsg.u8CommandID == Command_MulticastSearch) {
 //		printBufferByHex("UDP recv :", buff, len);
 		devSearchHandle();
 	} else

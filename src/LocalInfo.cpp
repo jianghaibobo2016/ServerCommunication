@@ -46,6 +46,7 @@ void LocalInfo::initLocalInfo() {
 	_sRemote_Header head(netInfo.ip2U32(), (eDeviceType)stBaseInfoTemp.u16Devtype, 0x01,
 			sizeof(_sRemote_Reply_Search)
 					+ sizeof(_sRemote_Reply_Search_ExtendDeviceOutput),
+					//jhbnote
 			Command_Search,
 			sizeof(_sRemote_Reply_Search) - sizeof(_sRemote_Header)
 					+ sizeof(_sRemote_Reply_Search_ExtendDeviceInput));
