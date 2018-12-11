@@ -47,6 +47,9 @@ public:
 	void setAudioInfo(const muduo::net::TcpConnectionPtr connPtr,
 			std::string data);
 
+	void OpenWinsBatch(const muduo::net::TcpConnectionPtr connPtr,
+			std::string data);
+
 private:
 
 	void Get_InputVideoChnInfo(const muduo::net::TcpConnectionPtr connPtr);
@@ -117,9 +120,9 @@ private:
 		}
 	};
 
-	template<typename S>
-	struct findAVDevID: public std::binary_function<S, DP_M2S_VO_DEV_E, bool> {
-		bool operator()(const S & lhs, const DP_M2S_VO_DEV_E devID) const {
+	template<typename S, typename E>
+	struct findAVDevID: public std::binary_function<S, E, bool> {
+		bool operator()(const S & lhs, const E devID) const {
 			if (lhs.enDevId == devID)
 				return true;
 			else

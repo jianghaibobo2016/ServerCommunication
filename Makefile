@@ -16,7 +16,7 @@ WARNINGS := -g -Wall -Wno-unused -std=c++11  #-Wno-format
 DEFS     :=
 EXTRA_CFLAGS := 
 
-INC_DIR   = ./src ./muduo/base ./muduo/net ./muduo/net/poller ./src/util ./src/protocol  ./src/util/Json/
+INC_DIR   = ./src ./muduo/base ./muduo/net ./muduo/net/poller ./src/util ./src/protocol  ./src/util/Json/ ./src/DPUDrv/DPUDrvLib_1217/DPUDrvLib/
 SRC_DIR   := ./src ./muduo/base ./muduo/net ./muduo/net/poller ./src/util ./src/util/Json/lib_json
 SRC_D   = ./src
 OBJ_DIR   = ./obj
@@ -105,7 +105,7 @@ $(TARGET): $(all_objs)
 else
 $(TARGET): LD = $(if $(strip $(src-cpp) $(src-cc) $(src-cxx)),$(G++),$(GCC))
 $(TARGET): $(all_objs)
-	$(LD) $(LDFLAGS) $(all_objs) -o $@  -lpthread -lrt
+	$(LD) $(LDFLAGS) $(all_objs) -o $@  -lpthread -lrt ./src/DPUDrv/DPUDrvLib_1217/DPUDrvLib/libDPUDriver.a
 endif
 
 .mkdir:

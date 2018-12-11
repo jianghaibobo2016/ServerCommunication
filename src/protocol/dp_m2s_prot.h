@@ -74,7 +74,7 @@ typedef enum _DP_M2S_AI_DEV_E {
 	DP_M2S_AI_DEV_LINEIN0_HI3536 = 0x0,
 	DP_M2S_AI_DEV_HDMI0_ITE6801,
 	DP_M2S_AI_DEV_MAX
-}DP_M2S_AI_DEV_E;
+} DP_M2S_AI_DEV_E;
 
 /*说明： 视频输入设备枚举
  *定义： DP_M2S_VI_DEV_E
@@ -86,7 +86,7 @@ typedef enum _DP_M2S_AI_DEV_E {
 typedef enum _DP_M2S_VI_DEV_E {
 
 	DP_M2S_VI_DEV_HDMI0_ITE6801 = 0x0, DP_M2S_VI_DEV_MAX
-}DP_M2S_VI_DEV_E;
+} DP_M2S_VI_DEV_E;
 
 /*说明： 音频输出设备枚举
  *定义： DP_M2S_AO_DEV_E
@@ -98,7 +98,7 @@ typedef enum _DP_M2S_VI_DEV_E {
 typedef enum _DP_M2S_AO_DEV_E {
 
 	DP_M2S_AO_DEV_LINEOUT0_HI3536 = 0x0, DP_M2S_AO_DEV_MAX
-}DP_M2S_AO_DEV_E;
+} DP_M2S_AO_DEV_E;
 
 /*说明： HI3535 输出节点的视频输出设备枚举
  *定义： DP_M2S_VO_DEV_E
@@ -108,7 +108,7 @@ typedef enum _DP_M2S_AO_DEV_E {
  */
 typedef enum _DP_M2S_VO_DEV_E {
 	DP_M2S_VO_DEV_HDMI0_HI3536 = 0x0, DP_M2S_VO_DEV_MAX
-}DP_M2S_VO_DEV_E;
+} DP_M2S_VO_DEV_E;
 
 /* 音频编码通道最大数量 */
 #define DP_M2S_AENC_CHN_MAX 2
@@ -143,7 +143,7 @@ typedef enum _DP_M2S_VO_DEV_E {
 typedef enum _DP_M2S_AI_DEV_E {
 
 	DP_M2S_AI_DEV_LINEIN0_HI3536 = 0x0, DP_M2S_AI_DEV_MAX
-} DP_M2S_AI_DEV_E;
+}DP_M2S_AI_DEV_E;
 
 /*说明： 视频输入设备枚举
  *定义： DP_M2S_VI_DEV_E
@@ -155,7 +155,7 @@ typedef enum _DP_M2S_AI_DEV_E {
 typedef enum _DP_M2S_VI_DEV_E {
 
 	DP_M2S_VI_DEV_WBC0_HI3536 = 0x0, DP_M2S_VI_DEV_MAX
-} DP_M2S_VI_DEV_E;
+}DP_M2S_VI_DEV_E;
 
 /*说明： 音频输出设备枚举
  *定义： DP_M2S_AO_DEV_E
@@ -170,7 +170,7 @@ typedef enum _DP_M2S_AO_DEV_E {
 	DP_M2S_AO_DEV_LINEOUT0_HI3536 = 0x0,
 	DP_M2S_AO_DEV_HDMI0_HI3536,
 	DP_M2S_AO_DEV_MAX
-} DP_M2S_AO_DEV_E;
+}DP_M2S_AO_DEV_E;
 
 /*说明： 视频输出设备枚举
  *定义： DP_M2S_VO_DEV_E
@@ -182,7 +182,7 @@ typedef enum _DP_M2S_AO_DEV_E {
 typedef enum _DP_M2S_VO_DEV_E {
 
 	DP_M2S_VO_DEV_HDMI0_HI3536 = 0x0, DP_M2S_VO_DEV_MAX
-} DP_M2S_VO_DEV_E;
+}DP_M2S_VO_DEV_E;
 
 /* 音频输入通道最大数量 */
 #define DP_M2S_AI_CHN_MAX 1
@@ -1470,7 +1470,10 @@ typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_EXIT_ACK_S;
  *注意：无
  */
 typedef struct _DP_M2S_CMD_AI_GETINFO_S {
-
+	_DP_M2S_CMD_AI_GETINFO_S(DP_M2S_CMD_ID_E cmd, DP_M2S_AI_DEV_E dev) :
+			stHeader(sizeof(_DP_M2S_CMD_AI_GETINFO_S), cmd, 0x01), enDevId(
+					dev) {
+	}
 	DP_M2S_INF_PROT_HEAD_S stHeader;
 	DP_M2S_AI_DEV_E enDevId;
 } DP_M2S_CMD_AI_GETINFO_S;
@@ -1520,7 +1523,10 @@ typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_AI_SETINFO_ACK_S;
  *注意：无
  */
 typedef struct _DP_M2S_CMD_VI_GETINFO_S {
-
+	_DP_M2S_CMD_VI_GETINFO_S(DP_M2S_CMD_ID_E cmd, DP_M2S_VI_DEV_E dev) :
+			stHeader(sizeof(_DP_M2S_CMD_VI_GETINFO_S), cmd, 0x01), enDevId(
+					dev) {
+	}
 	DP_M2S_INF_PROT_HEAD_S stHeader;
 	DP_M2S_VI_DEV_E enDevId;
 } DP_M2S_CMD_VI_GETINFO_S;

@@ -772,12 +772,24 @@ void LogicHandle::closeAudio(const muduo::net::TcpConnectionPtr connPtr,
 #endif
 }
 
+void OpenWinsBatch(const muduo::net::TcpConnectionPtr connPtr,
+		std::string data) {
+#if (OutputDevice)
+	//jhbnote todo
+#endif
+}
 void LogicHandle::setAudioInfo(const muduo::net::TcpConnectionPtr connPtr,
 		std::string data) {
 #if (OutputDevice)
+	//jhbnote todo restore mute vol status
+	//jhbnote todo check devID?
+	//jhbnote todo get more audio info.
+
 	_sRemote_SetAudio *setAudio = (_sRemote_SetAudio*) data.c_str();
 	LOG_WARN << "SetAudio cmd...u32RequestID: "
 			<< setAudio->header.u32RequestID;
+
+
 #endif
 }
 
@@ -985,8 +997,11 @@ void LogicHandle::Get_VideoChnVencInfo(
 			NodeInfo::VctrAIGetInfoPtr aiInfo =
 			muduo::Singleton<NodeInfo>::instance().getAIGetInfo();
 			DP_M2S_AI_GET_INFO_S *aiGetInfo = NULL;
-			itAI = find_if(aiInfo->begin(), aiInfo->end(),
-					bind2nd(findAVDevID<DP_M2S_AI_GET_INFO_S>(),
+			itAI =
+			find_if(aiInfo->begin(), aiInfo->end(),
+					bind2nd(
+							findAVDevID<DP_M2S_AI_GET_INFO_S,
+							DP_M2S_AI_DEV_E>(),
 							DP_M2S_AI_DEV_HDMI0_ITE6801));
 			if (itAI != aiInfo->end()) {
 				aiGetInfo = (DP_M2S_AI_GET_INFO_S *) (&*itAI);

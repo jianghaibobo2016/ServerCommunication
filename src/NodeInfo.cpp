@@ -34,24 +34,24 @@ NodeInfo::~NodeInfo() {
 
 //////////////////////////////////////////& type can modify info
 void print_DP_M2S_VO_GET_INFO_S_(DP_M2S_VO_INFO_S voInfo) {
-	LOG_DEBUG << "print_DP_M2S_VO_GET_INFO_S_　devid: " << voInfo.enDevId
-			<< " enable: " << voInfo.bEnable << " sync: " << voInfo.enSync;
-	LOG_DEBUG << "print_DP_M2S_VO_GET_INFO_S_　 stsw[0]::" << " stw.void: "
-			<< voInfo.stSwms[0].enVoDevId << " chn: "
-			<< voInfo.stSwms[0].u32SwmsChn << " priority: "
-			<< voInfo.stSwms[0].u32Priority << " x "
-			<< voInfo.stSwms[0].stRect.s32X << " y: "
-			<< voInfo.stSwms[0].stRect.s32Y << " width: "
-			<< voInfo.stSwms[0].stRect.u32Width << " height: "
-			<< voInfo.stSwms[0].stRect.u32Height;
-	LOG_DEBUG << "print_DP_M2S_VO_GET_INFO_S_　 stsw[1]::" << " stw.void: "
-			<< voInfo.stSwms[1].enVoDevId << " chn: "
-			<< voInfo.stSwms[1].u32SwmsChn << " priority: "
-			<< voInfo.stSwms[1].u32Priority << " x "
-			<< voInfo.stSwms[1].stRect.s32X << " y: "
-			<< voInfo.stSwms[1].stRect.s32Y << " width: "
-			<< voInfo.stSwms[1].stRect.u32Width << " height: "
-			<< voInfo.stSwms[1].stRect.u32Height;
+//	LOG_DEBUG << "print_DP_M2S_VO_GET_INFO_S_　devid: " << voInfo.enDevId
+//			<< " enable: " << voInfo.bEnable << " sync: " << voInfo.enSync;
+//	LOG_DEBUG << "print_DP_M2S_VO_GET_INFO_S_　 stsw[0]::" << " stw.void: "
+//			<< voInfo.stSwms[0].enVoDevId << " chn: "
+//			<< voInfo.stSwms[0].u32SwmsChn << " priority: "
+//			<< voInfo.stSwms[0].u32Priority << " x "
+//			<< voInfo.stSwms[0].stRect.s32X << " y: "
+//			<< voInfo.stSwms[0].stRect.s32Y << " width: "
+//			<< voInfo.stSwms[0].stRect.u32Width << " height: "
+//			<< voInfo.stSwms[0].stRect.u32Height;
+//	LOG_DEBUG << "print_DP_M2S_VO_GET_INFO_S_　 stsw[1]::" << " stw.void: "
+//			<< voInfo.stSwms[1].enVoDevId << " chn: "
+//			<< voInfo.stSwms[1].u32SwmsChn << " priority: "
+//			<< voInfo.stSwms[1].u32Priority << " x "
+//			<< voInfo.stSwms[1].stRect.s32X << " y: "
+//			<< voInfo.stSwms[1].stRect.s32Y << " width: "
+//			<< voInfo.stSwms[1].stRect.u32Width << " height: "
+//			<< voInfo.stSwms[1].stRect.u32Height;
 
 }
 
