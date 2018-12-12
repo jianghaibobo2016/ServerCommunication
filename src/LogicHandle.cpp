@@ -789,6 +789,10 @@ void LogicHandle::setAudioInfo(const muduo::net::TcpConnectionPtr connPtr,
 	LOG_WARN << "SetAudio cmd...u32RequestID: "
 			<< setAudio->header.u32RequestID;
 
+	NodeInfo::MapMapAODevAudioInfoPtr aoAudioInfo =
+			muduo::Singleton<NodeInfo>::instance().AODevAudioInfo();
+
+	muduo::Singleton<NodeInfo>::instance().updateAODevAudioInfo(aoAudioInfo);
 
 #endif
 }
