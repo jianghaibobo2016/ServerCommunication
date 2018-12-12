@@ -7,7 +7,7 @@
 
 #ifndef UTIL_LOCALRESOURE_H_
 #define UTIL_LOCALRESOURE_H_
-
+#if 0
 #include "SystemException.h"
 #include <sys/socket.h>
 #include <sys/ioctl.h>
@@ -278,5 +278,5 @@ public:
 	}
 
 };
-
+#endif
 #endif /* UTIL_LOCALRESOURE_H_ */

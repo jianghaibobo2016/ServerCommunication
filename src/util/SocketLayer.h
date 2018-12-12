@@ -19,41 +19,41 @@
 //using namespace std;
 class SocketLayer {
 public:
-	static int CreateTCPSock(bool bNoblock = true) throw (SystemException) {
+	static int CreateTCPSock(bool bNoblock = true)/* throw (SystemException)*/ {
 		int ret;
 		if (bNoblock)
 			ret = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, IPPROTO_TCP);
 		else
 			ret = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-		if (ret < 0)
-			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
-		else
+//		if (ret < 0)
+//			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
+//		else
 			return ret;
 	}
-	static int CreateUDPSock(bool bNoblock = true) throw (SystemException) {
+	static int CreateUDPSock(bool bNoblock = true) /*throw (SystemException)*/ {
 		int ret;
 		if (bNoblock)
 			ret = socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK, IPPROTO_UDP);
 		else
 			ret = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-		if (ret < 0)
-			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
-		else
+//		if (ret < 0)
+//			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
+//		else
 			return ret;
 	}
-	static int CreatePipeSock(bool bNoblock = true) throw (SystemException) {
+	static int CreatePipeSock(bool bNoblock = true)/* throw (SystemException)*/ {
 		int ret;
 		if (bNoblock)
 			ret = socket(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK, 0);
 		else
 			ret = socket(AF_UNIX, SOCK_STREAM, 0);
-		if (ret < 0)
-			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
-		else
+//		if (ret < 0)
+//			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
+//		else
 			return ret;
 	}
 	/**cIP:＂＂时，表示绑定本机任意ＩＰ*/
-	static void BindAddress(const int sock, const uint16_t port, const std::string addr = "") throw (SystemException) {
+	static void BindAddress(const int sock, const uint16_t port, const std::string addr = "") /*throw (SystemException)*/ {
 		sockaddr_in saddr;
 		bzero(&saddr, sizeof(saddr));
 		saddr.sin_family = AF_INET;
@@ -62,15 +62,17 @@ public:
 			saddr.sin_addr.s_addr = htonl(INADDR_ANY);
 		else
 			saddr.sin_addr.s_addr = inet_addr(addr.c_str());
-		if (bind(sock, (struct sockaddr*) &saddr, sizeof(saddr)) < 0)
-			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
+		if (bind(sock, (struct sockaddr*) &saddr, sizeof(saddr)) < 0){
+
+		}
+//			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
 		else
 			return;
 	}
 	static void Listen(const int sock, int listencount = 2) {
 		int ret = listen(sock, listencount);
-		if (ret == -1)
-			throw SystemException();
+//		if (ret == -1)
+//			throw SystemException();
 	}
 //	static void GetIdlePort(vector<uint16_t>& idlePort, const int needCount) {
 //		uint16_t lastidleport = 3000;
@@ -109,24 +111,24 @@ public:
 		for (int i = 0; i < 100;) {
 			int sock;
 			result = g_tempidleport + i;
-			try {
+//			try {
 				sock = CreateUDPSock();
-			} catch (SystemException &ex) {
-				throw SystemException("Error create UDP sock");
-			}
-			try {
+//			} catch (SystemException &ex) {
+//				throw SystemException("Error create UDP sock");
+//			}
+//			try {
 				BindAddress(sock, result);
-			} catch (SystemException &ex) {
-				CloseSock(sock);
-				i += 2;
-				continue;
-			}
+//			} catch (SystemException &ex) {
+//				CloseSock(sock);
+//				i += 2;
+//				continue;
+//			}
 			CloseSock(sock);
 			g_tempidleport = result + 2;
 			return result;
 
 		}
-		throw SystemException("none idle port");
+//		throw SystemException("none idle port");
 		return 0;
 
 	}
@@ -136,43 +138,46 @@ public:
 		strcpy(addr.sun_path, strfilepath.c_str());
 		return addr;
 	}
-	static void SetNoneBlock(int sock, bool bBlock = false) throw (SystemException) {
+	static void SetNoneBlock(int sock, bool bBlock = false)/* throw (SystemException) */{
 		int flags = fcntl(sock, F_GETFL, 0);
-		if (flags < 0)
-			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
-		if (fcntl(sock, F_SETFL, flags | O_NONBLOCK) < 0)
-			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
+//		if (flags < 0)
+//			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
+		if (fcntl(sock, F_SETFL, flags | O_NONBLOCK) < 0){
+
+		}
+//			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
 		else
 			return;
 	}
-	static void SetSendBufferSize(int sock, int size) throw (SystemException) {
+	static void SetSendBufferSize(int sock, int size) /*throw (SystemException)*/ {
 		int ret = setsockopt(sock, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size));
-		if (ret < 0)
-			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
-		else
+//		if (ret < 0)
+//			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
+//		else
 			return;
 	}
-	static void SetRecvBufferSize(int sock, int size) throw (SystemException) {
+	static void SetRecvBufferSize(int sock, int size) /*throw (SystemException)*/ {
 		int ret = setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size));
-		if (ret < 0)
-			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
-		else
+//		if (ret < 0)
+//			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
+//		else
 			return;
 	}
-	static void SetReuseAddr(int sock) throw (SystemException) {
+	static void SetReuseAddr(int sock)/* throw (SystemException)*/ {
 		int reuse = 1;
 		int ret = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
-		if (ret < 0)
-			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
-		else
+//		if (ret < 0)
+//			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
+//		else
 			return;
 	}
-	static void Sock2IPPort(int sock, std::string& ip, uint16_t &port) throw (SystemException) {
+	static void Sock2IPPort(int sock, std::string& ip,
+			uint16_t &port) /*throw (SystemException) */{
 		struct sockaddr_in addr;
 		socklen_t len = sizeof(addr);
 		int ret = getsockname(sock, (sockaddr*) &addr, &len);
-		if (ret < 0)
-			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
+//		if (ret < 0)
+//			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
 
 		ip = inet_ntoa(addr.sin_addr);
 		port = ntohs(addr.sin_port);
@@ -186,7 +191,7 @@ public:
 		else
 			saddr.sin_addr.s_addr = inet_addr(ip.c_str());
 	}
-	static void CloseSock(int sock) throw (SystemException) {
+	static void CloseSock(int sock) /*throw (SystemException) */{
 		if (sock >= 0) {
 			shutdown(sock, SHUT_RDWR);
 			close(sock);

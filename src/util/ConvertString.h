@@ -7,6 +7,7 @@
 
 #ifndef UTIL_CONVERTSTRING_H_
 #define UTIL_CONVERTSTRING_H_
+#if 0
 #include <iconv.h>
 #include "SystemException.h"
 class ConvertString {
@@ -46,5 +47,5 @@ private:
 		}
 	}
 };
-
+#endif
 #endif /* UTIL_CONVERTSTRING_H_ */

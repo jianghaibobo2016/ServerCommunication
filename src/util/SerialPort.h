@@ -7,6 +7,7 @@
 
 #ifndef UTIL_SERIALPORT_H_
 #define UTIL_SERIALPORT_H_
+#if 0
 #include "SocketLayer.h"
 #include "SystemException.h"
 #include <termio.h>
@@ -176,5 +177,5 @@ private:
 	int _fd;
 	string _devname;
 };
-
+#endif
 #endif /* UTIL_SERIALPORT_H_ */

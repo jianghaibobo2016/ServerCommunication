@@ -16,7 +16,7 @@ UnixSockClientData::UnixSockClientData(recvCallBack cb) {
 //	pthread_mutex_init(&_condMutex, NULL);
 //	pthread_cond_init(&_cond, NULL);
 	_bInitCommandOK = false;
-	setTimer(2, 100, true);
+//	setTimer(2, 100, true);
 	_cb = cb;
 	_buffer = new uint8_t[BUFFER_SIZE];
 //	_Nodecb = NULL;
@@ -36,46 +36,48 @@ UnixSockClientData::~UnixSockClientData() {
 	// TODO Auto-generated destructor stub
 }
 
-void UnixSockClientData::onTimer(int nID) {
-	if (nID == 1) { //每3秒发送在线包
+//void UnixSockClientData::onTimer(int nID) {
+//	if (nID == 1) { //每3秒发送在线包
+//
+//	} else if (nID == 2) { //每100毫秒检查是否有数据包要发送
+////		try {
+//		vector<vector<int8_t> > vTempPackages;
+//		{
+//			AutoLock lock(&_mutex);
+//			if (_packages.size() == 0)
+//				return;
+//			vTempPackages = _packages;
+//			_packages.clear();
+//		}
+//		for (size_t i = 0; i < vTempPackages.size(); i++) {
+////				try {
+//			doSendCommand(&vTempPackages[i].front(), vTempPackages[i].size());
+//			ThreadUtil::Sleep(20);
+////				} catch (SystemException &ex) {
+////					Console::instance()->warning(ex.what());
+////				}
+//		}
+////		} catch (SystemException& ex) {
+////			Console::instance()->error(ex.what());
+////		}
+//
+//	}
+//}
 
-	} else if (nID == 2) { //每100毫秒检查是否有数据包要发送
-		try {
-			vector<vector<int8_t> > vTempPackages;
-			{
-				AutoLock lock(&_mutex);
-				if (_packages.size() == 0)
-					return;
-				vTempPackages = _packages;
-				_packages.clear();
-			}
-			for (size_t i = 0; i < vTempPackages.size(); i++) {
-				try {
-					doSendCommand(&vTempPackages[i].front(),
-							vTempPackages[i].size());
-					ThreadUtil::Sleep(20);
-				} catch (SystemException &ex) {
-//					Console::instance()->warning(ex.what());
-				}
-			}
-		} catch (SystemException& ex) {
-//			Console::instance()->error(ex.what());
-		}
-
-	}
-}
-void UnixSockClientData::addCommand(const void* pData, int len) {
-	if (len <= 0) {
-		throw SystemException(pData, 20);
-	}
-	vector<int8_t> vData;
-	vData.assign((uint8_t*) pData, (((uint8_t*) pData) + len));
-	AutoLock lock(&_mutex);
-	_packages.push_back(vData);
-}
-
+//void UnixSockClientData::addCommand(const void* pData, int len) {
+//	return;
+//	if (len <= 0) {
+//		return;
+////		throw SystemException(pData, 20);
+//	}
+//	vector<int8_t> vData;
+//	vData.assign((uint8_t*) pData, (((uint8_t*) pData) + len));
+//	AutoLock lock(&_mutex);
+//	_packages.push_back(vData);
+//}
+#if 1
 int UnixSockClientData::onlySendMsg(const void* pData, int len)
-		throw (SystemException) {
+/*throw (SystemException)*/{
 	assert(pData);
 	//1.create sock & connect
 	int sock = SocketLayer::CreatePipeSock();
@@ -99,24 +101,28 @@ int UnixSockClientData::onlySendMsg(const void* pData, int len)
 	}
 	if (!bConnected) {
 		SocketLayer::CloseSock(sock);
-		throw SystemException("can not connect unix socket");
+		return DP_ERR_COMMUNICATE_ABNORMAL;
+//		throw SystemException("can not connect unix socket");
 	}
 	//2.send data
 	int wbytes = send(sock, pData, len, 0);
 	if (wbytes <= 0) {
 		SocketLayer::CloseSock(sock);
-		throw SystemException("Send failed !");
+		return DP_ERR_COMMUNICATE_ABNORMAL;
+//		throw SystemException("Send failed !");
 	}
 	//	muduo::PrintBuff::printBufferByHex("send to fifo : ", pData, wbytes);
 	if (wbytes != len) {
 		SocketLayer::CloseSock(sock);
-		throw SystemException("send bytes!=actual send bytes");
+		return DP_ERR_COMMUNICATE_ABNORMAL;
+//		throw SystemException("send bytes!=actual send bytes");
 	}
 	SocketLayer::CloseSock(sock);
 	return wbytes;
 }
+
 int UnixSockClientData::doSendCommand(const void* pData, int len)
-		throw (SystemException) {
+/*throw (SystemException) */{
 	assert(pData);
 	//1.create sock & connect
 	int sock = SocketLayer::CreatePipeSock();
@@ -140,18 +146,21 @@ int UnixSockClientData::doSendCommand(const void* pData, int len)
 	}
 	if (!bConnected) {
 		SocketLayer::CloseSock(sock);
-		throw SystemException("can not connect unix socket");
+		return DP_ERR_COMMUNICATE_ABNORMAL;
+//		throw SystemException("can not connect unix socket");
 	}
 	//2.send data
 	int wbytes = send(sock, pData, len, 0);
 	if (wbytes <= 0) {
 		SocketLayer::CloseSock(sock);
-		throw SystemException(__FILE__, __FUNCTION__, __LINE__);
+		return DP_ERR_COMMUNICATE_ABNORMAL;
+//		throw SystemException(__FILE__, __FUNCTION__, __LINE__);
 	}
 	muduo::PrintBuff::printBufferByHex("send to fifo : ", pData, wbytes);
 	if (wbytes != len) {
 		SocketLayer::CloseSock(sock);
-		throw SystemException("send bytes!=actual send bytes");
+		return DP_ERR_COMMUNICATE_ABNORMAL;
+//		throw SystemException("send bytes!=actual send bytes");
 	}
 	//3.recv &&close socket
 	fd_set readfd;
@@ -187,8 +196,8 @@ int UnixSockClientData::doSendCommand(const void* pData, int len)
 			}
 		} else {
 			SocketLayer::CloseSock(sock);
-			throw SystemException("Recv 0 msg from codec !");
-			return -1;
+			return DP_ERR_COMMUNICATE_ABNORMAL;
+//			throw SystemException("Recv 0 msg from codec !");
 		}
 	}
 	SocketLayer::CloseSock(sock);
@@ -508,4 +517,5 @@ void UnixSockClientData::SendStopAVdec(DP_M2S_TSK_ID id, DP_M2S_AVDEC_SET_INFO_S
 	addCommand(&sendBuffer.front(), info.stHeader.u16PacketLen);
 }
 
+#endif
 #endif

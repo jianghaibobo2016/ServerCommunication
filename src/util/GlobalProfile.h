@@ -7,7 +7,7 @@
 
 #ifndef UTIL_GLOBALPROFILE_H_
 #define UTIL_GLOBALPROFILE_H_
-
+#if 1
 #include "stdio.h"
 #include <unistd.h>
 #include <iostream>
@@ -22,12 +22,13 @@
 #include <map>
 
 #include "Public.h"
-#include "Shared.h"
-#include "Handle.h"
+//#include "Shared.h"
+//#include "Handle.h"
 //#include "InternalException.h"
 #include <json/json.h>
 #include "xmlParser.h"
 #include "Data.h"
+#include "RCSP.h"
 
 using namespace std;
 
@@ -43,9 +44,9 @@ using namespace std;
 #define PROFILE_JSON_MATRIX_PATH   "./json/Public_Matrix.json"
 #define PROFILE_JSON_IRLIST_PATH   "./json/Public_IRList.json"
 
-class GlobalProfile: public Shared {
+class GlobalProfile/*: public Shared */{
 private:
-	class Profile: public Shared {
+	class Profile/*: public Shared */{
 	public:
 		Profile(const string &path);
 		~Profile();
@@ -73,21 +74,23 @@ private:
 		XMLNode _top;
 		bool _bChanged;
 	};
-	typedef Handle<Profile> ProfilePtr;
+	typedef SmartPtr<Profile> ProfilePtr;
 
 public:
 	GlobalProfile();
 	virtual ~GlobalProfile();
 
-	static Handle<GlobalProfile> getInstance() {
-		if (!g_Profile) {
-			g_Profile = new GlobalProfile();
+	static SmartPtr<GlobalProfile> getInstance() {
+		if (!g_Profile.get()) {
+			static SmartPtr<GlobalProfile> g_Profile_2(new GlobalProfile());
+			g_Profile = g_Profile_2;
 		}
 		return g_Profile;
 	}
 
-	static Handle<GlobalProfile> g_Profile;
+	static SmartPtr<GlobalProfile> g_Profile;
 	/////////////////////////////////////////////////////////////////////
+
 	void printJson(Json::Value value);
 
 	void FreshPubDevList(void);
@@ -139,7 +142,6 @@ public:
 	map<unsigned int, vector<unsigned short> > m_mPubMatrixInfo;
 	//7777
 
-
 	//9.红外码
 	map<unsigned short, DP_DEV_IRLIST_INFO_S> m_mIRListInfo;
 
@@ -156,8 +158,9 @@ private:
 	DP_DEV_UARTSET_INFO_S m_astDevUartInfo[3];
 };
 
-typedef Handle<GlobalProfile> GlobalProfilePtr;
+typedef SmartPtr<GlobalProfile> GlobalProfilePtr;
 
 //} /* namespace DSPPAUtil */
 
+#endif
 #endif /* UTIL_GLOBALPROFILE_H_ */

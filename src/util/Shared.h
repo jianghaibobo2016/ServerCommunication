@@ -13,40 +13,42 @@
 #include <iostream>
 class Shared {
 public:
-	Shared():_ref(0){
+	Shared() :
+			_ref(0) {
 
 	}
-	Shared(const Shared&):_ref(0){
+	Shared(const Shared&) :
+			_ref(0) {
 
 	}
-	virtual ~Shared(){
+	virtual ~Shared() {
 
 	}
 	Shared& operator=(const Shared&) {
 		return *this;
 	}
-	void __incRef(){
+	void __incRef() {
 		AutoLock lock(&_mutex);
 		_ref++;
 	}
-	void __decRef(){
+	void __decRef() {
 		{
 			AutoLock lock(&_mutex);
 			_ref--;
 		}
 
-		if(_ref<=0){
+		if (_ref <= 0) {
 			delete this;
 			//::std::cout<<"delete shared object"<<::std::endl;
 		}
 	}
-	int  __getRef()const{
+	int __getRef() const {
 		return _ref;
 	}
 private:
 	Mutex _mutex;
 	int _ref;
-};
 
+};
 
 #endif /* UTIL_SHARED_H_ */

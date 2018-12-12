@@ -7,6 +7,7 @@
 
 #ifndef UTIL_SYSTEMEXCEPTION_H_
 #define UTIL_SYSTEMEXCEPTION_H_
+#if 0
 #include <errno.h>
 #include <string.h>
 #include <stdio.h>
@@ -54,4 +55,5 @@ private:
 	std::string m_errormsg;
 };
 
+#endif
 #endif /* UTIL_SYSTEMEXCEPTION_H_ */

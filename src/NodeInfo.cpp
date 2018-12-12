@@ -177,7 +177,7 @@ DP_BOOL NodeInfo::initOutAVEnc() {
 
 	VecCodecTaskID vTaskID;
 	vTaskID.push_back(taskID);
-	getAVInfoFromCodec<VctrAVENCGetInfoPtr, DP_M2S_CMD_AVENC_SETINFO_S>(vTaskID,
+	getAVInfoFromCodec<VctrAVENCGetInfo, DP_M2S_CMD_AVENC_SETINFO_S>(vTaskID,
 			DP_M2S_CMD_AVENC_GET);
 
 #endif
@@ -248,7 +248,7 @@ DP_BOOL NodeInfo::initOutAVDec() {
 		for (it = _vAuViTaskID.begin(); it != _vAuViTaskID.end(); it++)
 			codecID.push_back(*it);
 
-	getAVInfoFromCodec<VctrAVDECGetInfoPtr, DP_M2S_CMD_AVDEC_SETINFO_S>(codecID,
+	getAVInfoFromCodec<VctrAVDECGetInfo, DP_M2S_CMD_AVDEC_SETINFO_S>(codecID,
 			DP_M2S_CMD_AVDEC_GET);
 
 #endif
@@ -634,18 +634,18 @@ DP_BOOL NodeInfo::initCodec() {
 	boost::shared_ptr<DP_M2S_CMD_SYS_INIT_S> sysInit(
 			new DP_M2S_CMD_SYS_INIT_S(&aiSet, 1, &voSet, 1));
 #endif
-	try {
-		DP_S32 retSend = client.doSendCommand(sysInit.get(),
-				sizeof(DP_M2S_CMD_SYS_INIT_S));
-		if (retSend == 0)
-			return DP_TRUE;
-		else {
-			return DP_FALSE;
-		}
-	} catch (SystemException &ex) {
-		LOG_ERROR << ex.what();
+//	try {
+	DP_S32 retSend = client.doSendCommand(sysInit.get(),
+			sizeof(DP_M2S_CMD_SYS_INIT_S));
+	if (retSend == 0)
+		return DP_TRUE;
+	else {
 		return DP_FALSE;
 	}
+//	} catch (SystemException &ex) {
+//		LOG_ERROR << ex.what();
+//		return DP_FALSE;
+//	}
 	return DP_TRUE;
 }
 
@@ -1029,7 +1029,7 @@ int NodeInfo::cmd_set_venc_default(DP_VOID *pPtr, DP_S32 s32TskId,
 	stAttr.stStream.enType = DP_M2S_STREAM_RTSP_SERVER;
 	DP_M2S_RTSP_SERVER_ATTR_S stRtspServer;
 	stRtspServer.bOpen = DP_TRUE;
-	stRtspServer.bUDP = DP_FALSE;												//udp
+	stRtspServer.bUDP = DP_FALSE;										//udp
 	stRtspServer.bMulticast = DP_FALSE;
 	stRtspServer.s32ConnTimeout = 60;
 	stRtspServer.s32ConnMax = 128;

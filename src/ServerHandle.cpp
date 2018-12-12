@@ -62,6 +62,10 @@ void ServerHandle::onMessage(const TcpConnectionPtr &connPtr, Buffer *buff,
 	DevSearch devSearch;
 //	NodeInfo nodeInfo;
 	LogicHandle logicHandle;
+//	if (strcmp(data.c_str(), "厉害厉害")==0) {
+//		std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: " << std::endl;
+//	}else
+//		std::cout << "!!!!!!!!~~~~~~~~~~~~~~~~~~!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: " << std::endl;
 	switch (DataPackageParser::parserDataPackage(data)) {
 	case _eSearch:
 //		_threadPool.run(boost::bind(&DevSearch::devSearch, devSearch, connPtr));

@@ -27,7 +27,7 @@ public:
 		struct timeval tv;
 		if (gettimeofday(&tv, 0) < 0) {
 			assert(0);
-			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
+//			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
 		}
 		return DateTime(tv.tv_sec * uint64_t(1000000) + tv.tv_usec);
 	}

@@ -7,7 +7,7 @@
 
 #ifndef UTIL_RWFILE_H_
 #define UTIL_RWFILE_H_
-
+#if 0
 #include "Shared.h"
 #include "Handle.h"
 #include <stdio.h>
@@ -17,8 +17,8 @@ class RWFile :public Shared{
 public:
 	RWFile(const string path){
 		_pFile = fopen(path.c_str(),"w+");
-		if(_pFile == NULL)
-			throw SystemException();
+//		if(_pFile == NULL)
+//			throw SystemException();
 	}
 	virtual ~RWFile(){
 		fclose(_pFile);
@@ -51,4 +51,5 @@ class FileLog:public RWFile,public Logger{
 	~FileLog();
 };
 typedef Handle<RWFile> RWFilePtr;
+#endif
 #endif /* UTIL_RWFILE_H_ */

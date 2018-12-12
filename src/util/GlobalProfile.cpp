@@ -8,6 +8,7 @@
 #include "GlobalProfile.h"
 
 #include <muduo/base/Logging.h>
+#if 1
 
 //namespace DSPPAUtil{
 
@@ -75,6 +76,7 @@ const bool GlobalProfile::Profile::getBool(const char* section,
 	return atoi(strValue.c_str());
 }
 
+#endif
 void GlobalProfile::Profile::updateValue(const char* section,
 		const char* strKey, const char* fmt, ...) {
 	_bChanged = true;
@@ -171,10 +173,11 @@ void GlobalProfile::Profile::enumeratorProperty(const char* section,
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-GlobalProfilePtr GlobalProfile::g_Profile = 0;
+#if 1
+GlobalProfilePtr GlobalProfile::g_Profile(new GlobalProfile());
 
-GlobalProfile::GlobalProfile() :
-		Shared() {
+GlobalProfile::GlobalProfile()
+/*	Shared()*/{
 	loadFromJSON();
 	loadFromXML();
 }
@@ -182,6 +185,7 @@ GlobalProfile::~GlobalProfile() {
 
 }
 
+#if 1
 void GlobalProfile::printJson(Json::Value value) {
 	Json::Value::Members mem = value.getMemberNames();
 	for (Json::Value::Members::iterator iter = mem.begin(); iter != mem.end();
@@ -450,7 +454,9 @@ void GlobalProfile::FreshIRList(void) {
 		oOFStream.close();
 	}
 }
+#endif
 
+#if 1
 void GlobalProfile::GetVersionInfo(
 		DP_DEV_PUBLIC_LISTVERSION_INFO_S& VersionInfo) {
 	memset(&VersionInfo, 0, sizeof(DP_DEV_PUBLIC_LISTVERSION_INFO_S));
@@ -490,6 +496,7 @@ void GlobalProfile::SetDevOnlineListVersion(unsigned int version) {
 unsigned int GlobalProfile::GetUserListVersion(void) {
 	return m_stPubVersionInfo.u32UserInfoListVersion;
 }
+
 void GlobalProfile::SetUserListVersion(unsigned int version) {
 	m_stPubVersionInfo.u32UserInfoListVersion = version;
 
@@ -607,7 +614,9 @@ void GlobalProfile::SetUARTInfo(const DP_DEV_UARTSET_INFO_S& uartInfo,
 				m_astDevUartInfo[num].u8Parity);
 	}
 }
+#endif
 
+#if 1
 void GlobalProfile::loadFromJSON() {
 	if (access(PROFILE_JSON_DIR, F_OK) != 0) {
 		if (mkdir(PROFILE_JSON_DIR, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)
@@ -1001,5 +1010,6 @@ void GlobalProfile::loadFromXML() {
 	profile = 0;
 	cout << "loadxml success" << endl;
 }
-
+#endif
+#endif
 //} /* namespace DSPPAUtil */

@@ -7,6 +7,7 @@
 
 #ifndef UTIL_SPLITERSTRING_H_
 #define UTIL_SPLITERSTRING_H_
+#if 0
 #include <string>
 #include <vector>
 using namespace std;
@@ -106,5 +107,5 @@ public:
 		return true;
 	}
 };
-
+#endif
 #endif /* UTIL_SPLITERSTRING_H_ */

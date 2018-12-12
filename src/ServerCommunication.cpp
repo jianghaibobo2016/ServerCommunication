@@ -24,7 +24,7 @@
 #include "NodeInfo.h"
 #include "GlobalProfile.h"
 #include "CtrlBoardHandle.h"
-#include "testhead.h"
+//#include "testhead.h"
 
 using namespace muduo;
 using namespace muduo::net;
@@ -78,21 +78,23 @@ void signalHandle() {
 }
 
 int main() {
-//		muduo::Logger::setLogLevel(muduo::Logger::DEBUG);
-	LOG_ERROR
-			<< "===========ServerCommunication program starting !==============";
+	setvbuf(stdout, (char *) NULL, _IOLBF, 0);
 	signalHandle();
+//		muduo::Logger::setLogLevel(muduo::Logger::DEBUG);
+	EventLoop loop; // one loop shared by multiple servers
+	print(&loop);
+
+#if 1
 	//logging setting
 	g_logFile.reset(new muduo::LogFile(LogFileName, g_LogFileMaxSize));
 	muduo::Logger::setOutput(outputFunc);
 	muduo::Logger::setFlush(flushFunc);
-
+	LOG_ERROR
+			<< "===========ServerCommunication program starting !==============";
 	//init
 	muduo::Singleton<NodeInfo>::instance();
 	GlobalProfile::getInstance();
 
-	EventLoop loop; // one loop shared by multiple servers
-	print(&loop);
 	ServerHandle tcpServer(&loop, InetAddress(5010));
 	tcpServer.startServerHandle(1);
 	tcpServer.startHandle(10, 3);
@@ -100,11 +102,15 @@ int main() {
 	EventLoopThread UDPServer;
 	UDPServerHandle udpServer(UDPServer.startLoop());
 	udpServer.startListen();
-
+#endif
+#if 1
 	EventLoopThread ctrlBoardHandle;
 	CtrlBoardHandle boardHandle(ctrlBoardHandle.startLoop());
 	boardHandle.startRunning();
-
+//	return 0;
+//	while(1)
+//		sleep(1);
+#endif
 	loop.loop();
 }
 

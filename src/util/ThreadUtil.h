@@ -28,13 +28,13 @@ public:
 		int ret;
 		{
 			AutoLock lock(&_stateMutex);
-			if (_running)
-				throw SystemException("error:thread is running");
+//			if (_running)
+//				throw SystemException("error:thread is running");
 			_running = true;
 		}
 		ret = pthread_create(&_thread, 0, doThread, this);
-		if (ret != 0)
-			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
+//		if (ret != 0)
+//			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
 	}
 
 	bool isAlive() {

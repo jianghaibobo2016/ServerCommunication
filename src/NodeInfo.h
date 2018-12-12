@@ -340,13 +340,13 @@ private:
 	inline static DP_U8* sendToCodecAndRecv(DP_S32 &retResult, const void* data,
 			DP_S32 len) {
 		UnixSockClientData client(NodeInfo::recvCB);
-		try {
-			retResult = client.doSendCommand(data, len);
-		} catch (SystemException &ex) {
-			LOG_ERROR << ex.what();
-			retResult = DP_ERR_COMMUNICATE_ABNORMAL_INNER;
-			return NULL;
-		}
+//		try {
+		retResult = client.doSendCommand(data, len);
+//		} catch (SystemException &ex) {
+//			LOG_ERROR << ex.what();
+//			retResult = DP_ERR_COMMUNICATE_ABNORMAL_INNER;
+//			return NULL;
+//		}
 		if (retResult != 0) {
 //			LOG_ERROR << "Send and recv failed. ";
 			return NULL;
@@ -358,12 +358,12 @@ private:
 
 	inline static DP_S32 sendToCodecOnly(const void* data, DP_S32 len) {
 		UnixSockClientData client;
-		try {
-			return client.onlySendMsg(data, len);
-		} catch (SystemException &ex) {
-			LOG_ERROR << ex.what();
-			return DP_ERR_COMMUNICATE_ABNORMAL_INNER;
-		}
+//		try {
+		return client.onlySendMsg(data, len);
+//		} catch (SystemException &ex) {
+//			LOG_ERROR << ex.what();
+//			return DP_ERR_COMMUNICATE_ABNORMAL_INNER;
+//		}
 		return 0;
 	}
 
@@ -373,7 +373,8 @@ private:
 	DP_BOOL getAVInfoFromCodec(VecCodecTaskID codecID, DP_M2S_CMD_ID_E cmd);
 
 	template<typename T, typename S>
-	DP_BOOL setAVInfoToCodec(boost::shared_ptr<T> vAVEnc, DP_M2S_CMD_ID_E cmd);
+	DP_BOOL setAVInfoToCodec(boost::shared_ptr<T> &vAVInfo,
+			DP_M2S_CMD_ID_E cmd);
 
 	template<typename T, typename ST, typename V, typename ACK>
 	DP_BOOL getAOVOInfoFromCodec(T AOVOInfo, DP_M2S_CMD_ID_E cmd, V aovoDev);

@@ -17,6 +17,8 @@ DEFS     :=
 EXTRA_CFLAGS := 
 
 INC_DIR   = ./src ./muduo/base ./muduo/net ./muduo/net/poller ./src/util ./src/protocol  ./src/util/Json/ ./src/DPUDrv/DPUDrvLib_1217/DPUDrvLib/
+#INC_DIR   = ./src ./muduo/base ./muduo/net ./muduo/net/poller  ./src/protocol ./src/DPUDrv/DPUDrvLib_1217/DPUDrvLib/
+#SRC_DIR   := ./src ./muduo/base ./muduo/net ./muduo/net/poller 
 SRC_DIR   := ./src ./muduo/base ./muduo/net ./muduo/net/poller ./src/util ./src/util/Json/lib_json
 SRC_D   = ./src
 OBJ_DIR   = ./obj

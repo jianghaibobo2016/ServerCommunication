@@ -8,27 +8,25 @@
 #define VIDEOLAYER_UNIXSOCKCLIENTDATA_H_
 #include <TimerUtil.h>
 #include <vector>
-//#include <pthread.h>
 #include "Handle.h"
-//#include "Console.h"
-//#include "Timer.h"
 #include "SocketLayer.h"
 #include "dp_m2s_prot.h"
-#include "SystemException.h"
+
+//#include "SystemException.h"
 typedef int (*recvCallBack)(void* pData, int len);
 const int BUFFER_SIZE = 1024 * 1024;
 //template<typename T, typename S>
 //typedef int (*NodeInfoRecvCallBack)(void* pData, int len, T vctrGetInfo);
 using namespace std;
 //using namespace DSPPAUtil;
-class UnixSockClientData: public TimerUtil {
+class UnixSockClientData/*: public TimerUtil*/{
 public:
 	UnixSockClientData(recvCallBack cb = NULL);
 //	UnixSockClientData(NodeInfoRecvCallBack cb = NULL);
-	virtual ~UnixSockClientData();
-	void addCommand(const void* pData, int len);
-	int doSendCommand(const void* pData, int len) throw (SystemException);
-	int onlySendMsg(const void* pData, int len) throw (SystemException);
+	~UnixSockClientData();
+//	void addCommand(const void* pData, int len);
+	int doSendCommand(const void* pData, int len) /*throw (SystemException)*/;
+	int onlySendMsg(const void* pData, int len)/* throw (SystemException)*/;
 	uint8_t * getRecvBuff() {
 //		DP_U64 sec = 0;
 //		DP_U64 usec = 0;
@@ -63,8 +61,8 @@ public:
 //		memcpy(&state,&_avencStatus[id],sizeof(DP_M2S_AVENC_GET_INFO_S));
 //	}
 private:
-	virtual void onTimer(int nID);
-	void doRecvCommand(void* pData, int len) throw (SystemException);
+//	virtual void onTimer(int nID);
+	void doRecvCommand(void* pData, int len) /*throw (SystemException)*/;
 private:
 	Mutex _mutex;
 //	pthread_mutex_t _condMutex;
@@ -77,5 +75,5 @@ private:
 //	DP_M2S_AVDEC_GET_INFO_S _avdecStatus[16];
 //	DP_M2S_AVENC_GET_INFO_S _avencStatus[16];
 };
-typedef Handle<UnixSockClientData> UnixSockClientDataPtr;
+//typedef Handle<UnixSockClientData> UnixSockClientDataPtr;
 #endif /* VIDEOLAYER_UNIXSOCKCLIENTDATA_H_ */

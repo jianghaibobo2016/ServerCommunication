@@ -52,11 +52,67 @@ int CtrlBoardHandle::RS485RcvCallBack(DP_U8 *rcvData, DP_U32 rcvDataLen) {
 }
 
 void CtrlBoardHandle::startRunning() {
-	DP_UDRV_BOARD_SetupPinMuxer();
 	DP_UDRV_REG_Init();
+	printf("%s %s %d\r\n", __FILE__, __FUNCTION__, __LINE__);
 	DP_UDRV_GPIO_Init();
 	DP_UDRV_UART_Init();
+	DP_UDRV_BOARD_SetupPinMuxer();
 	_loop->runInLoop(boost::bind(&CtrlBoardHandle::run, this));
+#if 1
+//	typedef void (*TestFunc)();
+	typedef boost::function<void()> TestFunc;
+
+	typedef struct _FuncTest_S {
+		char* name;
+		TestFunc func;
+	} FuncTest_S;
+//	void PrintfUsage();
+
+	FuncTest_S TestFuncArry[] = {
+
+			{ (char*) "StartIRLearn", boost::bind(
+					&CtrlBoardHandle::startIRLearn, this) }, {
+					(char*) "StopIRLearn", boost::bind(
+							&CtrlBoardHandle::StopIRLearn, this) }, {
+					(char*) "StartIRSendSTD", boost::bind(
+							&CtrlBoardHandle::StartIRSendSTD, this) }, {
+					(char*) "StartIRSendPlusWidth", boost::bind(
+							&CtrlBoardHandle::StartIRSendPlusWidth, this) }, {
+					(char*) "StartIRRcv", boost::bind(
+							&CtrlBoardHandle::StartIRRcv, this) }, {
+					(char*) "StopIRRcv", boost::bind(
+							&CtrlBoardHandle::StopIRRcv, this) }, {
+					(char*) "OpenRS232Port0AndSend", boost::bind(
+							&CtrlBoardHandle::OpenRS232Port0AndSend, this) }, {
+					(char*) "OpenRS232Port1AndSend", boost::bind(
+							&CtrlBoardHandle::OpenRS232Port1AndSend, this) }, {
+					(char*) "OpenRS485Rcv", boost::bind(
+							&CtrlBoardHandle::OpenRS485Rcv, this) }, {
+					(char*) "RS485Send", boost::bind(
+							&CtrlBoardHandle::RS485Send, this) }, {
+					(char*) "RS232Test", boost::bind(
+							&CtrlBoardHandle::RS232Test, this) }, {
+					(char*) "IOTest", boost::bind(&CtrlBoardHandle::IOTest,
+							this) },
+
+	};
+
+	while (1) {
+		char cmdBuf[1024];
+		if ((fgets(cmdBuf, sizeof(cmdBuf), stdin)) != NULL) {
+			//printf("Read line with len: %d\n", strlen(cmdBuf));
+			unsigned int idx = 0;
+			printf("%s", cmdBuf);
+			sscanf(cmdBuf, "%u", &idx);
+			printf("idx %d\r\n", idx);
+
+			if (idx < (DP_ARRAY_SIZE(TestFuncArry))) {
+				TestFuncArry[idx].func();
+			}
+		}
+
+	}
+#endif
 }
 
 void CtrlBoardHandle::run() {

@@ -7,6 +7,7 @@
 
 #ifndef UTIL_BUFFER_H_
 #define UTIL_BUFFER_H_
+#if 0
 #include "Mutex.h"
 #include "Handle.h"
 #include "Shared.h"
@@ -188,4 +189,5 @@ private:
 	size_t _wsize;
 };
 typedef Handle<Buffer> BufferPtr;
+#endif
 #endif /* UTIL_BUFFER_H_ */

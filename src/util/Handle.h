@@ -97,7 +97,7 @@ public:
 
 	T* operator->() const {
 		if (!_ptr) {
-			throw SystemException(std::string("Handle -> nullptr."));
+//			throw SystemException(std::string("Handle -> nullptr."));
 		}
 
 		return _ptr;
@@ -105,7 +105,7 @@ public:
 
 	T& operator*() const {
 		if (!_ptr) {
-			throw SystemException(std::string("Handle operator*nullptr."));
+//			throw SystemException(std::string("Handle operator*nullptr."));
 		}
 		return *_ptr;
 	}
