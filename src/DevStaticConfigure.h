@@ -11,12 +11,12 @@
 #include "dp_sd_type.h"
 #include "interactivepro.h"
 //
-#define OutputDevice 1
-#define InputDevice  0
+//#define OutputDevice 1
+//#define InputDevice  0
 //
-//#define OutputDevice 0
-//#define InputDevice  1
-//
+#define OutputDevice 0
+#define InputDevice  1
+
 #if (InputDevice)
 static const eDeviceType g_DevType = Type_DeviceInput;
 static const DP_CHAR *LogFileName = "/root/APPDIR/InputNodeServer";

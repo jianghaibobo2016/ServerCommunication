@@ -8,7 +8,7 @@
 #include <boost/bind.hpp>
 #include "CtrlBoardHandle.h"
 
-BoundedBlockingQueue<IRRecv_S> CtrlBoardHandle::_queue(5);
+CircleBoundedQueue<IRRecv_S> CtrlBoardHandle::_queue(3);
 
 CtrlBoardHandle::CtrlBoardHandle(EventLoop *loop) :
 		_loop(loop) {
@@ -30,7 +30,15 @@ int CtrlBoardHandle::IrLearnRcvCallback(DP_U8 *rcvData, DP_U32 rcvDataLen) {
 			printf("\r\n");
 	}
 	printf("\r\n");
+//	struct timeval tv;
+//	gettimeofday(&tv, NULL);
+//	std::cout << "time start put : " << tv.tv_sec << " . " << tv.tv_usec
+//			<< std::endl;
 	CtrlBoardHandle::_queue.put(recv);
+
+//	gettimeofday(&tv, NULL);
+//	std::cout << "time end  put : " << tv.tv_sec << " . " << tv.tv_usec
+//			<< std::endl;
 	return 0;
 }
 
@@ -41,7 +49,14 @@ int CtrlBoardHandle::RS232Port0RcvCallBack(DP_U8 *rcvData, DP_U32 rcvDataLen) {
 
 int CtrlBoardHandle::RS232Port1RcvCallBack(DP_U8 *rcvData, DP_U32 rcvDataLen) {
 	printf("Port1 RcvDataLen %d rcvData %s \r\n", rcvDataLen, rcvData);
+//	for (unsigned int i = 0; i < 50; i++) {
+//		printf("0x%0.2x ", rcvData[i]);
+//		if ((i + 1) % 16 == 0)
+//			printf("\r\n");
+//	}
+//	printf("\r\n");
 	return 0;
+
 }
 
 int CtrlBoardHandle::RS485RcvCallBack(DP_U8 *rcvData, DP_U32 rcvDataLen) {
@@ -50,7 +65,6 @@ int CtrlBoardHandle::RS485RcvCallBack(DP_U8 *rcvData, DP_U32 rcvDataLen) {
 			rcvData);
 	return 0;
 }
-
 void CtrlBoardHandle::startRunning() {
 	DP_UDRV_REG_Init();
 	printf("%s %s %d\r\n", __FILE__, __FUNCTION__, __LINE__);
@@ -70,32 +84,36 @@ void CtrlBoardHandle::startRunning() {
 
 	FuncTest_S TestFuncArry[] = {
 
-			{ (char*) "StartIRLearn", boost::bind(
-					&CtrlBoardHandle::startIRLearn, this) }, {
-					(char*) "StopIRLearn", boost::bind(
-							&CtrlBoardHandle::StopIRLearn, this) }, {
-					(char*) "StartIRSendSTD", boost::bind(
-							&CtrlBoardHandle::StartIRSendSTD, this) }, {
-					(char*) "StartIRSendPlusWidth", boost::bind(
-							&CtrlBoardHandle::StartIRSendPlusWidth, this) }, {
-					(char*) "StartIRRcv", boost::bind(
-							&CtrlBoardHandle::StartIRRcv, this) }, {
-					(char*) "StopIRRcv", boost::bind(
-							&CtrlBoardHandle::StopIRRcv, this) }, {
-					(char*) "OpenRS232Port0AndSend", boost::bind(
-							&CtrlBoardHandle::OpenRS232Port0AndSend, this) }, {
-					(char*) "OpenRS232Port1AndSend", boost::bind(
-							&CtrlBoardHandle::OpenRS232Port1AndSend, this) }, {
-					(char*) "OpenRS485Rcv", boost::bind(
-							&CtrlBoardHandle::OpenRS485Rcv, this) }, {
-					(char*) "RS485Send", boost::bind(
-							&CtrlBoardHandle::RS485Send, this) }, {
-					(char*) "RS232Test", boost::bind(
-							&CtrlBoardHandle::RS232Test, this) }, {
-					(char*) "IOTest", boost::bind(&CtrlBoardHandle::IOTest,
-							this) },
+	{ (char*) "StartIRLearn", boost::bind(  //0
+			&CtrlBoardHandle::startIRLearn, this) }, { (char*) "StopIRLearn",
+			boost::bind( 	 //1
+					&CtrlBoardHandle::StopIRLearn, this) }, {
+			(char*) "StartIRSendSTD", boost::bind(	 //2
+					&CtrlBoardHandle::StartIRSendSTD, this) }, {
+			(char*) "StartIRSendPlusWidth", boost::bind(	 //3
+					&CtrlBoardHandle::StartIRSendPlusWidth, this) }, {
+			(char*) "StartIRRcv", boost::bind(	 //4
+					&CtrlBoardHandle::StartIRRcv, this) }, {
+			(char*) "StopIRRcv", boost::bind(	 //5
+					&CtrlBoardHandle::StopIRRcv, this) }, {
+			(char*) "OpenRS232Port0AndSend", boost::bind(	 //6
+					&CtrlBoardHandle::OpenRS232Port0AndSend, this) }, {
+			(char*) "OpenRS232Port1AndSend", boost::bind(	 //7
+					&CtrlBoardHandle::OpenRS232Port1AndSend, this) }, {
+			(char*) "OpenRS485Rcv", boost::bind(	 //8
+					&CtrlBoardHandle::OpenRS485Rcv, this) }, {
+			(char*) "RS485Send", boost::bind(	 //9
+					&CtrlBoardHandle::RS485Send, this) }, { (char*) "RS232Test",
+			boost::bind(	 //10
+					&CtrlBoardHandle::RS232Test, this) }, { (char*) "IOTest",
+			boost::bind(&CtrlBoardHandle::IOTest,	 //11
+					this) }, };
 
-	};
+	printf("#############################\r\n");
+	for (unsigned int i = 0; i < (DP_ARRAY_SIZE(TestFuncArry)); i++) {
+		printf("%d.%s\r\n", i, TestFuncArry[i].name);
+	}
+	printf("#############################\r\n");
 
 	while (1) {
 		char cmdBuf[1024];
@@ -103,6 +121,10 @@ void CtrlBoardHandle::startRunning() {
 			//printf("Read line with len: %d\n", strlen(cmdBuf));
 			unsigned int idx = 0;
 			printf("%s", cmdBuf);
+			if (strcmp(cmdBuf, "\n") == 0) {
+				continue;
+			}
+
 			sscanf(cmdBuf, "%u", &idx);
 			printf("idx %d\r\n", idx);
 
@@ -127,7 +149,9 @@ void CtrlBoardHandle::run() {
 
 	for (DP_U32 idx = 0; idx < DP_ARRAY_SIZE(inputEventFd); idx++)
 		inputEventFd[idx] = -1;
-	while (!_loop->isLoop()) {
+	while (_loop->isLoop()) {
+//		std::cout << "====================run looppppppppppppppppp======================"
+//					<< std::endl;
 		// 设置最长等待时间
 		char inputEventPath[256];
 		bool inputEventExist = false;
@@ -194,39 +218,55 @@ void CtrlBoardHandle::run() {
 }
 
 void CtrlBoardHandle::startIRLearn() {
+	std::cout << "====================start ir learn======================"
+			<< std::endl;
 	DP_UDRV_CtrlBoard_StartIRLearn();
 }
 
 void CtrlBoardHandle::StopIRLearn() {
+	std::cout << "====================stop ir learn======================"
+			<< std::endl;
 	DP_UDRV_CtrlBoard_StopIRLearn();
 }
 
 void CtrlBoardHandle::StartIRSendSTD() {
+	std::cout << "====================start ir send std======================"
+			<< std::endl;
 	IRRecv_S irRecv = CtrlBoardHandle::_queue.take();
 	DP_UDRV_CtrlBoard_SendIRLearnBuf(0, irRecv.irRcvCode, irRecv.irRcvLen);
 }
 
 void CtrlBoardHandle::StartIRSendPlusWidth() {
+	std::cout
+			<< "====================start ir send plus width ======================"
+			<< std::endl;
 	IRRecv_S irRecv = CtrlBoardHandle::_queue.take();
 	DP_UDRV_CtrlBoard_SendIRLearnBuf(1, irRecv.irRcvCode, irRecv.irRcvLen);
 }
 
 void CtrlBoardHandle::StartIRRcv() {
-	DP_UDRV_CtrlBoard_StartIRRcv();
+	std::cout << "====================start ir recv======================"
+			<< std::endl;
+	DP_S32 ret = DP_UDRV_CtrlBoard_StartIRRcv();
+	std::cout << "retttttttttttttir recv: " << ret << std::endl;
 }
 
 void CtrlBoardHandle::StopIRRcv() {
-
+	std::cout << "====================stop ir recv======================"
+			<< std::endl;
 	DP_UDRV_CtrlBoard_StopIRRcv();
 }
 
 void CtrlBoardHandle::OpenRS232Port0AndSend() {
+	std::cout
+			<< "====================open rs 232 prot 0 and send ======================"
+			<< std::endl;
 	DP_UDRV_CTRL_BOARD_UartAttr_S attr;
 
 	attr.baudRate = 115200;
 	attr.dataBits = 8;
-	attr.parity = 'o';
-	attr.stopBits = 2;
+	attr.parity = 'n';
+	attr.stopBits = 1;
 	if (DP_UDRV_CtrlBoard_RS232Open(0, attr) != DP_UDRV_SUCCESS)
 		printf("DP_UDRV_CtrlBoard_RS232Open error\r\n");
 
@@ -237,10 +277,14 @@ void CtrlBoardHandle::OpenRS232Port0AndSend() {
 	if ((fgets(cmdBuf, sizeof(cmdBuf), stdin)) != NULL) {
 		DP_UDRV_CtrlBoard_RS232SendData(0, (unsigned char*) cmdBuf,
 				strlen(cmdBuf));
+		printf("  String :: %s\n", cmdBuf);
 	}
 }
 
 void CtrlBoardHandle::OpenRS232Port1AndSend() {
+	std::cout
+			<< "====================open rs 232 prot 1 and send ======================"
+			<< std::endl;
 	DP_UDRV_CTRL_BOARD_UartAttr_S attr;
 
 	attr.baudRate = 115200;
@@ -256,10 +300,13 @@ void CtrlBoardHandle::OpenRS232Port1AndSend() {
 	if ((fgets(cmdBuf, sizeof(cmdBuf), stdin)) != NULL) {
 		DP_UDRV_CtrlBoard_RS232SendData(1, (unsigned char*) cmdBuf,
 				strlen(cmdBuf));
+		printf("  String :: %s len: %d\n", cmdBuf, strlen(cmdBuf));
 	}
 }
 
 void CtrlBoardHandle::OpenRS485Rcv() {
+	std::cout << "====================open rs 485 recv ======================"
+			<< std::endl;
 	DP_UDRV_CTRL_BOARD_UartAttr_S attr;
 
 	static unsigned int RS485Mode = 0;
@@ -305,6 +352,8 @@ void CtrlBoardHandle::OpenRS485Rcv() {
 }
 
 void CtrlBoardHandle::RS485Send() {
+	std::cout << "==================== rs 485 send ======================"
+			<< std::endl;
 	char cmdBuf[1024];
 	printf("Enter Send String :");
 	if ((fgets(cmdBuf, sizeof(cmdBuf), stdin)) != NULL) {
@@ -315,6 +364,8 @@ void CtrlBoardHandle::RS485Send() {
 }
 
 void CtrlBoardHandle::RS232Test() {
+	std::cout << "==================== rs 232 test ======================"
+			<< std::endl;
 	DP_UDRV_CTRL_BOARD_UartAttr_S attr;
 	int testBaudRate[] = { 115200, 57600, 38400, 19200 };
 	int testParity[] = { 'n', 'o', 'e' };
@@ -367,12 +418,15 @@ void CtrlBoardHandle::RS232Test() {
 }
 
 void CtrlBoardHandle::IOTest() {
+	std::cout << "====================io test ======================"
+			<< std::endl;
 	for (unsigned int stopBitIdx = 0; stopBitIdx < 10; stopBitIdx++)
 
 	{
 
-		DP_UDRV_CtrlBoard_SetIOValue(0, 1);
-		DP_UDRV_CtrlBoard_SetIOValue(1, 1);
+		DP_S32 ret = 0;
+		ret = DP_UDRV_CtrlBoard_SetIOValue(0, 1);
+		ret = DP_UDRV_CtrlBoard_SetIOValue(1, 1);
 		usleep(100000);
 		DP_UDRV_CtrlBoard_SetIOValue(0, 0);
 		DP_UDRV_CtrlBoard_SetIOValue(1, 0);

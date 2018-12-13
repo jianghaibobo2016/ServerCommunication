@@ -876,6 +876,95 @@ typedef struct _sRemote_Reply_ClearTask_tag {
 
 } _sRemote_Reply_ClearTask;
 //add new protocol 2018/11/26
+
+////////////////////////////////////////////////////0x20.获取信息（Json格式）///////////////////////////////////////////////////
+typedef struct _sRemote_JsonGetInfo_tag {
+	_sRemote_Header header;
+	DP_U8 au8KeyCount;
+//	DP_U8* pau8Key[64]; //每一个键大小
+#pragma region key
+	//##本机信息
+	//设备id
+	//设备类型
+	//运行模式
+	//ip
+	//子网掩码
+	//网关
+	//网卡工作模式
+	//当前网卡状态
+	//设备版本号
+	//中控启用状态
+	//当前中控状态
+	//键鼠控制启用状态
+	//当前键鼠状态
+	//文件传输启用状态
+	//音频启用状态
+	//视频启用状态
+	//当前工作状态
+	//音视频接口连接状态
+	//当前是否有u盘
+	//本机环境温度
+	//本机运行性能
+	//本机运行模式（矩阵、拼接屏、KVM）
+
+	//##输入节点
+	//采集设备id
+	//输入连接状态
+	//输入信号源状态
+	//输入分辨率
+	//输入帧率
+	//已拉取音频流->数组 源Rtsp|源Rtsp
+	//输出总带宽
+	//rtsp接入数量（正在拉取流的rtsp客户端数量）
+	//rtsp客户端详情->数组 Rtsp地址，客户端ip，客户端ip|Rtsp地址，客户端ip，客户端ip
+
+	//##输出节点
+	//视频通道1窗口详情->数组  源Rtsp、分辨率、帧率、码流|源Rtsp、分辨率、帧率、码流
+	//视频通道2窗口详情
+	//视音频通道1音频详情->源Rtsp
+	//视音频通道2音频详情
+	//纯音频通道1音频详情
+	//纯音频通道2音频详情
+#pragma endregion key
+} sRemote_JsonGetInfo_tag;
+
+typedef struct _sRemote_Reply_JsonGetInfo_tag {
+	_sRemote_Header header;
+	DP_U32 u32Success;
+//	DP_U8* pu8JsonString;	//所有的json字符串
+
+} sRemote_Reply_JsonGetInfo_tag;
+
+////////////////////////////////////////////////////0x21.设置参数（Json格式）///////////////////////////////////////////////////
+typedef struct _sRemote_JsonSetInfo_tag {
+	_sRemote_Header header;
+	DP_U8 au8KeyCount;
+//	DP_U8* pau8Key[64]; //每一个键大小
+#pragma region key
+	//###基本信息
+	//运行模式
+	//ip信息
+
+	//###输入节点
+	//中控启用
+	//键鼠控制启用
+	//文件传输启用
+	//音频启用
+	//视频启用
+
+	//###输出节点
+	//视频显示时序
+#pragma endregion key
+//	DP_U8* pu8JsonString;	//所有的json字符串
+} sRemote_JsonSetInfo_tag;
+
+typedef struct _sRemote_Reply_JsonSetInfo_tag {
+	_sRemote_Header header;
+	DP_U8 au8KeyCount;
+//	DP_U8* pau8Key[64];
+//	DP_U8* pau8Result;
+} sRemote_Reply_JsonSetInfo_tag;
+
 #pragma pack()
 
 #endif

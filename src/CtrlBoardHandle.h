@@ -9,8 +9,9 @@
 #define SRC_CTRLBOARDHANDLE_H_
 
 #include <muduo/net/EventLoop.h>
-#include <muduo/base/BoundedBlockingQueue.h>
+//#include <muduo/base/BoundedBlockingQueue.h>
 
+#include "CircleBoundedQueue.h"
 #include <fcntl.h>
 
 #include "dp_udrv_uart.h"
@@ -26,7 +27,7 @@
 //unsigned char irRcvCode[1024];
 //unsigned int irRcvLen = 0;
 typedef struct _IRRecv_S {
-	unsigned char irRcvCode[512] = { 0 };
+	unsigned char irRcvCode[1024] = { 0 };
 	unsigned int irRcvLen = 0;
 } IRRecv_S;
 
@@ -55,7 +56,7 @@ public:
 
 private:
 	EventLoop *_loop;
-	static BoundedBlockingQueue<IRRecv_S> _queue;
+	static CircleBoundedQueue<IRRecv_S> _queue;
 	void run();
 
 	static int IrLearnRcvCallback(DP_U8 *rcvData, DP_U32 rcvDataLen);
