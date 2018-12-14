@@ -55,6 +55,7 @@ _E_RemoteCMD DataPackageParser::parserDataPackage(std::string data) {
 bool DataPackageParser::parserDataHead(_S_DataHeadInfo *dataHeadInfo,
 		std::string data) {
 	_s_AVServer_Header *headr = (_s_AVServer_Header*) data.c_str();
+	//jhbnote check len
 //	muduo::PrintBuff::printBufferByHex("fff", data.c_str(), 10);
 	if (headr->u16Headtag != 0xF0F1)
 		return false;

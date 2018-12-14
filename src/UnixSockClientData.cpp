@@ -18,7 +18,7 @@ UnixSockClientData::UnixSockClientData(recvCallBack cb) {
 	_bInitCommandOK = false;
 //	setTimer(2, 100, true);
 	_cb = cb;
-	_buffer = new uint8_t[BUFFER_SIZE];
+	_buffer = new uint8_t[BUFFER_SIZE_PIPESOCKET];
 //	_Nodecb = NULL;
 }
 
@@ -170,7 +170,7 @@ int UnixSockClientData::doSendCommand(const void* pData, int len)
 	int result = -1;
 	int rbytes;
 
-	memset(_buffer, 0, BUFFER_SIZE);
+	memset(_buffer, 0, BUFFER_SIZE_PIPESOCKET);
 //	uint8_t buffer[BUFFER_SIZE];
 	while (1) {
 		FD_ZERO(&readfd);
@@ -180,7 +180,7 @@ int UnixSockClientData::doSendCommand(const void* pData, int len)
 			SocketLayer::CloseSock(sock);
 			return DP_ERR_COMMUNICATE_ABNORMAL_TIMEOUT;
 		} else if (result > 0) {
-			rbytes = recv(sock, _buffer, BUFFER_SIZE, 0);
+			rbytes = recv(sock, _buffer, BUFFER_SIZE_PIPESOCKET, 0);
 			if (rbytes > 0) {
 
 //				cout << "rbytes:: " << rbytes << "buff: " << _buffer << endl;

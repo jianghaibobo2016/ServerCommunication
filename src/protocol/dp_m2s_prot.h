@@ -42,7 +42,7 @@
 #endif
 
 /* 协议版本号 */
-#define DP_M2S_INF_PROT_VERSION			"02.01"
+#define DP_M2S_INF_PROT_VERSION			"02.10"
 #define DP_M2S_INF_PROT_VERSION_LEN		5
 /* 协议通信接口定义 */
 #define DP_M2S_INF_PROT_UNIX_FIFO		"/tmp/UNIX_AV2APP"

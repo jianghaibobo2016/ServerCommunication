@@ -337,8 +337,8 @@ public:
 
 private:
 
-	inline static DP_U8* sendToCodecAndRecv(DP_S32 &retResult, const void* data,
-			DP_S32 len) {
+	inline static void sendToCodecAndRecv(DP_S32 &retResult, const void* data,
+			DP_S32 len, DP_U8* recvBuff) {
 		UnixSockClientData client(NodeInfo::recvCB);
 //		try {
 		retResult = client.doSendCommand(data, len);
@@ -349,11 +349,18 @@ private:
 //		}
 		if (retResult != 0) {
 //			LOG_ERROR << "Send and recv failed. ";
-			return NULL;
+//			return NULL;
+			return;
 		} else {
-			return client.getRecvBuff();
+			//jhbnote can not return a deleted buff
+//			return client.getRecvBuff();
+			if (recvBuff != NULL) {
+				//notice buff len >= BUFFER_SIZE_PIPESOCKET
+				memcpy(recvBuff, client.getRecvBuff(), BUFFER_SIZE_PIPESOCKET);
+				return;
+			}
 		}
-		return NULL;
+		return;
 	}
 
 	inline static DP_S32 sendToCodecOnly(const void* data, DP_S32 len) {
@@ -401,6 +408,7 @@ private:
 	DP_BOOL deinitCodec();
 
 	DP_BOOL initOutAVEnc();
+	DP_BOOL openOutAVEnc();
 	DP_BOOL initOutAVDec();
 	DP_BOOL initOutGetVO();
 	DP_BOOL initOutGetAO();
@@ -427,6 +435,9 @@ private:
 	static int cmd_set_avenc_default(DP_VOID *pPtr, DP_S32 s32TskId,
 			DP_U32 u32Width, DP_U32 u32Height, DP_U32 u32Bitrate,
 			DP_S32 AencChn, DP_S32 VencChn);
+	static DP_S32 cmd_set_adec_default(DP_VOID *pPtr, DP_S32 s32TskId,
+			DP_U32 u32Width, DP_U32 u32Height, DP_U32 u32Bitrate,
+			DP_S32 AdecChn);
 	//sync
 	void syncToJson();
 	void syncFromJson();
@@ -435,27 +446,6 @@ public:
 	static void printAVDEC(void *args);
 	static void printAVENC(void *args);
 
-//	inline void print_DP_M2S_VO_GET_INFO_S_(DP_M2S_VO_GET_INFO_S *voInfo) {
-//		LOG_INFO << "print_DP_M2S_VO_GET_INFO_S_　devid: " << voInfo->s32DevId
-//				<< " enable: " << voInfo->bEnable << " sync: " << voInfo->enSync;
-////		LOG_INFO << "print_DP_M2S_VO_GET_INFO_S_　 stsw[0]::" << " stw.void: "
-////				<< voInfo.stSwms[0].s32VoDevId << " chn: "
-////				<< voInfo.stSwms[0].s32SwmsChn << " priority: "
-////				<< voInfo.stSwms[0].u32Priority << " x "
-////				<< voInfo.stSwms[0].stRect.s32X << " y: "
-////				<< voInfo.stSwms[0].stRect.s32Y << " width: "
-////				<< voInfo.stSwms[0].stRect.u32Width << " height: "
-////				<< voInfo.stSwms[0].stRect.u32Height;
-////		LOG_INFO << "print_DP_M2S_VO_GET_INFO_S_　 stsw[1]::" << " stw.void: "
-////				<< voInfo.stSwms[1].s32VoDevId << " chn: "
-////				<< voInfo.stSwms[1].s32SwmsChn << " priority: "
-////				<< voInfo.stSwms[1].u32Priority << " x "
-////				<< voInfo.stSwms[1].stRect.s32X << " y: "
-////				<< voInfo.stSwms[1].stRect.s32Y << " width: "
-////				<< voInfo.stSwms[1].stRect.u32Width << " height: "
-////				<< voInfo.stSwms[1].stRect.u32Height;
-//
-//	}
 };
 
 #include "NodeInfo.hpp"

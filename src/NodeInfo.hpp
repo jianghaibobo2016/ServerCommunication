@@ -56,14 +56,16 @@ DP_BOOL NodeInfo::getAVInfoFromCodec(VecCodecTaskID codecID,
 	T checkAVInfo;
 	DP_M2S_CMD_COMMON_GETINFO_S getAVDec(cmd);
 	DP_S32 retSend = 0;
+	DP_U8 *recvBuff = new DP_U8[BUFFER_SIZE_PIPESOCKET];
 	for (itID = codecID.begin(); itID != codecID.end(); itID++) {
 		LOG_INFO << "Ask av info  cmd: " << cmd
 				<< " ======================================task id : "
 				<< (DP_S32) *itID;
 		getAVDec.s32TskId = (DP_S32) *itID;
 		DP_S32 retResult = 0;
-		DP_U8 *recvBuff = NodeInfo::sendToCodecAndRecv(retResult, &getAVDec,
-				sizeof(DP_M2S_CMD_COMMON_GETINFO_S));
+		memset(recvBuff, 0, BUFFER_SIZE_PIPESOCKET);
+		NodeInfo::sendToCodecAndRecv(retResult, &getAVDec,
+				sizeof(DP_M2S_CMD_COMMON_GETINFO_S), recvBuff);
 		if (retResult != 0) {
 			LOG_ERROR << "Send avdec failed taskiD in ask : "
 					<< getAVDec.s32TskId;
@@ -75,18 +77,20 @@ DP_BOOL NodeInfo::getAVInfoFromCodec(VecCodecTaskID codecID,
 				checkAVInfo.push_back(getCodecRespond->stInfo);
 				LOG_INFO << "Ask av task id : "
 						<< getCodecRespond->stInfo.s32TskId;
-				if (is__same<S, DP_M2S_AVENC_INFO_S>()) {
-					LOG_INFO << "S is same to DP_M2S_AVENC_INFO_S";
-					NodeInfo::printAVENC(&getCodecRespond->stInfo);
-				}
-				if (is__same<S, DP_M2S_AVDEC_INFO_S>()) {
-					LOG_INFO << "S is same to DP_M2S_AVDEC_INFO_S";
-					NodeInfo::printAVDEC(&getCodecRespond->stInfo);
-				}
+//				if (is__same<S, DP_M2S_AVENC_INFO_S>()) {
+//					LOG_INFO << "S is same to DP_M2S_AVENC_INFO_S";
+//					NodeInfo::printAVENC(&getCodecRespond->stInfo);
+//				}
+//				if (is__same<S, DP_M2S_AVDEC_INFO_S>()) {
+//					LOG_INFO << "S is same to DP_M2S_AVDEC_INFO_S";
+//					NodeInfo::printAVDEC(&getCodecRespond->stInfo);
+//				}
 			}
 		}
 	}
 	LOG_INFO << "Size of checkAVDec: " << checkAVInfo.size();
+	delete[] recvBuff;
+	recvBuff = NULL;
 	return DP_TRUE;
 }
 
@@ -102,7 +106,7 @@ DP_BOOL NodeInfo::setAVInfoToCodec(boost::shared_ptr<T> &vAVInfo,
 		buffSend.retrieveAll();
 		buffSend.append(setAVInfo.get(), sizeof(S));
 		NodeInfo::sendToCodecAndRecv(ret, buffSend.toStringPiece().data(),
-				sizeof(S));
+				sizeof(S), NULL);
 		if (ret != 0) {
 			LOG_ERROR << "Recv from codec : " << ret;
 			return DP_FALSE;
@@ -125,7 +129,7 @@ DP_S32 NodeInfo::sendCodecAVEncDecInfo(T info, DP_U8 isReply,
 		sendToCodecOnly(buffSend.toStringPiece().data(), sizeof(S));
 	} else if (isReply == g_NeedReply) {
 		NodeInfo::sendToCodecAndRecv(ret, buffSend.toStringPiece().data(),
-				sizeof(S));
+				sizeof(S), NULL);
 		if (ret != 0) {
 			LOG_ERROR << "Recv from codec : " << ret;
 		}

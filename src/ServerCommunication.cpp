@@ -79,16 +79,16 @@ void signalHandle() {
 
 int main() {
 	setvbuf(stdout, (char *) NULL, _IOLBF, 0);
-	signalHandle();
-//		muduo::Logger::setLogLevel(muduo::Logger::DEBUG);
+		muduo::Logger::setLogLevel(muduo::Logger::DEBUG);
 	EventLoop loop; // one loop shared by multiple servers
 	print(&loop);
 
 #if 1
 	//logging setting
-	g_logFile.reset(new muduo::LogFile(LogFileName, g_LogFileMaxSize));
-	muduo::Logger::setOutput(outputFunc);
-	muduo::Logger::setFlush(flushFunc);
+//	g_logFile.reset(new muduo::LogFile(LogFileName, g_LogFileMaxSize));
+//	muduo::Logger::setOutput(outputFunc);
+//	muduo::Logger::setFlush(flushFunc);
+	signalHandle();
 	LOG_ERROR
 			<< "===========ServerCommunication program starting !==============";
 	//init
@@ -103,13 +103,10 @@ int main() {
 	UDPServerHandle udpServer(UDPServer.startLoop());
 	udpServer.startListen();
 #endif
-#if 1
+#if 0
 	EventLoopThread ctrlBoardHandle;
 	CtrlBoardHandle boardHandle(ctrlBoardHandle.startLoop());
 	boardHandle.startRunning();
-//	return 0;
-//	while(1)
-//		sleep(1);
 #endif
 	loop.loop();
 }

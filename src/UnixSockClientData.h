@@ -11,10 +11,11 @@
 #include "Handle.h"
 #include "SocketLayer.h"
 #include "dp_m2s_prot.h"
+#include "DevStaticConfigure.h"
 
 //#include "SystemException.h"
 typedef int (*recvCallBack)(void* pData, int len);
-const int BUFFER_SIZE = 1024 * 1024;
+
 //template<typename T, typename S>
 //typedef int (*NodeInfoRecvCallBack)(void* pData, int len, T vctrGetInfo);
 using namespace std;
