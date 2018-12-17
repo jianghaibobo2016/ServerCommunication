@@ -7,7 +7,7 @@
 
 #ifndef SRC_NODEINFO_HPP_
 #define SRC_NODEINFO_HPP_
-
+#include <boost/smart_ptr.hpp>
 #include "NodeInfo.h"
 #include "UnixSockClientData.h"
 #include "PrintBuff.h"
@@ -77,14 +77,14 @@ DP_BOOL NodeInfo::getAVInfoFromCodec(VecCodecTaskID codecID,
 				checkAVInfo.push_back(getCodecRespond->stInfo);
 				LOG_INFO << "Ask av task id : "
 						<< getCodecRespond->stInfo.s32TskId;
-//				if (is__same<S, DP_M2S_AVENC_INFO_S>()) {
-//					LOG_INFO << "S is same to DP_M2S_AVENC_INFO_S";
-//					NodeInfo::printAVENC(&getCodecRespond->stInfo);
-//				}
-//				if (is__same<S, DP_M2S_AVDEC_INFO_S>()) {
-//					LOG_INFO << "S is same to DP_M2S_AVDEC_INFO_S";
-//					NodeInfo::printAVDEC(&getCodecRespond->stInfo);
-//				}
+				if (is__same<S, DP_M2S_AVENC_INFO_S>()) {
+					LOG_INFO << "S is same to DP_M2S_AVENC_INFO_S";
+					NodeInfo::printAVENC(&getCodecRespond->stInfo);
+				}
+				if (is__same<S, DP_M2S_AVDEC_INFO_S>()) {
+					LOG_INFO << "S is same to DP_M2S_AVDEC_INFO_S";
+					NodeInfo::printAVDEC(&getCodecRespond->stInfo);
+				}
 			}
 		}
 	}
@@ -165,9 +165,61 @@ DP_BOOL NodeInfo::getAOVOInfoFromCodec(T AOVOInfo, DP_M2S_CMD_ID_E cmd,
 	return DP_TRUE;
 }
 
-template<typename T>
-void NodeInfo::test(T tmp) {
-	return;
+template<typename T>   //DP_M2S_AVENC_INFO_S
+DP_S32 NodeInfo::batchGetAVInfoFromCodec(VecCodecTaskID taskID,
+		DP_M2S_CMD_ID_E cmd, boost::shared_ptr<std::vector<T>> &avInfo) {
+	avInfo->clear();
+	//batch get
+	DP_U32 count = taskID.size();
+	if (count == 0) {
+		return DP_ERR_TASK_PARAM_ILLEGAL;
+	}
+	DP_U32 packageLen = sizeof(DP_M2S_INF_PROT_HEAD_S)
+			+ sizeof(DP_U32) * (count + 1);
+
+	boost::shared_ptr<DP_M2S_CMD_BATCH_COMMON_S> setAVInfo(
+			new DP_M2S_CMD_BATCH_COMMON_S(packageLen, cmd, count));
+	muduo::net::Buffer buffSend;
+	DP_S32 aTaskID;
+	buffSend.append(setAVInfo.get(), sizeof(DP_M2S_CMD_BATCH_COMMON_S));
+	for (VecCodecTaskID::iterator it = taskID.begin(); it != taskID.end();
+			it++) {
+		aTaskID = *it;
+		LOG_INFO << "Set task id : " << aTaskID;
+		buffSend.append(&aTaskID, sizeof(aTaskID));
+	}
+	DP_S32 retResult = 0;
+	boost::shared_array<DP_U8> recvBuff(new DP_U8[BUFFER_SIZE_PIPESOCKET]);
+
+	/*	DP_U8 *recvBuff =*/NodeInfo::sendToCodecAndRecv(retResult,
+			buffSend.toStringPiece().data(), packageLen, recvBuff.get());
+	if (retResult == 0) {
+		LOG_DEBUG << "Batch getting ok, cmd-- " << cmd;
+		DP_M2S_CMD_COMMON_GETBATCHINFO_ACK_S* ackBuff =
+				(DP_M2S_CMD_COMMON_GETBATCHINFO_ACK_S*) recvBuff.get();
+		if (ackBuff->u32Nums == count) {
+			T *avEncInfos;
+			avEncInfos = (T *) (recvBuff.get()
+					+ sizeof(DP_M2S_CMD_COMMON_GETBATCHINFO_ACK_S)
+					+ sizeof(DP_U32) * count);
+			for (DP_U32 i = 0; i < count; i++) {
+				avInfo->push_back(avEncInfos[i]);
+			}
+		} else {
+			LOG_ERROR << "ackBuff->u32Nums != count u32Nums: "
+					<< ackBuff->u32Nums << " count: " << count;
+			// jhbnote todo
+		}
+	} else {
+		LOG_ERROR << "retResult in batch getting : " << retResult;
+		//jhbnote TODO
+	}
+	return 0;
 }
+
+//template<typename T>
+//void NodeInfo::test(T tmp) {
+//	return;
+//}
 
 #endif /* SRC_NODEINFO_HPP_ */

@@ -387,7 +387,11 @@ private:
 	DP_BOOL getAOVOInfoFromCodec(T AOVOInfo, DP_M2S_CMD_ID_E cmd, V aovoDev);
 
 	template<typename T>
-	void test(T tmp);
+	DP_S32 batchGetAVInfoFromCodec(VecCodecTaskID taskID, DP_M2S_CMD_ID_E cmd,
+			boost::shared_ptr<std::vector<T>> &avInfo);
+
+//	template<typename T>
+//	void test(T tmp);
 
 public:
 	MapServerTaskIDPtr _mAudioTaskID, _mVideoTaskID, _mAuViTaskID;

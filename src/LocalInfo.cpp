@@ -10,7 +10,7 @@
 #include "LocalInfo.h"
 #include "DevStaticConfigure.h"
 #include "SetNetwork.h"
-//#include "GlobalProfile.h"
+#include "GlobalProfile.h"
 #include "Data.h"
 
 LocalInfo::LocalInfo() :
@@ -41,7 +41,7 @@ void LocalInfo::initLocalInfo() {
 	DP_U8 mac[13] = { 0 };
 	netInfo.mac2U8(mac);
 
-//	GlobalProfile::getInstance()->GetBaseInfo(stBaseInfoTemp);
+	GlobalProfile::getInstance()->GetBaseInfo(stBaseInfoTemp);
 
 	muduo::MutexLockGuard lock(_mutex);
 	_sRemote_Header head(netInfo.ip2U32(), (eDeviceType)stBaseInfoTemp.u16Devtype, 0x01,

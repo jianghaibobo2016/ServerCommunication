@@ -88,15 +88,10 @@ void UDPServerHandle::devSearchHandle(DP_BOOL isMulticast,
 		sendAddr.sin_family = AF_INET;
 		sendAddr.sin_addr.s_addr = inet_addr(MultiCastAddrSEND); //任何主机地址
 		sendAddr.sin_port = htons(MultiCastSendPort);
-		sendAddr.sin_addr.s_addr = inet_addr(MultiCastAddrSEND); //任何主机地址
+		localInfo->header.stFunctionMsg.u8CommandID = Command_MulticastSearch;
 	} else {
 		localInfo->header.stFunctionMsg.u8CommandID = Command_UnicastSearch;
-		if (&recvAddr) {
-			memcpy(&sendAddr, &recvAddr, sizeof(struct sockaddr_in));
-		} else {
-			LOG_ERROR << "recvAddr is NULL!";
-			return;
-		}
+		memcpy(&sendAddr, &recvAddr, sizeof(struct sockaddr_in));
 	}
 
 	DP_U8 sendBuf[UDPBufferSizeMax] = { 0 };

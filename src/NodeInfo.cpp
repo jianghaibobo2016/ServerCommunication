@@ -13,6 +13,8 @@
 #include "UnixSockClientData.h"
 #include "LogicHandle.h"
 
+int print_avenc_attr(DP_M2S_AVENC_INFO_S data);
+
 NodeInfo::NodeInfo() :
 		_vAIGetInfo(new VctrAIGetInfo), _vVIGetInfo(new VctrVIGetInfo), _vAVEncGetInfo(
 				new VctrAVENCGetInfo), _vAVDecGetInfo(new VctrAVDECGetInfo), _vAOGetInfo(
@@ -94,7 +96,7 @@ void NodeInfo::initLocalInfo() {
 	if (initCodec() != DP_TRUE) {
 		LOG_ERROR << "Init failed !";
 		return;
-	}
+	} /*else {*/
 #if (InputDevice)
 //init input node
 	initInAVEnc();
@@ -112,13 +114,14 @@ void NodeInfo::initLocalInfo() {
 #endif
 	_bCodecInited = DP_TRUE;
 	LOG_INFO << "Codec init end...";
+//	}
 }
 
 DP_BOOL NodeInfo::initOutAVEnc() {
 #if (OutputDevice)
 	VctrAVENCGetInfoPtr AVEncInfo = getAVEncGetInfo();
 	LOG_INFO
-			<< "[ out ] ###################### [ init ] [ 1 ] [ set avenc ]  ###################";
+	<< "[ out ] ###################### [ init ] [ 1 ] [ set avenc ]  ###################";
 
 	boost::shared_ptr<DP_M2S_AVBIND_ATTR_S> avBind(new DP_M2S_AVBIND_ATTR_S);
 	avBind->enBindType = DP_M2S_AVBIND_VI2VENC;
@@ -152,7 +155,7 @@ DP_BOOL NodeInfo::initOutAVEnc() {
 
 	boost::shared_ptr<DP_M2S_RTSP_SERVER_ATTR_S> streamServer(
 			new DP_M2S_RTSP_SERVER_ATTR_S);
-	DP_CHAR url[DP_M2S_URL_LEN] = { 0 };
+	DP_CHAR url[DP_M2S_URL_LEN] = {0};
 	const DP_CHAR*ip = _netInfo.getNetConfStruct().ipAddr.c_str();
 	LOG_DEBUG << "IP::::::::::::::::::::::: " << ip;
 	DP_U32 len1 = strlen("rtsp://");
@@ -181,7 +184,7 @@ DP_BOOL NodeInfo::initOutAVEnc() {
 	updateAVEncGetInfo(AVEncInfo);
 	printAVENC(avEnc.get());
 	if (setAVInfoToCodec<VctrAVENCGetInfo, DP_M2S_CMD_AVENC_SETINFO_S>(
-			AVEncInfo, DP_M2S_CMD_AVENC_SET) != DP_TRUE) {
+					AVEncInfo, DP_M2S_CMD_AVENC_SET) != DP_TRUE) {
 		LOG_ERROR << "Set avEnc failed !";
 		return DP_FALSE;
 	}
@@ -213,15 +216,13 @@ DP_BOOL NodeInfo::openOutAVEnc() {
 DP_BOOL NodeInfo::initOutAVDec() {
 #if (OutputDevice)
 	LOG_INFO
-			<< "[ out ] ###################### [ init ] [ 2 ] [ set avdec ]  ###################";
+	<< "[ out ] ###################### [ init ] [ 2 ] [ set avdec ]  ###################";
 	DP_S32 taskID = 0;
 	DP_U32 chnID = 0;
 	VctrAVDECGetInfoPtr AVDecInfo = getAVDecGetInfo();
 	UnixSockClientData client(NodeInfo::recvCB);
 	DP_S32 retSend = 0;
 	boost::shared_ptr<DP_M2S_AVDEC_INFO_S> avDec(new DP_M2S_AVDEC_INFO_S());
-//	boost::shared_ptr<DP_M2S_CMD_AVDEC_SETINFO_S> sendAVDec(
-//			new DP_M2S_CMD_AVDEC_SETINFO_S(DP_M2S_CMD_AVDEC_SET));
 
 	AVDecInfo->clear();
 	for (taskID = 256; taskID <= 257; taskID++) {
@@ -235,7 +236,7 @@ DP_BOOL NodeInfo::initOutAVDec() {
 	}
 
 	if (setAVInfoToCodec<VctrAVDECGetInfo, DP_M2S_CMD_AVDEC_SETINFO_S>(
-			AVDecInfo, DP_M2S_CMD_AVDEC_SET) != DP_TRUE) {
+					AVDecInfo, DP_M2S_CMD_AVDEC_SET) != DP_TRUE) {
 		LOG_ERROR << "Set av Dec failed !";
 		// jhbnote will restart prog or not ?
 	} else {
@@ -248,14 +249,14 @@ DP_BOOL NodeInfo::initOutAVDec() {
 	vector<DP_S32> codecID;
 	VctrOutCodecTaskID::iterator it;
 	if (!_vAudioTaskID.empty())
-		for (it = _vAudioTaskID.begin(); it != _vAudioTaskID.end(); it++)
-			codecID.push_back(*it);
+	for (it = _vAudioTaskID.begin(); it != _vAudioTaskID.end(); it++)
+	codecID.push_back(*it);
 	if (!_vVideoTaskID.empty())
-		for (it = _vVideoTaskID.begin(); it != _vVideoTaskID.end(); it++)
-			codecID.push_back(*it);
+	for (it = _vVideoTaskID.begin(); it != _vVideoTaskID.end(); it++)
+	codecID.push_back(*it);
 	if (!_vAuViTaskID.empty())
-		for (it = _vAuViTaskID.begin(); it != _vAuViTaskID.end(); it++)
-			codecID.push_back(*it);
+	for (it = _vAuViTaskID.begin(); it != _vAuViTaskID.end(); it++)
+	codecID.push_back(*it);
 
 	getAVInfoFromCodec<VctrAVDECGetInfo, DP_M2S_CMD_AVDEC_SETINFO_S>(codecID,
 			DP_M2S_CMD_AVDEC_GET);
@@ -267,14 +268,14 @@ DP_BOOL NodeInfo::initOutAVDec() {
 DP_BOOL NodeInfo::initOutGetVO() {
 #if (OutputDevice)
 	LOG_INFO
-			<< "[ out ] ###################### [ init ] [ 3 ] [ get VO ]  ###################";
+	<< "[ out ] ###################### [ init ] [ 3 ] [ get VO ]  ###################";
 	// 获取视频输出信息
 	VecVODEV voDev;
 	voDev.push_back(DP_M2S_VO_DEV_HDMI0_HI3536);
 	VctrVOGetInfoPtr VOInfo = getVOGetInfo();
 
 	getAOVOInfoFromCodec<VctrVOGetInfoPtr, DP_M2S_CMD_VO_GETINFO_S, VecVODEV,
-			DP_M2S_CMD_VO_GETINFO_ACK_S>(VOInfo, DP_M2S_CMD_VO_GET, voDev);
+	DP_M2S_CMD_VO_GETINFO_ACK_S>(VOInfo, DP_M2S_CMD_VO_GET, voDev);
 
 	for_each(VOInfo->begin(), VOInfo->end(), print_DP_M2S_VO_GET_INFO_S_);
 	LOG_INFO << "Get aovo size获取视频输出信息 : " << VOInfo->size();
@@ -285,14 +286,14 @@ DP_BOOL NodeInfo::initOutGetVO() {
 DP_BOOL NodeInfo::initOutGetAO() {
 #if (OutputDevice)
 	LOG_INFO
-			<< "[ out ] ###################### [ init ] [ 4 ] [ get AO ]  ###################";
+	<< "[ out ] ###################### [ init ] [ 4 ] [ get AO ]  ###################";
 	//	//// 说明： 获取音频输出信息
 	VecAODEV aoDev;
 	aoDev.push_back(DP_M2S_AO_DEV_LINEOUT0_HI3536);
 	aoDev.push_back(DP_M2S_AO_DEV_HDMI0_HI3536);
 	VctrAOGetInfoPtr AOInfo = getAOGetInfo();
 	getAOVOInfoFromCodec<VctrAOGetInfoPtr, DP_M2S_CMD_AO_GETINFO_S, VecAODEV,
-			DP_M2S_CMD_AO_GETINFO_ACK_S>(AOInfo, DP_M2S_CMD_AO_GET, aoDev);
+	DP_M2S_CMD_AO_GETINFO_ACK_S>(AOInfo, DP_M2S_CMD_AO_GET, aoDev);
 	LOG_INFO << "Get aovo size获取音频输出信息 : " << AOInfo->size();
 	updateAOGetInfo(AOInfo);
 #endif
@@ -301,45 +302,56 @@ DP_BOOL NodeInfo::initOutGetAO() {
 
 DP_BOOL NodeInfo::initInAVEnc() {
 #if (InputDevice)
+	VecCodecTaskID vTaskID;
 	LOG_INFO
-	<< "[ input ] ###################### [ init ] [ 1 ] [ set AEnc ]  ###################";
+			<< "[ input ] ###################### [ init ] [ 1 ] [ set AEnc ]  ###################";
 	boost::shared_ptr<DP_M2S_AVENC_INFO_S> aEnc(new DP_M2S_AVENC_INFO_S);
 	VctrAVENCGetInfoPtr AVEncInfo = getAVEncGetInfo();
 	AVEncInfo->clear();
 	cmd_set_aenc_default(aEnc.get(), 0, 0, 0, 0, 0);
+	vTaskID.push_back(0);
 	AVEncInfo->push_back(*aEnc.get());
 	LOG_INFO
-	<< "[ input ] ###################### [ init ] [ 2 ] [ set VEnc ]  ###################";
-	cmd_set_venc_default(aEnc.get(), 512, 1920, 1080, 4000, 0);
-	AVEncInfo->push_back(*aEnc.get());
-	cmd_set_venc_default(aEnc.get(), 513, 1920, 1080, 4000, 1);
-	AVEncInfo->push_back(*aEnc.get());
+			<< "[ input ] ###################### [ init ] [ 2 ] [ set VEnc ]  ###################";
+//	cmd_set_venc_default(aEnc.get(), 512, 1920, 1080, 4000, 0);
+//	vTaskID.push_back(512);
+//	AVEncInfo->push_back(*aEnc.get());
+//	cmd_set_venc_default(aEnc.get(), 513, 1920, 1080, 4000, 1);
+//	vTaskID.push_back(513);
+//	AVEncInfo->push_back(*aEnc.get());
 	LOG_INFO
-	<< "[ input ] ###################### [ init ] [ 3 ] [ set VEnc ]  ###################";
-	cmd_set_avenc_default(aEnc.get(), 1280, 1920, 1080, 4000, 1, 2);
+			<< "[ input ] ###################### [ init ] [ 3 ] [ set AVEnc ]  ###################";
+	cmd_set_avenc_default(aEnc.get(), 1280, 1920, 1080, 4000, 1, 0);
+	vTaskID.push_back(1280);
 	AVEncInfo->push_back(*aEnc.get());
-	cmd_set_avenc_default(aEnc.get(), 1281, 1920, 1080, 4000, 2, 3);
+	cmd_set_avenc_default(aEnc.get(), 1281, 720, 576, 4000, 2, 1);
+	vTaskID.push_back(1281);
 	AVEncInfo->push_back(*aEnc.get());
 
 	if (setAVInfoToCodec<VctrAVENCGetInfo, DP_M2S_CMD_AVENC_SETINFO_S>(
-					AVEncInfo, DP_M2S_CMD_AVENC_SET) != DP_TRUE) {
+			AVEncInfo, DP_M2S_CMD_AVENC_SET) != DP_TRUE) {
 		LOG_ERROR << "Set AV Enc failed !";
 		return DP_FALSE;
 		// jhbnote will restart prog or not ?
 	} else {
-		updateAVEncGetInfo(AVEncInfo);
-//		return DP_TRUE;
+		DP_S32 ret = batchGetAVInfoFromCodec<DP_M2S_AVENC_INFO_S>(vTaskID,
+				DP_M2S_CMD_AVENC_GET_BATCH, AVEncInfo);
+		if (ret == 0) {
+			updateAVEncGetInfo(AVEncInfo);
+			for_each(AVEncInfo->begin(), AVEncInfo->end(), print_avenc_attr);
+		}
 	}
+
 	boost::shared_ptr<DP_M2S_AVDEC_INFO_S> aDec(new DP_M2S_AVDEC_INFO_S);
 	VctrAVDECGetInfoPtr avDecInfo = getAVDecGetInfo();
 	avDecInfo->clear();
 	cmd_set_adec_default(aDec.get(), 256, 0, 0, 0, 0);
 	avDecInfo->push_back(*aDec.get());
 	LOG_INFO
-	<< "[ input ] ###################### [ init ] [ 4 ] [ set ADec ]  ###################";
+			<< "[ input ] ###################### [ init ] [ 4 ] [ set ADec ]  ###################";
 
 	if (setAVInfoToCodec<VctrAVDECGetInfo, DP_M2S_CMD_AVDEC_SETINFO_S>(
-					avDecInfo, DP_M2S_CMD_AVDEC_SET) != DP_TRUE) {
+			avDecInfo, DP_M2S_CMD_AVDEC_SET) != DP_TRUE) {
 		LOG_ERROR << "Set ADec failed !";
 		return DP_FALSE;
 		// jhbnote will restart prog or not ?
@@ -354,12 +366,12 @@ DP_BOOL NodeInfo::initInAVEnc() {
 DP_BOOL NodeInfo::initInGetVI() {
 #if (InputDevice)
 	LOG_INFO
-	<< "[ input ] ###################### [ init ] [ 5 ] [ get VI ]  ###################";
+			<< "[ input ] ###################### [ init ] [ 5 ] [ get VI ]  ###################";
 	VctrVIGetInfoPtr viInfo = getVIGetInfo();	//获取输入节点的视频采集通道信息
 	VecVIDEV viDev;
 	viDev.push_back(DP_M2S_VI_DEV_HDMI0_ITE6801);
 	getAOVOInfoFromCodec<VctrVIGetInfoPtr, DP_M2S_CMD_VI_GETINFO_S, VecVIDEV,
-	DP_M2S_CMD_VI_GETINFO_ACK_S>(viInfo, DP_M2S_CMD_VI_GET, viDev);
+			DP_M2S_CMD_VI_GETINFO_ACK_S>(viInfo, DP_M2S_CMD_VI_GET, viDev);
 
 	for_each(viInfo->begin(), viInfo->end(), print_DP_M2S_VI_GET_INFO_S);
 	LOG_INFO << "Get aovo size获取输入节点的视频采集通道信息 : " << viInfo->size();
@@ -371,14 +383,14 @@ DP_BOOL NodeInfo::initInGetVI() {
 DP_BOOL NodeInfo::initInGetAI() {
 #if (InputDevice)
 	LOG_INFO
-	<< "[ input ] ###################### [ init ] [ 6 ] [ get AI ]  ###################";
+			<< "[ input ] ###################### [ init ] [ 6 ] [ get AI ]  ###################";
 	//获取输入节点的音频输入的通道信息
 	VctrAIGetInfoPtr aiInfo = getAIGetInfo();
 	VecAIDEV aiDev;
 	aiDev.push_back(DP_M2S_AI_DEV_LINEIN0_HI3536);
 //	aiDev.push_back(DP_M2S_AI_DEV_HDMI0_ITE6801);
 	getAOVOInfoFromCodec<VctrAIGetInfoPtr, DP_M2S_CMD_AI_GETINFO_S, VecAIDEV,
-	DP_M2S_CMD_AI_GETINFO_ACK_S>(aiInfo, DP_M2S_CMD_AI_GET, aiDev);
+			DP_M2S_CMD_AI_GETINFO_ACK_S>(aiInfo, DP_M2S_CMD_AI_GET, aiDev);
 	for_each(aiInfo->begin(), aiInfo->end(), print_DP_M2S_AI_GET_INFO_S);
 	LOG_INFO << "Get aovo size获取输入节点的音频输入的通道信息 : " << aiInfo->size();
 	updateAIGetInfo(aiInfo);
@@ -651,7 +663,7 @@ DP_BOOL NodeInfo::initCodec() {
 	DP_M2S_AI_SET_INFO_S aiSet_2 = aiSet;
 	aiSet_2.enDevId = DP_M2S_AI_DEV_HDMI0_ITE6801;
 
-	DP_M2S_AI_SET_INFO_S aiInfo[2] = {aiSet, aiSet_2};
+	DP_M2S_AI_SET_INFO_S aiInfo[2] = { aiSet, aiSet_2 };
 
 	boost::shared_ptr<DP_M2S_CMD_SYS_INIT_S> sysInit(
 			new DP_M2S_CMD_SYS_INIT_S(aiInfo, DP_M2S_AI_DEV_MAX, &voSet, 1));
@@ -663,7 +675,7 @@ DP_BOOL NodeInfo::initCodec() {
 //	try {
 	DP_S32 retSend = client.doSendCommand(sysInit.get(),
 			sizeof(DP_M2S_CMD_SYS_INIT_S));
-	if (retSend == 0)
+	if (retSend == 0 || retSend == DP_ERR_VASERVER_ALREADY_INIT)
 		return DP_TRUE;
 	else {
 		LOG_ERROR << "Return send to codec : " << retSend;
@@ -745,8 +757,12 @@ void NodeInfo::setOutputTaskIDInMap(VctrAVDECGetInfoPtr avDecInfo) {
 	for (VctrAVDECGetInfo::iterator it = avDecInfo->begin();
 			it != avDecInfo->end(); it++) {
 		if (it->stVdec.bSwms != DP_TRUE) {
-			it->stVdec.stSwms.u32SwmsChn = *vSwmsChn.begin();
-			vSwmsChn.erase(vSwmsChn.begin());
+			if (it->AvBindAttr.enBindType == DP_M2S_AVBIND_VDEC2VO
+					|| it->AvBindAttr.enBindType
+							== DP_M2S_AVBIND_ADEC2AO_VDEC2VO) {
+				it->stVdec.stSwms.u32SwmsChn = *vSwmsChn.begin();
+				vSwmsChn.erase(vSwmsChn.begin());
+			}
 		}
 		LOG_INFO << "after given swms chn " << it->stVdec.stSwms.u32SwmsChn;
 	}
@@ -810,10 +826,11 @@ DP_U32 NodeInfo::batchSetting(DP_M2S_CMD_ID_E cmd, VecCodecTaskID &vTaskID,
 			new DP_M2S_CMD_BATCH_COMMON_S(packageLen, cmd, count));
 	muduo::net::Buffer buffSend;
 	DP_S32 taskID;
-	buffSend.append(&setAVInfo, sizeof(DP_M2S_CMD_BATCH_COMMON_S));
+	buffSend.append(setAVInfo.get(), sizeof(DP_M2S_CMD_BATCH_COMMON_S));
 	for (VecCodecTaskID::iterator it = vTaskID.begin(); it != vTaskID.end();
 			it++) {
 		taskID = *it;
+		LOG_INFO << "Set task id : " << taskID;
 		buffSend.append(&taskID, sizeof(taskID));
 	}
 	DP_S32 retResult = 0;
@@ -898,6 +915,7 @@ void NodeInfo::initAVDec(DP_M2S_AVDEC_INFO_S *avdec, DP_S32 taskID,
 	avdec->AvBindAttr.stVideo.stOut.u32DevId = DP_M2S_VO_DEV_HDMI0_HI3536;
 #endif
 
+	avdec->stStream.enType = DP_M2S_STREAM_RTSP_CLIENT;
 	avdec->stStream._rtsp.stRtspClient.bMulticast = DP_FALSE;
 	avdec->stStream._rtsp.stRtspClient.s32ConnTimeout = 0;
 	avdec->stStream._rtsp.stRtspClient.bUDP = DP_FALSE;
@@ -1009,13 +1027,12 @@ int NodeInfo::cmd_set_venc_default(DP_VOID *pPtr, DP_S32 s32TskId,
 	memset(&stAttr, 0, sizeof(DP_M2S_AVENC_INFO_S));
 
 	/* s1 TskId*/
-	stAttr.s32TskId = s32TskId;										//512~1023
+	stAttr.s32TskId = s32TskId;									//512~1023
 
 	/* s2 DP_M2S_AVBIND_ATTR_S */
 	stAttr.stAvBind.enBindType = DP_M2S_AVBIND_VI2VENC;/* no audio */
 
 	//stAttr.AvBindAttr.stAudio = NULL;
-
 	stAttr.stAvBind.stVideo.stIn.ModId = DP_M2S_MOD_VI;
 	stAttr.stAvBind.stVideo.stIn.u32DevId = 0;
 	stAttr.stAvBind.stVideo.stIn.u32ChnId = 0;						//not use
@@ -1068,7 +1085,7 @@ int NodeInfo::cmd_set_venc_default(DP_VOID *pPtr, DP_S32 s32TskId,
 	stAttr.stStream.enType = DP_M2S_STREAM_RTSP_SERVER;
 	DP_M2S_RTSP_SERVER_ATTR_S stRtspServer;
 	stRtspServer.bOpen = DP_TRUE;
-	stRtspServer.bUDP = DP_FALSE;										//udp
+	stRtspServer.bUDP = DP_FALSE;									//udp
 	stRtspServer.bMulticast = DP_FALSE;
 	stRtspServer.s32ConnTimeout = 60;
 	stRtspServer.s32ConnMax = 128;
@@ -1091,25 +1108,25 @@ int NodeInfo::cmd_set_avenc_default(DP_VOID *pPtr, DP_S32 s32TskId,
 	memset(&stAttr, 0, sizeof(DP_M2S_AVENC_INFO_S));
 
 	/* s1 TskId*/
-	stAttr.s32TskId = s32TskId;										//1280~1535
+	stAttr.s32TskId = s32TskId;									//1280~1535
 
 	/* s2 DP_M2S_AVBIND_ATTR_S */
 	stAttr.stAvBind.enBindType = DP_M2S_AVBIND_AI2AENC_VI2VENC;/* AV */
 
 	stAttr.stAvBind.stAudio.stIn.ModId = DP_M2S_MOD_AI;
 	stAttr.stAvBind.stAudio.stIn.u32DevId = 0;
-	stAttr.stAvBind.stAudio.stIn.u32ChnId = 0;						//not use
+	stAttr.stAvBind.stAudio.stIn.u32ChnId = 0;					//not use
 
 	stAttr.stAvBind.stAudio.stOut.ModId = DP_M2S_MOD_AENC;
-	stAttr.stAvBind.stAudio.stOut.u32DevId = 0;						//not use
+	stAttr.stAvBind.stAudio.stOut.u32DevId = 0;					//not use
 	stAttr.stAvBind.stAudio.stOut.u32ChnId = AencChn;
 
 	stAttr.stAvBind.stVideo.stIn.ModId = DP_M2S_MOD_VI;
 	stAttr.stAvBind.stVideo.stIn.u32DevId = 0;
-	stAttr.stAvBind.stVideo.stIn.u32ChnId = 0;						//not use
+	stAttr.stAvBind.stVideo.stIn.u32ChnId = 0;					//not use
 
 	stAttr.stAvBind.stVideo.stOut.ModId = DP_M2S_MOD_VENC;
-	stAttr.stAvBind.stVideo.stOut.u32DevId = 0;						//not use
+	stAttr.stAvBind.stVideo.stOut.u32DevId = 0;					//not use
 	stAttr.stAvBind.stVideo.stOut.u32ChnId = VencChn;
 
 	/* s3 DP_M2S_AENC_ATTR_S stAenc */
@@ -1164,11 +1181,11 @@ int NodeInfo::cmd_set_avenc_default(DP_VOID *pPtr, DP_S32 s32TskId,
 	stAttr.stStream.enType = DP_M2S_STREAM_RTSP_SERVER;
 	DP_M2S_RTSP_SERVER_ATTR_S stRtspServer;
 	stRtspServer.bOpen = DP_TRUE;
-	stRtspServer.bUDP = DP_FALSE;										//udp
+	stRtspServer.bUDP = DP_FALSE;					//udp
 	stRtspServer.bMulticast = DP_FALSE;
 	stRtspServer.s32ConnTimeout = 60;
 	stRtspServer.s32ConnMax = 128;
-	stRtspServer.s32ConnNums = 0;									//not use
+	stRtspServer.s32ConnNums = 0;					//not use
 	//stRtspServer.au8Url[] = NULL;//not use
 	memcpy(&stAttr.stStream._rtsp.stRtspServer, &stRtspServer,
 			sizeof(DP_M2S_RTSP_SERVER_ATTR_S));
@@ -1455,4 +1472,106 @@ void NodeInfo::printAVDEC(void *args) {
 			<< avdec->stVdec.stZoom.stRect.s32X;
 	LOG_DEBUG << "avdec->stVdec.stZoom.stRect.s32Y "
 			<< avdec->stVdec.stZoom.stRect.s32Y;
+}
+
+int print_avenc_attr(DP_M2S_AVENC_INFO_S data) {
+//	DP_M2S_AVENC_INFO_S *info = (DP_M2S_AVENC_INFO_S*) ((DP_CHAR*) data
+//			+ sizeof(DP_M2S_INF_PROT_HEAD_S));
+	DP_M2S_AVENC_INFO_S *info = (DP_M2S_AVENC_INFO_S*) &data;
+	printf(
+			"#############################AVENC#################################\n");
+	printf("task id:%d\n", info->s32TskId);
+	printf("-------------------------avbind\n");
+	printf("av bind type:%d\n", info->stAvBind.enBindType);
+	printf("av bind audio src mode id:%d\n", info->stAvBind.stAudio.stIn.ModId);
+	printf("av bind audio src dev id:%d\n",
+			info->stAvBind.stAudio.stIn.u32DevId);
+	printf("av bind audio src chn id:%d\n",
+			info->stAvBind.stAudio.stIn.u32ChnId);
+	printf("av bind audio dst mode id:%d\n",
+			info->stAvBind.stAudio.stOut.ModId);
+	printf("av bind audio dst mode id:%d\n",
+			info->stAvBind.stAudio.stOut.u32DevId);
+	printf("av bind audio dst mode id:%d\n",
+			info->stAvBind.stAudio.stOut.u32ChnId);
+	printf("av bind video src mode id:%d\n", info->stAvBind.stVideo.stIn.ModId);
+	printf("av bind video src dev id:%d\n",
+			info->stAvBind.stVideo.stIn.u32DevId);
+	printf("av bind video src chn id:%d\n",
+			info->stAvBind.stVideo.stIn.u32ChnId);
+	printf("av bind video dst mode id:%d\n",
+			info->stAvBind.stVideo.stOut.ModId);
+	printf("av bind video dst mode id:%d\n",
+			info->stAvBind.stVideo.stOut.u32DevId);
+	printf("av bind video dst mode id:%d\n",
+			info->stAvBind.stVideo.stOut.u32ChnId);
+	printf("-------------------------stream\n");
+	printf("stream type:%d\n", info->stStream.enType);
+	printf("stream rtsp server open:%d\n",
+			info->stStream._rtsp.stRtspServer.bOpen);
+	printf("stream rtsp server transtype:%d\n",
+			info->stStream._rtsp.stRtspServer.bUDP);
+	printf("stream rtsp server multicast:%d\n",
+			info->stStream._rtsp.stRtspServer.bMulticast);
+	printf("stream rtsp server conntimeout :%d\n",
+			info->stStream._rtsp.stRtspServer.s32ConnTimeout);
+	printf("stream rtsp server connmax :%d\n",
+			info->stStream._rtsp.stRtspServer.s32ConnMax);
+	printf("stream rtsp server connnums :%d\n",
+			info->stStream._rtsp.stRtspServer.s32ConnNums);
+	printf("stream rtsp server au8url :%s\n",
+			info->stStream._rtsp.stRtspServer.au8Url);
+	printf("-------------------------stAenc\n");
+	printf("aenc alg :%d \n", info->stAenc.stAlg.enAlg);
+	printf("aenc u32Bitrate :%d\n", info->stAenc.stAlg.stAACEnc.u32Bitrate);
+	printf("aenc bAdts :%d\n", info->stAenc.stAlg.stAACEnc.bAdts);
+	printf("-------------------------stVenc\n");
+	printf("venc is bCrop :%d\n", info->stVenc.bCrop);
+	printf("venc crop status x:%d\n", info->stVenc.stCrop.s32X);
+	printf("venc crop status y:%d\n", info->stVenc.stCrop.s32Y);
+	printf("venc crop status widget:%d\n", info->stVenc.stCrop.u32Width);
+	printf("venc crop status height:%d\n", info->stVenc.stCrop.u32Height);
+	printf("venc is zoom :%d\n", info->stVenc.bZoom);
+	printf("venc zoom type:%d\n", info->stVenc.stZoom.enType);
+	if (info->stVenc.stZoom.enType == DP_M2S_ZOOM_RECT) {
+		printf("venc zoom rect x:%d\n", info->stVenc.stZoom.stRect.s32X);
+		printf("venc zoom rect y:%d\n", info->stVenc.stZoom.stRect.s32Y);
+		printf("venc zoom rect widget:%d\n",
+				info->stVenc.stZoom.stRect.u32Width);
+		printf("venc zoom rect height:%d\n",
+				info->stVenc.stZoom.stRect.u32Height);
+	} else if (info->stVenc.stZoom.enType == DP_M2S_ZOOM_RATIO) {
+		printf("venc zoom ratio x:%d\n", info->stVenc.stZoom.stRatio.u32XRatio);
+		printf("venc zoom ratio y:%d\n", info->stVenc.stZoom.stRatio.u32YRatio);
+		printf("venc zoom ratio widget:%d\n",
+				info->stVenc.stZoom.stRatio.u32WRatio);
+		printf("venc zoom ratio height:%d\n",
+				info->stVenc.stZoom.stRatio.u32HRatio);
+	}
+	printf("venc is osd:%d\n", info->stVenc.bOsd);
+	printf("venc osd type :%d\n", info->stVenc.stOsd.enType);
+	if (info->stVenc.stOsd.enType == DP_M2S_OSD_PIC) {
+		printf("venc osd pic path :%s\n", info->stVenc.stOsd.au8PicPath);
+	} else if (info->stVenc.stOsd.enType == DP_M2S_OSD_STRING) {
+		printf("venc osd str path :%s\n", info->stVenc.stOsd.stStr.au8Str);
+		printf("venc osd str color :%d\n", info->stVenc.stOsd.stStr.u32Color);
+	}
+	printf("venc osd display mode :%d\n", info->stVenc.stOsd.enDispMode);
+	printf("venc osd point x:%d\n", info->stVenc.stOsd.stPoint.s32X);
+	printf("venc osd point y:%d\n", info->stVenc.stOsd.stPoint.s32Y);
+	printf("venc alg type :%d\n", info->stVenc.stAlg.enAlg);
+	printf("venc alg frmrate:%d\n", info->stVenc.stAlg.stH264Enc.u32FrmRate);
+	printf("venc alg stSize Widget:%d\n",
+			info->stVenc.stAlg.stH264Enc.stSize.u32Width);
+	printf("venc alg stSize Height:%d\n",
+			info->stVenc.stAlg.stH264Enc.stSize.u32Height);
+	printf("venc alg RcMode:%d\n", info->stVenc.stAlg.stH264Enc.enRcMode);
+	printf("venc alg BitRate:%d\n", info->stVenc.stAlg.stH264Enc.u32Bitrate);
+	printf("venc alg Profile:%d\n", info->stVenc.stAlg.stH264Enc.enProfile);
+	printf("venc alg gop:%d\n", info->stVenc.stAlg.stH264Enc.u32Gop);
+	printf("venc alg sf:%d\n", info->stVenc.stAlg.stH264Enc.u16SF);
+	printf("venc alg tf:%d\n", info->stVenc.stAlg.stH264Enc.u16TF);
+	printf(
+			"#################################################################\n");
+	return 0;
 }

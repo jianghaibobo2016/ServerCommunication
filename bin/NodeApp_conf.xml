@@ -12,7 +12,7 @@
 		<u16DevSn>65535</u16DevSn>
 		<u16Devtype>65535</u16Devtype>
 		<u16DevNum>65535</u16DevNum>
-		<au8DevName>未命名</au8DevName>
+		<au8DevName>Myself</au8DevName>
 		<au8DevID>FFFFFFFFFFFF</au8DevID>
 		<u16DevWorkMode>65535</u16DevWorkMode>
 		<u16DevFuncOnOff>65535</u16DevFuncOnOff>

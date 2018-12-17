@@ -1471,8 +1471,7 @@ typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_EXIT_ACK_S;
  */
 typedef struct _DP_M2S_CMD_AI_GETINFO_S {
 	_DP_M2S_CMD_AI_GETINFO_S(DP_M2S_CMD_ID_E cmd, DP_M2S_AI_DEV_E dev) :
-			stHeader(sizeof(_DP_M2S_CMD_AI_GETINFO_S), cmd, 0x01), enDevId(
-					dev) {
+			stHeader(sizeof(_DP_M2S_CMD_AI_GETINFO_S), cmd, 0x01), enDevId(dev) {
 	}
 	DP_M2S_INF_PROT_HEAD_S stHeader;
 	DP_M2S_AI_DEV_E enDevId;
@@ -1524,8 +1523,7 @@ typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_AI_SETINFO_ACK_S;
  */
 typedef struct _DP_M2S_CMD_VI_GETINFO_S {
 	_DP_M2S_CMD_VI_GETINFO_S(DP_M2S_CMD_ID_E cmd, DP_M2S_VI_DEV_E dev) :
-			stHeader(sizeof(_DP_M2S_CMD_VI_GETINFO_S), cmd, 0x01), enDevId(
-					dev) {
+			stHeader(sizeof(_DP_M2S_CMD_VI_GETINFO_S), cmd, 0x01), enDevId(dev) {
 	}
 	DP_M2S_INF_PROT_HEAD_S stHeader;
 	DP_M2S_VI_DEV_E enDevId;
@@ -1663,6 +1661,8 @@ typedef struct _DP_M2S_CMD_AVENC_GETBATCHINFO_ACK_S {
 	// DP_U32 au32ErrInfo[u32Nums];
 	// DP_M2S_AVENC_INFO_S astInfo[u32Nums];
 } DP_M2S_CMD_AVENC_GETBATCHINFO_ACK_S;
+
+typedef DP_M2S_CMD_AVENC_GETBATCHINFO_ACK_S DP_M2S_CMD_COMMON_GETBATCHINFO_ACK_S;
 
 /*************************************11. DP_M2S_CMD_AVENC_SET_BATCH *************************/
 /*
