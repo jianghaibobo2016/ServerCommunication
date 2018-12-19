@@ -97,6 +97,9 @@ void NodeInfo::initLocalInfo() {
 		LOG_ERROR << "Init failed !";
 		return;
 	} /*else {*/
+
+	//update mode
+	// recovery mode
 #if (InputDevice)
 //init input node
 	initInAVEnc();

@@ -22,9 +22,6 @@
 #include <map>
 
 #include "Public.h"
-//#include "Shared.h"
-//#include "Handle.h"
-//#include "InternalException.h"
 #include <json/json.h>
 #include "xmlParser.h"
 #include "Data.h"
@@ -144,6 +141,7 @@ public:
 
 	//9.红外码
 	map<unsigned short, DP_DEV_IRLIST_INFO_S> m_mIRListInfo;
+
 
 	//////////////////////////////////////////////////
 private:

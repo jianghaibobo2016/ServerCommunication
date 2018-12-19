@@ -135,6 +135,7 @@ void GlobalProfile::Profile::updateProperty(const char* section,
 		}
 	}
 }
+
 void GlobalProfile::Profile::enumeratorProperty(const char* section,
 		const char* strKey, const vector<string>& propertyname,
 		vector<vector<string> >& rows, vector<string>& values) {

@@ -542,6 +542,7 @@ typedef _s_AVServer_Header _sRemote_Header; ///<定义_sRemote_Header类型，�
  */
 typedef struct _sRemote_Search_tag {
 	_sRemote_Header header;
+	//
 } _sRemote_Search;
 /*! 搜索命令应答 \extends _sRemote_Header */
 typedef struct _sRemote_Reply_Search_tag {

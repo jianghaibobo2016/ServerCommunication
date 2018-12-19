@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <BuildTime.h>
 #include "ServerHandle.h"
 #include "UDPServerHandle.h"
 #include "NodeInfo.h"
@@ -78,23 +79,25 @@ void signalHandle() {
 }
 
 int main() {
+	//logging setting
+	g_logFile.reset(new muduo::LogFile(LogFileName, g_LogFileMaxSize));
+	muduo::Logger::setOutput(outputFunc);
+	muduo::Logger::setFlush(flushFunc);
+	muduo::Logger::setLogLevel(muduo::Logger::TRACE);
+	LOG_TRACE << "Build time : " << BuildTime;
+	LOG_TRACE
+			<< "===========ServerCommunication program starting !==============";
+	muduo::Logger::setLogLevel(muduo::Logger::DEBUG);
 	setvbuf(stdout, (char *) NULL, _IOLBF, 0);
-		muduo::Logger::setLogLevel(muduo::Logger::DEBUG);
-	EventLoop loop; // one loop shared by multiple servers
-	print(&loop);
+//	print(&loop);
 
 #if 1
-	//logging setting
-//	g_logFile.reset(new muduo::LogFile(LogFileName, g_LogFileMaxSize));
-//	muduo::Logger::setOutput(outputFunc);
-//	muduo::Logger::setFlush(flushFunc);
 	signalHandle();
-	LOG_ERROR
-			<< "===========ServerCommunication program starting !==============";
 	//init
 	muduo::Singleton<NodeInfo>::instance();
 	GlobalProfile::getInstance();
 
+	EventLoop loop; // one loop shared by multiple servers
 	ServerHandle tcpServer(&loop, InetAddress(5010));
 	tcpServer.startServerHandle(1);
 	tcpServer.startHandle(10, 3);

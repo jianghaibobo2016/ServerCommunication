@@ -7,6 +7,8 @@
 
 #include <BuildTime.h>
 //arm error
-//const string BuildTime::BUILDTIME = "Build:"__DATE__" at "__TIME__;
-
-const string BuildTime::BUILDVERSION = "Hardware:VED-V00.01 SoftWare:V00.03";
+//const std::string BuildTime::BUILDTIME = __DATE__" at "__TIME__;
+//const char BuildTime[] = __DATE__ " at " __TIME__;
+//
+//const std::string BuildTime::BUILDVERSION =
+//		"Hardware:VED-V00.01 SoftWare:V00.03";
