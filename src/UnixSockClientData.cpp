@@ -146,20 +146,20 @@ int UnixSockClientData::doSendCommand(const void* pData, int len)
 	}
 	if (!bConnected) {
 		SocketLayer::CloseSock(sock);
-		return DP_ERR_COMMUNICATE_ABNORMAL;
+		return DP_ERR_COMMUNICATE_CONNECTION;
 //		throw SystemException("can not connect unix socket");
 	}
 	//2.send data
 	int wbytes = send(sock, pData, len, 0);
 	if (wbytes <= 0) {
 		SocketLayer::CloseSock(sock);
-		return DP_ERR_COMMUNICATE_ABNORMAL;
+		return DP_ERR_COMMUNICATE_SEND;
 //		throw SystemException(__FILE__, __FUNCTION__, __LINE__);
 	}
 	muduo::PrintBuff::printBufferByHex("send to fifo : ", pData, wbytes);
 	if (wbytes != len) {
 		SocketLayer::CloseSock(sock);
-		return DP_ERR_COMMUNICATE_ABNORMAL;
+		return DP_ERR_COMMUNICATE_SEND;
 //		throw SystemException("send bytes!=actual send bytes");
 	}
 	//3.recv &&close socket
@@ -196,7 +196,7 @@ int UnixSockClientData::doSendCommand(const void* pData, int len)
 			}
 		} else {
 			SocketLayer::CloseSock(sock);
-			return DP_ERR_COMMUNICATE_ABNORMAL;
+			return DP_ERR_COMMUNICATE_SELECT;
 //			throw SystemException("Recv 0 msg from codec !");
 		}
 	}

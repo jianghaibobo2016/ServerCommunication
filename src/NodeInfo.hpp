@@ -120,7 +120,7 @@ DP_BOOL NodeInfo::setAVInfoToCodec(boost::shared_ptr<T> &vAVInfo,
 template<typename T, typename S> // DP_M2S_AVDEC_INFO_S  DP_M2S_CMD_AVDEC_SETINFO_S
 DP_S32 NodeInfo::sendCodecAVEncDecInfo(T info, DP_U8 isReply,
 		DP_M2S_CMD_ID_E cmd) {
-	boost::shared_ptr<S> setAVInfo(new S(cmd));
+	boost::shared_ptr<S> setAVInfo(new S(cmd, isReply));
 	muduo::net::Buffer buffSend;
 	setAVInfo->stInfo = info;
 	buffSend.append(setAVInfo.get(), sizeof(S));

@@ -1613,6 +1613,9 @@ typedef struct _DP_M2S_CMD_AVENC_SETINFO_S {
 	_DP_M2S_CMD_AVENC_SETINFO_S(DP_M2S_CMD_ID_E cmd) :
 			stHeader(sizeof(_DP_M2S_CMD_AVENC_SETINFO_S), cmd, 0x01), stInfo() {
 	}
+	_DP_M2S_CMD_AVENC_SETINFO_S(DP_M2S_CMD_ID_E cmd, DP_U8 isReply) :
+			stHeader(sizeof(_DP_M2S_CMD_AVENC_SETINFO_S), cmd, isReply), stInfo() {
+	}
 	DP_M2S_INF_PROT_HEAD_S stHeader;
 	DP_M2S_AVENC_INFO_S stInfo;
 } DP_M2S_CMD_AVENC_SETINFO_S;
@@ -1774,6 +1777,9 @@ typedef struct _DP_M2S_CMD_AVDEC_GETINFO_ACK_S {
 typedef struct _DP_M2S_CMD_AVDEC_SETINFO_S {
 	_DP_M2S_CMD_AVDEC_SETINFO_S(DP_M2S_CMD_ID_E cmd) :
 			stHeader(sizeof(_DP_M2S_CMD_AVDEC_SETINFO_S), cmd, 0x01), stInfo() {
+	}
+	_DP_M2S_CMD_AVDEC_SETINFO_S(DP_M2S_CMD_ID_E cmd, DP_U8 isReply) :
+			stHeader(sizeof(_DP_M2S_CMD_AVDEC_SETINFO_S), cmd, isReply), stInfo() {
 	}
 	DP_M2S_INF_PROT_HEAD_S stHeader;
 	DP_M2S_AVDEC_INFO_S stInfo;

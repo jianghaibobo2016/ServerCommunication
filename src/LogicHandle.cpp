@@ -11,7 +11,7 @@
 #include <string.h>
 //
 #include <functional>
-
+#include <stdio.h>
 #include "LogicHandle.h"
 #include "interactivepro.h"
 #include "MyFastTcpClient.h"
@@ -76,7 +76,9 @@ void LogicHandle::createWindow(const muduo::net::TcpConnectionPtr connPtr,
 		//get task id
 		DP_S32 id = 0;
 		if (createWinData->u8AudioIn == 0x00) {
-			id = getNewCodecTaskID(createWinData->u32TaskID, _eVideoTask);
+			//jhbnote _eVideoTask is no audio task
+			id = getNewCodecTaskID(createWinData->u32TaskID,
+					_eAudioAndVideoTask);
 		} else if (createWinData->u8AudioIn == 0x01)
 			/////////////////////////////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			id = getNewCodecTaskID(createWinData->u32TaskID,
@@ -91,6 +93,10 @@ void LogicHandle::createWindow(const muduo::net::TcpConnectionPtr connPtr,
 				<< createWinData->u8AudioIn;
 		if (id > 1792) {
 			success = id;
+			if (id != DP_ERR_THIRD_TASK_ID) {
+				muduo::Singleton<NodeInfo>::instance().removeCodecTaskID(
+						createWinData->u32TaskID);
+			}
 			break;
 		}
 
@@ -103,6 +109,61 @@ void LogicHandle::createWindow(const muduo::net::TcpConnectionPtr connPtr,
 			success = DP_ERR_TASK_ID_NOTEXIST;
 			LOG_ERROR << "Can not find a AVDec info by codec task ID: " << id;
 			//jhbnote !! if break in process ,free source such as codec task id  !
+			muduo::Singleton<NodeInfo>::instance().removeCodecTaskID(
+					createWinData->u32TaskID);
+			break;
+		}
+
+		//crop -- src video
+		it->stVdec.stAlg.enAlg = DP_M2S_ALG_H264_DEC;
+		_sSrcVideoInfo srcVideo = createWinData->srcVideoInfo;
+		DP_M2S_CROP_ATTR_S crop;
+		crop.s32X = srcVideo.u16StartX;
+		crop.s32Y = srcVideo.u16StartY;
+		crop.u32Width = srcVideo.u16EndX - srcVideo.u16StartX;
+		crop.u32Height = srcVideo.u16EndY - srcVideo.u16StartY;
+
+		LOG_INFO << "corp start x: y: end x: y: hei: Wid: "
+				<< srcVideo.u16StartX << " " << srcVideo.u16StartY << " "
+				<< srcVideo.u16EndX << " " << srcVideo.u16EndY << " "
+				<< srcVideo.u16VideoHeight << " " << srcVideo.u16VideoWidth;
+		LOG_INFO << "corp width: height: " << crop.u32Width << " "
+				<< crop.u32Height;
+
+		//osd task id
+		boost::shared_array<DP_CHAR> str(new DP_CHAR[32]);
+		memset(str.get(), 0, 32);
+		sprintf(str.get(), "ID: %d", id);
+//		DP_M2S_OSD_ATTR_S osd;
+		boost::shared_ptr<DP_M2S_OSD_ATTR_S> osd(new DP_M2S_OSD_ATTR_S);
+		memset(osd.get(), 0, sizeof(DP_M2S_OSD_ATTR_S));
+		osd->enType = DP_M2S_OSD_STRING;
+		memcpy(osd->stStr.au8Str, str.get(), strlen(str.get()));
+		osd->stStr.u32Color = 0xB22222;
+		osd->enDispMode = DP_M2S_OSD_DISPLAY_MODE_COORD;
+		osd->stPoint.s32X = 0;
+		osd->stPoint.s32Y = 0;
+		it->stVdec.bOsd = DP_TRUE;
+		it->stVdec.stOsd = *osd.get();
+		NodeInfo::VctrVOGetInfoPtr VOInfo =
+				muduo::Singleton<NodeInfo>::instance().getVOGetInfo();
+		if (VOInfo->operator [](0).enDevId == DP_M2S_VO_DEV_HDMI0_HI3536) {
+
+			DP_U8 ret = DP_MediaClient_CheckCropDateIsIegitimate(crop,
+					VOInfo->operator [](0).enSync);
+			if (ret == DP_FALSE) {
+				LOG_ERROR << "DP_MediaClient_CheckCropDateIsIegitimate failed!";
+				success = DP_ERR_VO_ID_INVALID;
+				muduo::Singleton<NodeInfo>::instance().removeCodecTaskID(
+						createWinData->u32TaskID);
+				break;
+			}
+		} else {
+			LOG_ERROR << "Can not find VO devid==DP_M2S_VO_DEV_HDMI0_HI3536: "
+					<< VOInfo->operator [](0).enDevId;
+			success = DP_ERR_VO_ID_INVALID;
+			muduo::Singleton<NodeInfo>::instance().removeCodecTaskID(
+					createWinData->u32TaskID);
 			break;
 		}
 
@@ -114,6 +175,8 @@ void LogicHandle::createWindow(const muduo::net::TcpConnectionPtr connPtr,
 		} else {
 			LOG_ERROR << "Error VO u8VoChnID : " << createWinData->u8VoChnID;
 			success = DP_ERR_VO_ID_INVALID;
+			muduo::Singleton<NodeInfo>::instance().removeCodecTaskID(
+					createWinData->u32TaskID);
 			break;
 		}
 
@@ -130,6 +193,16 @@ void LogicHandle::createWindow(const muduo::net::TcpConnectionPtr connPtr,
 		DP_M2S_RECT_S rect;
 		rect.s32X = createWinData->dstVideoInfo.u16StartX;
 		rect.s32Y = createWinData->dstVideoInfo.u16StartY;
+
+//		if ((createWinData->dstVideoInfo.u16VideoHeight <= 128)
+//				|| (createWinData->dstVideoInfo.u16VideoWidth <= 128)) {
+//			LOG_ERROR << "Limited dst width height hei: "
+//					<< createWinData->dstVideoInfo.u16VideoHeight << " wid: "
+//					<< createWinData->dstVideoInfo.u16VideoWidth;
+//			success = DP_ERR_TASK_PARAM_ILLEGAL;
+//			break;
+//		}
+
 		rect.u32Height = createWinData->dstVideoInfo.u16VideoHeight;
 		rect.u32Width = createWinData->dstVideoInfo.u16VideoWidth;
 		it->stVdec.bSwms = DP_TRUE;
@@ -156,70 +229,9 @@ void LogicHandle::createWindow(const muduo::net::TcpConnectionPtr connPtr,
 		it->stVdec.stSwms.u32Priority = newPriority;
 		LOG_INFO << "Priority current create win task : " << newPriority;
 
-		//crop -- src video
-		it->stVdec.stAlg.enAlg = DP_M2S_ALG_H264_DEC;
-		_sSrcVideoInfo srcVideo = createWinData->srcVideoInfo;
-		DP_M2S_CROP_ATTR_S crop;
-		crop.s32X = srcVideo.u16StartX;
-		crop.s32Y = srcVideo.u16StartY;
-		crop.u32Width = srcVideo.u16EndX - srcVideo.u16StartX;
-		crop.u32Height = srcVideo.u16EndY - srcVideo.u16StartY;
-
-		LOG_INFO << "corp start x: y: end x: y: hei: Wid: "
-				<< srcVideo.u16StartX << " " << srcVideo.u16StartY << " "
-				<< srcVideo.u16EndX << " " << srcVideo.u16EndY << " "
-				<< srcVideo.u16VideoHeight << " " << srcVideo.u16VideoWidth;
-		LOG_INFO << "corp width: height: " << crop.u32Width << " "
-				<< crop.u32Height;
-
 		it->stVdec.bCrop = DP_TRUE;
 		it->stVdec.stCrop = crop;
-		muduo::Singleton<NodeInfo>::instance().updateAVDecGetInfo(vAVDecInfo);
-		//useless
-		/*
-		 *---------------------------------------------
-		 * 	enable-		0		1		2
-		 * -audioin
-		 * --------------------------------------------
-		 * 0			close	close	remaining
-		 * --------------------------------------------
-		 * 1			close	close	remaining
-		 * 						&open
-		 * --------------------------------------------
-		 * notify VO AO dev ID
-		 * if AV play chn --> VO DEVID
-		 * if pure Audio play chn --> AO DEVID
-		 * */
-		//useless
-#if 0 // useless
-		//to shift audio or close audio
-		switch (createWinData->u8VoChnID) {
-			case ID_VO_CHN_VIDEOOUT1:
-			AOChnID = _videoAudioChn;
-			break;
-			default:
-			break;
-		}
-		NodeInfo::MapAODevIDCodecIDPtr AODevCodecID =
-		muduo::Singleton<NodeInfo>::instance().getAODevIDCodecID();
-		NodeInfo::VctrAVDECGetInfo::iterator itAudio;
-
-		if (createWinData->u8AudioEnable == 0x00
-				|| createWinData->u8AudioEnable == 0x01) {
-			LOG_INFO
-			<< "createWinData->u8AudioEnable == 0x00 or  createWinData->u8AudioEnable == 0x01";
-			closeAAudio(AOChnID, createWinData->u8VoChnID, setInfo, vAVDecInfo);
-		}
-
-		if (createWinData->u8AudioEnable == 0x01
-				&& createWinData->u8AudioEnable == 0x01) {
-			LOG_INFO
-			<< "createWinData->u8AudioEnable == 0x01 and  createWinData->u8AudioEnable == 0x01";
-			AODevCodecID->insert(
-					NodeInfo::MapAODevIDCodecID::value_type(AOChnID, id));
-		}
-		muduo::Singleton<NodeInfo>::instance().updateAODevIDCodecID(AODevCodecID);
-#endif
+//		muduo::Singleton<NodeInfo>::instance().updateAVDecGetInfo(vAVDecInfo);
 
 		NodeInfo::printAVDEC(&(*it));
 		DP_S32 ret = NodeInfo::sendCodecAVEncDecInfo<DP_M2S_AVDEC_INFO_S,
@@ -229,8 +241,14 @@ void LogicHandle::createWindow(const muduo::net::TcpConnectionPtr connPtr,
 		if (ret != 0) {
 			LOG_ERROR << "Send to codec return false in creating win func!";
 			success = DP_ERR_COMMUNICATE_ABNORMAL_INNER;
+			muduo::Singleton<NodeInfo>::instance().removeCodecTaskID(
+					createWinData->u32TaskID);
+			winPriority->erase(winPriority->end() - 1);
+			muduo::Singleton<NodeInfo>::instance().updateAVDecGetInfo(
+					vAVDecInfo);
 			break;
 		}
+		muduo::Singleton<NodeInfo>::instance().updateAVDecGetInfo(vAVDecInfo);
 
 		//src video info
 		NodeInfo::MapThirdIDSrcVideoInfoPtr thirdIDSrcVideo = muduo::Singleton<
@@ -293,6 +311,14 @@ void LogicHandle::moveWindow(const muduo::net::TcpConnectionPtr connPtr,
 		rect.s32Y = dstVideo.u16StartY;
 		rect.u32Height = dstVideo.u16VideoHeight;
 		rect.u32Width = dstVideo.u16VideoWidth;
+//		if ((dstVideo.u16VideoHeight <= 128)
+//				|| (dstVideo.u16VideoWidth <= 128)) {
+//			LOG_ERROR << "Limited dst width height hei: "
+//					<< dstVideo.u16VideoHeight << " wid: "
+//					<< dstVideo.u16VideoWidth;
+//			success = DP_ERR_TASK_PARAM_ILLEGAL;
+//			break;
+//		}
 		LOG_INFO << "swms x: y: hei: Wid: " << dstVideo.u16StartX << " "
 				<< dstVideo.u16StartY << " " << dstVideo.u16VideoHeight << " "
 				<< dstVideo.u16VideoWidth;
@@ -313,6 +339,24 @@ void LogicHandle::moveWindow(const muduo::net::TcpConnectionPtr connPtr,
 		it->stVdec.bCrop = DP_TRUE;
 		it->stVdec.stCrop = crop;
 		it->stVdec.stSwms.stRect = rect;
+
+		NodeInfo::VctrVOGetInfoPtr VOInfo =
+				muduo::Singleton<NodeInfo>::instance().getVOGetInfo();
+		if (VOInfo->operator [](0).enDevId == DP_M2S_VO_DEV_HDMI0_HI3536) {
+
+			DP_U8 ret = DP_MediaClient_CheckCropDateIsIegitimate(crop,
+					VOInfo->operator [](0).enSync);
+			if (ret == DP_FALSE) {
+				LOG_ERROR << "DP_MediaClient_CheckCropDateIsIegitimate failed!";
+				success = DP_ERR_VO_ID_INVALID;
+				break;
+			}
+		} else {
+			LOG_ERROR << "Can not find VO devid==DP_M2S_VO_DEV_HDMI0_HI3536: "
+					<< VOInfo->operator [](0).enDevId;
+			success = DP_ERR_VO_ID_INVALID;
+			break;
+		}
 
 //		NodeInfo::MapOutSWMSChCodecDecInfoPtr swmsDecInfo = muduo::Singleton<
 //				NodeInfo>::instance().getOutSWMSChCodecDecInfo();
@@ -402,10 +446,6 @@ void LogicHandle::closeWindow(const muduo::net::TcpConnectionPtr connPtr,
 			LOG_INFO << "codec id in close win: " << id;
 		}
 
-		//jhbnote check this func
-		muduo::Singleton<NodeInfo>::instance().removeCodecTaskID(
-				closeWinData->u32TaskID);
-
 		NodeInfo::VctrAVDECGetInfo::iterator it = find_if(vAVDecInfo->begin(),
 				vAVDecInfo->end(), bind2nd(findAVDecInfoByCodecID(), id));
 		if (it == vAVDecInfo->end()) {
@@ -462,6 +502,20 @@ void LogicHandle::closeWindow(const muduo::net::TcpConnectionPtr connPtr,
 						DP_M2S_CMD_AVDEC_SET);
 			}
 		}
+		muduo::Singleton<NodeInfo>::instance().removeCodecTaskID(
+				closeWinData->u32TaskID);
+		NodeInfo::MapThirdIDSrcVideoInfoPtr srcVideoInfo = muduo::Singleton<
+				NodeInfo>::instance().getThirdIDSrcVideoInfo();
+		if (!srcVideoInfo->empty()) {
+			NodeInfo::MapThirdIDSrcVideoInfo::iterator iter =
+					srcVideoInfo->find(closeWinData->u32TaskID);
+			if (iter != srcVideoInfo->end()) {
+				srcVideoInfo->erase(closeWinData->u32TaskID);
+				muduo::Singleton<NodeInfo>::instance().updateMapThirdIDSrcVideoInfo(
+						srcVideoInfo);
+			}
+		}
+
 	} while (0);
 	muduo::Singleton<NodeInfo>::instance().updateAVDecGetInfo(vAVDecInfo);
 	commonReplyToThird(Command_CloseWindow, closeWinData->u32TaskID, success,
@@ -543,22 +597,71 @@ void LogicHandle::clearAllTask(const muduo::net::TcpConnectionPtr connPtr,
 	DP_U32 retSetting = NodeInfo::batchSetting(DP_M2S_CMD_AVDEC_CLOSE_BATCH,
 			vTaskID, errInfo);
 	replyClearToThird(retSetting, errThirdiD, errInfo, connPtr);
+
+	NodeInfo::VecCodecTaskID failedID;
+	NodeInfo::VecErrInfo thirdID;
+	NodeInfo::MapOutSWMSChCodecDecInfoPtr swmsDecInfo = muduo::Singleton<
+			NodeInfo>::instance().getOutSWMSChCodecDecInfo();
+	NodeInfo::MapThirdIDSrcVideoInfoPtr srcVideoInfo =
+			muduo::Singleton<NodeInfo>::instance().getThirdIDSrcVideoInfo();
+	NodeInfo::MapThirdIDSrcVideoInfo::iterator iterSrc;
+	if (retSetting == 0) {
+
+	} else if (retSetting == DP_ERR_PROTOCOL_CONTENT) {
+		//jhbnote != todo
+
+	} else {
+		LOG_INFO << "retSetting:: " << retSetting;
+		swmsChn.clear();
+		errThirdiD.clear();
+		NodeInfo::VctrAVDECGetInfo::iterator itDec;
+
+		for (DP_U32 inx = 0; inx < errInfo.size(); inx++) {
+			if (errInfo[inx] != 0) {
+				failedID.push_back(vTaskID[inx]);
+			} else {
+				//erase swmschn
+				itDec = find_if(vAVDecInfo->begin(), vAVDecInfo->end(),
+						bind2nd(findAVDecInfoByCodecID(), vTaskID[inx]));
+				if (itDec != vAVDecInfo->end()) {
+					swmsChn.push_back(itDec->stVdec.stSwms.u32SwmsChn);
+				} else {
+				}
+				//erase srcVedio info
+				it_ID = std::find_if(thirdCodecID->begin(), thirdCodecID->end(),
+						bind2nd(findThirdIDByCodecID(), vTaskID[inx]));
+				if (it_ID != thirdCodecID->end()) {
+					errThirdiD.push_back(it_ID->first);
+				}
+			}
+		}
+	}
 	if (!swmsChn.empty()) {
-		NodeInfo::MapOutSWMSChCodecDecInfoPtr swmsDecInfo = muduo::Singleton<
-				NodeInfo>::instance().getOutSWMSChCodecDecInfo();
 		for (NodeInfo::VecErrInfo::iterator iter_swms = swmsChn.begin();
 				iter_swms != swmsChn.end(); iter_swms++) {
 			if (swmsDecInfo->find(*iter_swms) != swmsDecInfo->end()) {
 				swmsDecInfo->erase(*iter_swms);
 			} else {
-				LOG_ERROR << "Can not find swmschn: "
+				LOG_DEBUG << "Can not find swmschn: "
 						<< it->stVdec.stSwms.u32SwmsChn << " in map.";
 				continue;
 			}
 		}
-		muduo::Singleton<NodeInfo>::instance().updateMapOutSWMSChCodecDecInfo(
-				swmsDecInfo);
 	}
+	muduo::Singleton<NodeInfo>::instance().updateMapOutSWMSChCodecDecInfo(
+			swmsDecInfo);
+	if (!srcVideoInfo->empty()) {
+		for (NodeInfo::VecErrInfo::iterator itEarse = errThirdiD.begin();
+				itEarse != errThirdiD.end(); itEarse++) {
+			iterSrc = srcVideoInfo->find(*itEarse);
+			if (iterSrc != srcVideoInfo->end()) {
+				srcVideoInfo->erase(*itEarse);
+			}
+		}
+	}
+	muduo::Singleton<NodeInfo>::instance().updateMapThirdIDSrcVideoInfo(
+			srcVideoInfo);
+
 	NodeInfo::VctrWindowPriorityPtr winPriority =
 			muduo::Singleton<NodeInfo>::instance().getVctrWindowPriority();
 	if (!winPriority->empty()) {
@@ -1430,7 +1533,8 @@ void LogicHandle::replyClearToThird(DP_U32 success,
 		}
 	}
 
-	LOG_INFO << "Send to third : " << reply.header.u16PackageLen << " bytes !";
+	LOG_INFO << "Send to third : " << reply.header.u16PackageLen
+			<< " bytes ! with success: " << success;
 	connPtr->send(&sendBuff);
 }
 
@@ -1463,7 +1567,7 @@ void LogicHandle::replyGetInfoToThird(eRemotePropertyName proterty,
 		buff.append(&replyGetInfo, sizeof(_sRemote_Reply_GetInfo));
 	}
 	LOG_INFO << "Get info send to remote: " << buff.readableBytes()
-			<< " bytes !";
+			<< " bytes ! with success: " << success;
 	connPtr->send(&buff);
 }
 
@@ -1544,3 +1648,4 @@ DP_U8 LogicHandle::DP_MediaClient_CheckCropDateIsIegitimate(
 	}
 	return DP_TRUE;
 }
+

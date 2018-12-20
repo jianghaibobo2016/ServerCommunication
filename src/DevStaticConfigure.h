@@ -44,7 +44,7 @@ static const DP_CHAR *INIFILE = "./NET_CONF.ini";
 static const DP_CHAR *g_IFNAMEDEV = "bond0";
 //static const DP_CHAR *IFNAMEDEV = "ens33";
 
-static const DP_U32 g_LogFileMaxSize = 2 * 1024 * 1024;
+static const DP_U32 g_LogFileMaxSize = 4 * 1024 * 1024;
 
 const int BUFFER_SIZE_PIPESOCKET = 1024 * 1024;
 

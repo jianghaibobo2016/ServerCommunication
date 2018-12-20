@@ -344,7 +344,7 @@ DP_BOOL NodeInfo::initInAVEnc() {
 			for_each(AVEncInfo->begin(), AVEncInfo->end(), print_avenc_attr);
 		}
 	}
-
+#if 0
 	boost::shared_ptr<DP_M2S_AVDEC_INFO_S> aDec(new DP_M2S_AVDEC_INFO_S);
 	VctrAVDECGetInfoPtr avDecInfo = getAVDecGetInfo();
 	avDecInfo->clear();
@@ -362,6 +362,7 @@ DP_BOOL NodeInfo::initInAVEnc() {
 		updateAVDecGetInfo(avDecInfo);
 		return DP_TRUE;
 	}
+#endif
 #endif
 	return DP_TRUE;
 }
@@ -492,7 +493,7 @@ void NodeInfo::removeCodecTaskID(DP_U32 thirdId) {
 	muduo::MutexLockGuard lock(_mutexForUsedID);
 	switch (taskType) {
 	case _eAudioTask: {
-		LOG_INFO << "_mOutCodecTaskIDBeUsed->operator [](TaskID)in remove  : "
+		LOG_DEBUG << "_mOutCodecTaskIDBeUsed->operator [](TaskID)in remove  : "
 				<< _mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID)
 				<< " size:: " << _mOutCodecTaskIDBeUsed->size()
 				<< " _mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID): "
@@ -513,7 +514,7 @@ void NodeInfo::removeCodecTaskID(DP_U32 thirdId) {
 	}
 		break;
 	case _eVideoTask: {
-		LOG_INFO << "_mOutCodecTaskIDBeUsed->operator [](TaskID)in remove  : "
+		LOG_DEBUG << "_mOutCodecTaskIDBeUsed->operator [](TaskID)in remove  : "
 				<< _mOutCodecTaskIDBeUsed->operator [](_vVideoTaskID)
 				<< " size:: " << _mOutCodecTaskIDBeUsed->size()
 				<< " _mOutCodecTaskIDBeUsed->operator [](_vVideoTaskID): "
@@ -523,17 +524,12 @@ void NodeInfo::removeCodecTaskID(DP_U32 thirdId) {
 		_vAllUseCodecTaskID.erase(
 				find(_vAllUseCodecTaskID.begin(), _vAllUseCodecTaskID.end(),
 						codecID));
-//		LOG_INFO << "_vAllUseCodecTaskIDsize2222: "
-//				<< _vAllUseCodecTaskID.size();
-/////thread safe
-//		_vVideoTaskID.erase(
-//				find(_vVideoTaskID.begin(), _vVideoTaskID.end(), codecID));
 		if (_mOutCodecTaskIDBeUsed->operator [](_vVideoTaskID) > 0)
 			_mOutCodecTaskIDBeUsed->operator [](_vVideoTaskID) -= 1;
 	}
 		break;
 	case _eAudioAndVideoTask: {
-		LOG_INFO << "_mOutCodecTaskIDBeUsed->operator [](TaskID)in remove  : "
+		LOG_DEBUG << "_mOutCodecTaskIDBeUsed->operator [](TaskID)in remove  : "
 				<< _mOutCodecTaskIDBeUsed->operator [](_vAuViTaskID)
 				<< " size:: " << _mOutCodecTaskIDBeUsed->size()
 				<< " _mOutCodecTaskIDBeUsed->operator [](_vAuViTaskID): "
