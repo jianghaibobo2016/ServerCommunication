@@ -8,8 +8,8 @@
 #ifndef SRC_DEVSTATICCONFIGURE_H_
 #define SRC_DEVSTATICCONFIGURE_H_
 
-#include "dp_sd_type.h"
 #include "interactivepro.h"
+#include "dp_sd_type.h"
 //
 #define OutputDevice 1
 #define InputDevice  0
@@ -20,12 +20,17 @@
 #if (InputDevice)
 static const eDeviceType g_DevType = Type_DeviceInput;
 static const DP_CHAR *LogFileName = "/root/APPDIR/InputNodeServer";
+static const DP_CHAR *Welcome = "DSPPA IDMS4K IN";
 #endif
 
 #if (OutputDevice)
 static const eDeviceType g_DevType = Type_DeviceOutput;
 static const DP_CHAR *LogFileName = "/root/APPDIR/OutNodeServer";
+static const DP_CHAR *Welcome = "DSPPA IDMS4K OUT";
 #endif
+
+static const DP_CHAR *Working = "WORKING";
+static const DP_CHAR *Idle = "IDLE";
 
 static const DP_CHAR *MultiCastAddrRECV = "234.0.0.2";
 static const DP_CHAR *MultiCastAddrSEND = "234.0.0.2";
@@ -50,5 +55,9 @@ const int BUFFER_SIZE_PIPESOCKET = 1024 * 1024;
 
 static DP_U8 g_NeedReply = 0x01;
 static DP_U8 g_NoNeedReply = 0x00;
+
+static const DP_CHAR *UpShellRespondTag_1 = "0F1F2F";
+static const DP_CHAR *UpShellRespondTag_3_Success = "00";
+static const DP_CHAR *UpgradeShell = "update.sh";
 
 #endif /* SRC_DEVSTATICCONFIGURE_H_ */

@@ -125,6 +125,7 @@ DP_S32 NodeInfo::sendCodecAVEncDecInfo(T info, DP_U8 isReply,
 	setAVInfo->stInfo = info;
 	buffSend.append(setAVInfo.get(), sizeof(S));
 	DP_S32 ret = 0;
+	LOG_INFO << "Tid : " << muduo::CurrentThread::tid();
 	if (isReply == g_NoNeedReply) {
 		sendToCodecOnly(buffSend.toStringPiece().data(), sizeof(S));
 	} else if (isReply == g_NeedReply) {
@@ -208,11 +209,12 @@ DP_S32 NodeInfo::batchGetAVInfoFromCodec(VecCodecTaskID taskID,
 		} else {
 			LOG_ERROR << "ackBuff->u32Nums != count u32Nums: "
 					<< ackBuff->u32Nums << " count: " << count;
-			// jhbnote todo
+			return DP_ERR_PROTOCOL_CONTENT;
 		}
 	} else {
 		LOG_ERROR << "retResult in batch getting : " << retResult;
-		//jhbnote TODO
+		//jhbnote todo
+		return retResult;
 	}
 	return 0;
 }

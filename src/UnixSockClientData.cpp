@@ -7,6 +7,7 @@
 
 #include <string.h>
 #include <muduo/base/Logging.h>
+#include <errno.h>
 #include "PrintBuff.h"
 #include "UnixSockClientData.h"
 #include "ErrorCode.h"
@@ -135,14 +136,18 @@ int UnixSockClientData::doSendCommand(const void* pData, int len)
 		int ret = connect(sock, (const sockaddr*) &serveraddr,
 				sizeof(serveraddr));
 		if (ret == -1) {
+			LOG_DEBUG << "connect ret == -1 ! errno: " << errno;
 			if (errno == EISCONN) {
 				bConnected = true;
 				break;
 			} else if (errno == EINTR) {
 				continue;
 			} else
-				ThreadUtil::Sleep(5);
+				ThreadUtil::Sleep(100);
+		} else {
+			LOG_DEBUG << "connect ret == : " << ret;
 		}
+		LOG_DEBUG << "errno: " << errno << " str errno: " << strerror(errno);
 	}
 	if (!bConnected) {
 		SocketLayer::CloseSock(sock);
@@ -182,13 +187,14 @@ int UnixSockClientData::doSendCommand(const void* pData, int len)
 		} else if (result > 0) {
 			rbytes = recv(sock, _buffer, BUFFER_SIZE_PIPESOCKET, 0);
 			if (rbytes > 0) {
-
+				LOG_INFO << "recv data : " << rbytes;
 //				cout << "rbytes:: " << rbytes << "buff: " << _buffer << endl;
 				if (_cb) {
 					SocketLayer::CloseSock(sock);
 					return _cb(_buffer, rbytes);
 				}
 				SocketLayer::CloseSock(sock);
+				return 0;
 //				doRecvCommand((void*) buffer, rbytes);
 			} else if (rbytes == 0) {
 				SocketLayer::CloseSock(sock);

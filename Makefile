@@ -17,8 +17,8 @@ DEFS     :=
 EXTRA_CFLAGS := 
 
 INC_DIR   = ./src ./muduo/base ./muduo/net ./muduo/net/poller ./src/util ./src/protocol  ./src/util/Json/ ./src/DPUDrv/DPUDrvLib_1217/DPUDrvLib/
-#INC_DIR   = ./src ./muduo/base ./muduo/net ./muduo/net/poller  ./src/protocol ./src/DPUDrv/DPUDrvLib_1217/DPUDrvLib/
-#SRC_DIR   := ./src ./muduo/base ./muduo/net ./muduo/net/poller 
+#INC_DIR   = ./src  ./src/protocol  
+#SRC_DIR   := ./src  
 SRC_DIR   := ./src ./muduo/base ./muduo/net ./muduo/net/poller ./src/util ./src/util/Json/lib_json
 SRC_D   = ./src
 OBJ_DIR   = ./obj
@@ -109,6 +109,7 @@ $(TARGET): LD = $(if $(strip $(src-cpp) $(src-cc) $(src-cxx)),$(G++),$(GCC))
 $(TARGET): $(all_objs)
 	$(LD) $(LDFLAGS) $(all_objs) -o $@  -lpthread -lrt ./src/DPUDrv/DPUDrvLib_1217/DPUDrvLib/libDPUDriver.a
 endif
+	arm-hisiv400-linux-strip ./bin/ServerCommunication
 
 .mkdir:
 	@if [ ! -d $(OBJ_DIR) ]; then mkdir -p $(OBJ_DIR); fi

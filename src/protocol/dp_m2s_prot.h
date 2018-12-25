@@ -45,7 +45,7 @@
 #define DP_M2S_INF_PROT_VERSION			"02.10"
 #define DP_M2S_INF_PROT_VERSION_LEN		5
 /* 协议通信接口定义 */
-#define DP_M2S_INF_PROT_UNIX_FIFO		"/tmp/UNIX_AV2APP"
+#define DP_M2S_INF_PROT_UNIX_FIFO		"/root/APPDIR/M2SFifo/UNIX_AV2APP"
 /* 协议固定包头标识 */
 #define DP_M2S_INF_PROT_PKT_HEAD		0xF3F4
 /* 协议固定包头长度 */

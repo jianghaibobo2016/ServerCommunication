@@ -46,9 +46,14 @@ public:
 			std::string data);
 	void setAudioInfo(const muduo::net::TcpConnectionPtr connPtr,
 			std::string data);
-
 	void OpenWinsBatch(const muduo::net::TcpConnectionPtr connPtr,
 			std::string data);
+	void openAndMoveWindow(const muduo::net::TcpConnectionPtr connPtr,
+			std::string data);
+
+	//
+	void updateBatch(const muduo::net::TcpConnectionPtr connPtr,
+				std::string data);
 
 private:
 

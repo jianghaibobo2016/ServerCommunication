@@ -115,6 +115,16 @@ void ServerHandle::onMessage(const TcpConnectionPtr &connPtr, Buffer *buff,
 				boost::bind(&LogicHandle::clearAllTask, &logicHandle, connPtr,
 						data));
 		break;
+	case _eOpenAndMoveWindow:
+		_threadPool.run(
+				boost::bind(&LogicHandle::openAndMoveWindow, &logicHandle, connPtr,
+						data));
+		break;
+	case _eUpdateBatch:
+		_threadPool.run(
+				boost::bind(&LogicHandle::updateBatch, &logicHandle, connPtr,
+						data));
+		break;
 	default:
 		break;
 	}

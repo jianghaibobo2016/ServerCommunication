@@ -341,7 +341,9 @@ typedef enum _eRemoteCommand {
 	Command_CloseAudio,
 	Command_SetAudio,
 	Command_ClearTask = 0x0b,
-	Command_UnicastSearch = 0XF1 //20181203 add
+	Command_UnicastSearch = 0XF1, //20181203 add
+	Command_OpenAndMoveWindow = 0XF2, //20181220 add
+	Command_UpdateBatch = 0XFA //20181224 add
 } eRemoteCommand;
 
 //设备属性值 @see Property_Get_InputVideoChnInfo
@@ -511,7 +513,6 @@ typedef struct _s_AVServer_Header_tag {
 	DP_U32 u32SrcIP;			   ///<源IP地址，小端模式数据
 	DP_U16 u8DeviceType;			   ///<源设备类型
 	DP_U16 u16Version;			   ///<协议版本号
-	//jhbnote
 	DP_U32 u32RequestID;		   ///<命令请求ID，自增字段
 	DP_U8 u8PackageType;		   ///<0:request data 1:reply data
 	DP_U16 u16PackageLen;		   ///<数据包长，是指该协议包长度
@@ -883,7 +884,7 @@ typedef struct _sRemote_JsonGetInfo_tag {
 	_sRemote_Header header;
 	DP_U8 au8KeyCount;
 //	DP_U8* pau8Key[64]; //每一个键大小
-#pragma region key
+//#pragma region key
 	//##本机信息
 	//设备id
 	//设备类型
@@ -926,7 +927,7 @@ typedef struct _sRemote_JsonGetInfo_tag {
 	//视音频通道2音频详情
 	//纯音频通道1音频详情
 	//纯音频通道2音频详情
-#pragma endregion key
+//#pragma endregion key
 } sRemote_JsonGetInfo_tag;
 
 typedef struct _sRemote_Reply_JsonGetInfo_tag {
@@ -941,7 +942,7 @@ typedef struct _sRemote_JsonSetInfo_tag {
 	_sRemote_Header header;
 	DP_U8 au8KeyCount;
 //	DP_U8* pau8Key[64]; //每一个键大小
-#pragma region key
+//#pragma region key
 	//###基本信息
 	//运行模式
 	//ip信息
@@ -955,7 +956,7 @@ typedef struct _sRemote_JsonSetInfo_tag {
 
 	//###输出节点
 	//视频显示时序
-#pragma endregion key
+//#pragma endregion key
 //	DP_U8* pu8JsonString;	//所有的json字符串
 } sRemote_JsonSetInfo_tag;
 
@@ -965,6 +966,39 @@ typedef struct _sRemote_Reply_JsonSetInfo_tag {
 //	DP_U8* pau8Key[64];
 //	DP_U8* pau8Result;
 } sRemote_Reply_JsonSetInfo_tag;
+
+//Command_OpenAndMoveWindow
+typedef struct _OpenAndMoveWindow_S {
+	_sRemote_Header header;  // sizeof 20
+	DP_U32 u32TaskID; ///<见任务ID注释
+
+	DP_U8 au8RtspURL[DP_URL_LEN]; ///< 第三方标准RTSP
+	DP_U8 u8AudioIn;  				/// is contain audio or not  // 281byte
+
+	//输出节点信息
+	//视频信息
+	DP_U8 au8DstDevID[DP_DEV_ID_LEN]; ///<输出节点ID
+	DP_U8 u8VoChnID;				  ///<显示通道ID \a eDeviceVideoChannelID
+	_sSrcVideoInfo srcVideoInfo;///<视频源信息，如果输入信息为第三方标准RTSP，则此数据结构无效\a _sSrcVideoInfo
+	_sDstVideoInfo dstVideoInfo;	  ///<显示目标信息 \a _sDstVideoInfo
+	_sPhyScreenInfo phyScreenInfo;	///<物理屏幕，用于视频像素对齐，暂时保留 //add 2018.10.22
+} OpenAndMoveWindow_S;
+
+//use to update batch
+typedef struct _UpdateInfo_S {
+	_sRemote_Header header;
+	DP_U32 u32SrcIP;  //for tftp
+} UpdateInfo_S;
+
+typedef struct _UpdateStatus_S {
+	_UpdateStatus_S() :
+			_success(0) {
+		header.stFunctionMsg.u8CommandID = Command_UpdateBatch;
+		header.u16PackageLen = sizeof(_UpdateStatus_S);
+	}
+	_sRemote_Header header;
+	DP_U32 _success;  //for tftp
+} UpdateStatus_S;
 
 #pragma pack()
 

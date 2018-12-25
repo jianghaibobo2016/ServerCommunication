@@ -47,6 +47,10 @@ _E_RemoteCMD DataPackageParser::parserDataPackage(std::string data) {
 		return _eClearTask;
 	case Command_UnicastSearch:
 		return _eUnicastSearch;
+	case Command_OpenAndMoveWindow:
+		return _eOpenAndMoveWindow;
+	case Command_UpdateBatch:
+		return _eUpdateBatch;
 	}
 
 	return _eButt;

@@ -36,6 +36,8 @@ typedef enum _E_RemoteCMD_ {
 	_eSetAudio,
 	_eClearTask = 0x0b,
 	_eUnicastSearch = 0xf1,
+	_eOpenAndMoveWindow = 0xf2,
+	_eUpdateBatch = 0xfa,
 	_eButt
 } _E_RemoteCMD;
 

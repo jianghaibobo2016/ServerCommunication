@@ -5,7 +5,6 @@
  *  Created on: Oct 15, 2018
  *      Author: jhb
  */
-
 #include <muduo/net/EventLoopThread.h>
 #include <muduo/net/EventLoop.h>
 #include <muduo/base/Thread.h>
@@ -20,11 +19,17 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <BuildTime.h>
+
 #include "ServerHandle.h"
 #include "UDPServerHandle.h"
 #include "NodeInfo.h"
 #include "GlobalProfile.h"
 #include "CtrlBoardHandle.h"
+
+//led & lcd
+#include "dp_udrv_led.h"
+#include "dp_udrv_lcd.h"
+
 //#include "testhead.h"
 
 using namespace muduo;
@@ -79,6 +84,7 @@ void signalHandle() {
 }
 
 int main() {
+
 	//logging setting
 	g_logFile.reset(new muduo::LogFile(LogFileName, g_LogFileMaxSize));
 	muduo::Logger::setOutput(outputFunc);
@@ -97,10 +103,58 @@ int main() {
 	muduo::Singleton<NodeInfo>::instance();
 	GlobalProfile::getInstance();
 
+#if 1
+	DP_UDRV_LCD_Init();
+	const DP_CHAR *ip =
+			muduo::Singleton<NodeInfo>::instance().getNetInfo().getNetConfStruct().ipAddr.c_str();
+//	DP_UDRV_LCD_SetBackLight(1);
+
+	DP_UDRV_LCD_ShowString(0, 0, Welcome, strlen(Welcome));
+	DP_UDRV_LCD_ShowString(0, 1, ip, strlen(ip));
+	DP_UDRV_LCD_ShowString(0, 2, Working, strlen(Working));
+
+//	DP_S32 DP_UDRV_LCD_DeInit();
+//	return 0;
+
+#endif
+
+#if 1 // led
+	DP_UDRV_LED_Init();
+//
+//	LOG_INFO<<"close all ";
+//	DP_UDRV_LED_SetValue(DP_UDRV_LED_ALL, 0);
+//	sleep(2);
+//	LOG_INFO<<"open all ";
+//	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX0, 1);
+//	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX1, 1);
+//	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX2, 1);
+//	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX3, 1);
+//	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX4, 1);
+//	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX5, 1);
+//
+//	sleep(2);
+//	LOG_INFO<<"close all ";
+//	DP_UDRV_LED_SetValue(DP_UDRV_LED_ALL, 0);
+//	sleep(2);
+//	LOG_INFO<<"open all ";
+//	DP_UDRV_LED_SetValue(DP_UDRV_LED_ALL, 1);
+
+//	sleep(2);
+//	LOG_INFO<<"close all ";
+//	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX0, 0);
+//	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX1, 0);
+//	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX2, 0);
+//	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX3, 0);
+//	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX4, 0);
+//	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX5, 0);
+//
+//	return 0;
+#endif
+
 	EventLoop loop; // one loop shared by multiple servers
 	ServerHandle tcpServer(&loop, InetAddress(5010));
 	tcpServer.startServerHandle(1);
-	tcpServer.startHandle(10, 3);
+	tcpServer.startHandle(10, 5);
 
 	EventLoopThread UDPServer;
 	UDPServerHandle udpServer(UDPServer.startLoop());
