@@ -138,6 +138,7 @@ int UnixSockClientData::doSendCommand(const void* pData, int len)
 		if (ret == -1) {
 			LOG_DEBUG << "connect ret == -1 ! errno: " << errno;
 			if (errno == EISCONN) {
+				LOG_DEBUG << "connected!";
 				bConnected = true;
 				break;
 			} else if (errno == EINTR) {
@@ -161,6 +162,7 @@ int UnixSockClientData::doSendCommand(const void* pData, int len)
 		return DP_ERR_COMMUNICATE_SEND;
 //		throw SystemException(__FILE__, __FUNCTION__, __LINE__);
 	}
+	LOG_DEBUG << "wbytes: " << wbytes;
 	muduo::PrintBuff::printBufferByHex("send to fifo : ", pData, wbytes);
 	if (wbytes != len) {
 		SocketLayer::CloseSock(sock);

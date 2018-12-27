@@ -18,14 +18,16 @@
 //#define InputDevice  1
 
 #if (InputDevice)
+static const DP_CHAR *SoftVersion = "V0.0.0.1";
 static const eDeviceType g_DevType = Type_DeviceInput;
-static const DP_CHAR *LogFileName = "/root/APPDIR/InputNodeServer";
+static const DP_CHAR *LogFileName = "/root/APPDIR/Server/In/InputNodeServer";
 static const DP_CHAR *Welcome = "DSPPA IDMS4K IN";
 #endif
 
 #if (OutputDevice)
+static const DP_CHAR *SoftVersion = "V0.0.0.1";
 static const eDeviceType g_DevType = Type_DeviceOutput;
-static const DP_CHAR *LogFileName = "/root/APPDIR/OutNodeServer";
+static const DP_CHAR *LogFileName = "/root/APPDIR/Server/Out/OutNodeServer";
 static const DP_CHAR *Welcome = "DSPPA IDMS4K OUT";
 #endif
 
@@ -58,6 +60,7 @@ static DP_U8 g_NoNeedReply = 0x00;
 
 static const DP_CHAR *UpShellRespondTag_1 = "0F1F2F";
 static const DP_CHAR *UpShellRespondTag_3_Success = "00";
+static const DP_CHAR *UpShellRespondTag_4_Fail = "01";
 static const DP_CHAR *UpgradeShell = "update.sh";
 
 #endif /* SRC_DEVSTATICCONFIGURE_H_ */

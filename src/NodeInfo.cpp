@@ -522,11 +522,16 @@ void NodeInfo::removeCodecTaskID(DP_U32 thirdId) {
 		}
 		DP_U32 codecID = _mOutThirdCodecTaskID->operator [](thirdId);
 		_mOutThirdCodecTaskID->erase(thirdId);
-		_vAllUseCodecTaskID.erase(
-				find(_vAllUseCodecTaskID.begin(), _vAllUseCodecTaskID.end(),
-						codecID));
-		if (_mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID) > 0)
-			_mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID) -= 1;
+		VctrAllUsedCodecTaskID::iterator itUsedID = find(
+				_vAllUseCodecTaskID.begin(), _vAllUseCodecTaskID.end(),
+				codecID);
+		if (itUsedID != _vAllUseCodecTaskID.end()) {
+			_vAllUseCodecTaskID.erase(itUsedID);
+			if (_mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID) > 0) {
+				_mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID) -= 1;
+			} else {
+			}
+		}
 	}
 		break;
 	case _eVideoTask: {
@@ -569,7 +574,7 @@ void NodeInfo::removeCodecTaskID(DP_U32 thirdId) {
 }
 
 void NodeInfo::updateThirdTaskIDCodecTaskid(DP_U32 thirdId, DP_S32 codecID) {
-	LOG_INFO << "Update third task id :" << thirdId;
+	LOG_INFO << "Update third task id :" << thirdId << " codecID: " << codecID;
 	MapOutThirdCodecTaskIDPtr thirdCodecID = getOutThirdCodecTaskID();
 	NodeInfo::MapOutThirdCodecTaskID::iterator it_ID;
 	it_ID = std::find_if(thirdCodecID->begin(), thirdCodecID->end(),
@@ -578,11 +583,15 @@ void NodeInfo::updateThirdTaskIDCodecTaskid(DP_U32 thirdId, DP_S32 codecID) {
 		thirdCodecID->erase(it_ID);
 		thirdCodecID->insert(
 				MapOutThirdCodecTaskID::value_type(thirdId, codecID));
-		updateMapOutThirdCodecTaskID(thirdCodecID);
+//		updateMapOutThirdCodecTaskID(thirdCodecID);
 	} else {
+		thirdCodecID->insert(
+				MapOutThirdCodecTaskID::value_type(thirdId, codecID));
 		LOG_ERROR << "Can not find third task id : " << thirdId;
-		return;
+//		return;
 	}
+	updateMapOutThirdCodecTaskID(thirdCodecID);
+	return;
 }
 
 DP_U32 NodeInfo::setServerTaskID(DP_U32 taskID) {

@@ -13,9 +13,10 @@
 #include <muduo/base/Timestamp.h>
 #include <muduo/base/Condition.h>
 #include <muduo/net/TcpConnection.h>
+#include <muduo/base/CountDownLatch.h>
 //#include <boost/noncopyable.hpp>
 #include <map>
-
+#include <pthread.h>
 #include "NodeInfo.h"
 #include "dp_m2s_prot.h"
 //#include "NodeInfo.h"
@@ -53,15 +54,44 @@ public:
 
 	//
 	void updateBatch(const muduo::net::TcpConnectionPtr connPtr,
-				std::string data);
+			std::string data);
 
 private:
+	inline DP_BOOL getIsClearTask() {
 
-	void Get_InputVideoChnInfo(const muduo::net::TcpConnectionPtr connPtr);
-	void Get_VideoChnVencInfo(const muduo::net::TcpConnectionPtr connPtr);
-	void Get_InputAudioChnInfo(const muduo::net::TcpConnectionPtr connPtr);
-	void Get_OutputAudioChnInfo(const muduo::net::TcpConnectionPtr connPtr);
-	void Get_OutputVideoChnInfo(const muduo::net::TcpConnectionPtr connPtr);
+//		int ret=pthread_mutex_lock(&_mutex);
+//		std::cout<<"rett999999999999999999999999999999: "<<ret<<std::endl;
+//		Mutex.lock();
+//		LOG_ERROR << "11111";
+//		printf("mu1111: %p,this :%p \n", &Mutex, &*this);
+		muduo::MutexLockGuard lock(Mutex);
+		return _isClearTasking;
+	}
+
+	inline void updateIsClearTask(DP_BOOL newData) {
+		muduo::MutexLockGuard lock(Mutex);
+		_isClearTasking = newData;
+	}
+
+private:
+	muduo::MutexLock Mutex;
+//	pthread_mutex_t _mutex;
+	DP_BOOL _isClearTasking;
+
+	typedef boost::shared_ptr<muduo::CountDownLatch> CountDownLatchPtr;
+
+	CountDownLatchPtr _latch;
+
+	void Get_InputVideoChnInfo(const muduo::net::TcpConnectionPtr connPtr,
+			DP_U32 requestID);
+	void Get_VideoChnVencInfo(const muduo::net::TcpConnectionPtr connPtr,
+			DP_U32 requestID);
+	void Get_InputAudioChnInfo(const muduo::net::TcpConnectionPtr connPtr,
+			DP_U32 requestID);
+	void Get_OutputAudioChnInfo(const muduo::net::TcpConnectionPtr connPtr,
+			DP_U32 requestID);
+	void Get_OutputVideoChnInfo(const muduo::net::TcpConnectionPtr connPtr,
+			DP_U32 requestID);
 
 	DP_S32 getNewCodecTaskID(DP_U32 thirdTaskID, TaskObjectType_E type);
 

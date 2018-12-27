@@ -520,7 +520,8 @@ typedef struct _s_AVServer_Header_tag {
 								   //DP_U8* u8FunctionData;
 } _s_AVServer_Header;
 
-typedef _s_AVServer_Header _sRemote_Header; ///<定义_sRemote_Header类型，协议头
+typedef _s_AVServer_Header _sRemote_Header; ///<定义_sRemote_Header类型，协议头 20B
+
 
 /// @defgroup 控制软件与输入输出节点的协议
 /// @{

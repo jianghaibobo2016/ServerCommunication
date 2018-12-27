@@ -9,6 +9,7 @@
 #define SRC_PRINTBUFF_H_
 
 #include <stdio.h>
+#include <sys/time.h>
 #include "dp_sd_type.h"
 
 namespace muduo {
@@ -16,6 +17,9 @@ class PrintBuff {
 public:
 	void static printBufferByHex(const DP_CHAR *note, const void *buff,
 			DP_U32 len) {
+		struct timeval tv;
+		gettimeofday(&tv, NULL);
+//		printf("%s, sec: %d, us: %d\n", note, tv.tv_sec, tv.tv_usec);
 		printf("%s\n", note);
 		DP_S32 iPos = 0;
 		for (DP_U32 iPos = 0; iPos < len; iPos++) {

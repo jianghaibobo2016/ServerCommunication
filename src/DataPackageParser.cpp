@@ -20,10 +20,12 @@ DataPackageParser::~DataPackageParser() {
 
 _E_RemoteCMD DataPackageParser::parserDataPackage(std::string data) {
 	boost::shared_ptr<_S_DataHeadInfo> dataHeadInfo(new _S_DataHeadInfo);
+	LOG_DEBUG<<"seg test 3";
 	if (!parserDataHead(dataHeadInfo.get(), data)) {
 		LOG_TRACE << "Unvalid package .";
 		return _eButt;
 	}
+	LOG_DEBUG<<"seg test 4";
 	switch (dataHeadInfo->u8CommandID) {
 	case Command_MulticastSearch:
 		return _eSearch;
@@ -52,7 +54,7 @@ _E_RemoteCMD DataPackageParser::parserDataPackage(std::string data) {
 	case Command_UpdateBatch:
 		return _eUpdateBatch;
 	}
-
+	LOG_DEBUG<<"seg test 5";
 	return _eButt;
 }
 

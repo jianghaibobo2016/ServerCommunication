@@ -8,8 +8,13 @@
 
 #include <muduo/base/CurrentThread.h>
 #include <boost/noncopyable.hpp>
+#include <muduo/base/Logging.h>
 #include <assert.h>
 #include <pthread.h>
+
+#include <iostream>
+#include <errno.h>
+#include <string.h>
 
 // Thread safety annotations {
 // https://clang.llvm.org/docs/ThreadSafetyAnalysis.html
@@ -86,10 +91,10 @@
 #ifdef NDEBUG
 __BEGIN_DECLS
 extern void __assert_perror_fail (int errnum,
-                                  const char *file,
-                                  unsigned int line,
-                                  const char *function)
-    __THROW __attribute__ ((__noreturn__));
+		const char *file,
+		unsigned int line,
+		const char *function)
+__THROW __attribute__ ((__noreturn__));
 __END_DECLS
 #endif
 
@@ -104,8 +109,7 @@ __END_DECLS
 
 #endif // CHECK_PTHREAD_RETURN_VALUE
 
-namespace muduo
-{
+namespace muduo {
 
 // Use as data member of a class, eg.
 //
@@ -118,84 +122,81 @@ namespace muduo
 //   mutable MutexLock mutex_;
 //   std::vector<int> data_ GUARDED_BY(mutex_);
 // };
-class CAPABILITY("mutex") MutexLock : boost::noncopyable
-{
- public:
-  MutexLock()
-    : holder_(0)
-  {
-    MCHECK(pthread_mutex_init(&mutex_, NULL));
-  }
+class CAPABILITY("mutex") MutexLock: boost::noncopyable {
+public:
+	MutexLock() :
+			holder_(0) {
+		MCHECK(pthread_mutex_init(&mutex_, NULL));
+	}
 
-  ~MutexLock()
-  {
-    assert(holder_ == 0);
-    MCHECK(pthread_mutex_destroy(&mutex_));
-  }
+	~MutexLock() {
+		assert(holder_ == 0);
+		MCHECK(pthread_mutex_destroy(&mutex_));
+	}
 
-  // must be called when locked, i.e. for assertion
-  bool isLockedByThisThread() const
-  {
-    return holder_ == CurrentThread::tid();
-  }
+	// must be called when locked, i.e. for assertion
+	bool isLockedByThisThread() const {
+		return holder_ == CurrentThread::tid();
+	}
 
-  void assertLocked() const ASSERT_CAPABILITY(this)
-  {
-    assert(isLockedByThisThread());
-  }
+	void assertLocked() const ASSERT_CAPABILITY(this)
+	{
+		assert(isLockedByThisThread());
+	}
 
-  // internal usage
+	// internal usage
 
-  void lock() ACQUIRE()
-  {
+	void lock() ACQUIRE()
+	{
     MCHECK(pthread_mutex_lock(&mutex_));
-    assignHolder();
-  }
+//		pthread_mutex_init(&mutex_,NULL);
+//		LOG_ERROR << "1222222222222";
 
-  void unlock() RELEASE()
-  {
-    unassignHolder();
-    MCHECK(pthread_mutex_unlock(&mutex_));
-  }
+//		int ret = pthread_mutex_lock(&mutex_);
+//		std::cout << "rettttttttttttttttttttttttt: " << ret << " " << errno
+//				<< " str: " << strerror(errno) << std::endl;
+		assignHolder();
+	}
 
-  pthread_mutex_t* getPthreadMutex() /* non-const */
-  {
-    return &mutex_;
-  }
+	void unlock() RELEASE()
+	{
+		unassignHolder();
+		MCHECK(pthread_mutex_unlock(&mutex_));
+	}
 
- private:
-  friend class Condition;
+	pthread_mutex_t* getPthreadMutex() /* non-const */
+	{
+		return &mutex_;
+	}
 
-  class UnassignGuard : boost::noncopyable
-  {
-   public:
-    UnassignGuard(MutexLock& owner)
-      : owner_(owner)
-    {
-      owner_.unassignHolder();
-    }
+private:
+	friend class Condition;
 
-    ~UnassignGuard()
-    {
-      owner_.assignHolder();
-    }
+	class UnassignGuard: boost::noncopyable {
+	public:
+		UnassignGuard(MutexLock& owner) :
+				owner_(owner) {
+			owner_.unassignHolder();
+		}
 
-   private:
-    MutexLock& owner_;
-  };
+		~UnassignGuard() {
+			owner_.assignHolder();
+		}
 
-  void unassignHolder()
-  {
-    holder_ = 0;
-  }
+	private:
+		MutexLock& owner_;
+	};
 
-  void assignHolder()
-  {
-    holder_ = CurrentThread::tid();
-  }
+	void unassignHolder() {
+		holder_ = 0;
+	}
 
-  pthread_mutex_t mutex_;
-  pid_t holder_;
+	void assignHolder() {
+		holder_ = CurrentThread::tid();
+	}
+
+	pthread_mutex_t mutex_;
+	pid_t holder_;
 };
 
 // Use as a stack variable, eg.
@@ -204,23 +205,23 @@ class CAPABILITY("mutex") MutexLock : boost::noncopyable
 //   MutexLockGuard lock(mutex_);
 //   return data_.size();
 // }
-class SCOPED_CAPABILITY MutexLockGuard : boost::noncopyable
-{
- public:
-  explicit MutexLockGuard(MutexLock& mutex) ACQUIRE(mutex)
-    : mutex_(mutex)
-  {
-    mutex_.lock();
-  }
+class SCOPED_CAPABILITY MutexLockGuard: boost::noncopyable {
+public:
+	explicit MutexLockGuard(MutexLock& mutex) ACQUIRE(mutex)
+	: mutex_(mutex)
+	{
+		printf("mu: %p,_mu: %p\n",&mutex,&mutex_);
+		mutex_.lock();
+	}
 
-  ~MutexLockGuard() RELEASE()
-  {
-    mutex_.unlock();
-  }
+	~MutexLockGuard() RELEASE()
+	{
+		mutex_.unlock();
+	}
 
- private:
+private:
 
-  MutexLock& mutex_;
+	MutexLock& mutex_;
 };
 
 }

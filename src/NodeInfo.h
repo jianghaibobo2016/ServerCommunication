@@ -173,15 +173,19 @@ public:
 		return _mAuViTaskID;
 	}
 	inline const DP_U32 getCodecTaskIDCount() {
+		muduo::MutexLockGuard lock(_mutex);
 		return _allCodecTaskIDCount;
 	}
 	inline const VctrWindowPriorityPtr getVctrWindowPriority() {
+		muduo::MutexLockGuard lock(_mutex);
 		return _vWindowPriority;
 	}
 	inline const SetNetwork getNetInfo() {
+		muduo::MutexLockGuard lock(_mutex);
 		return _netInfo;
 	}
 	inline const DP_BOOL getCodecInited() {
+		muduo::MutexLockGuard lock(_mutex);
 		return _bCodecInited;
 	}
 	//----------------------------get --------------------------//

@@ -84,13 +84,13 @@ void signalHandle() {
 }
 
 int main() {
-
 	//logging setting
 	g_logFile.reset(new muduo::LogFile(LogFileName, g_LogFileMaxSize));
 	muduo::Logger::setOutput(outputFunc);
 	muduo::Logger::setFlush(flushFunc);
 	muduo::Logger::setLogLevel(muduo::Logger::TRACE);
 	LOG_TRACE << "Build time : " << BuildTime;
+	LOG_TRACE << "Software Version : " << SoftVersion;
 	LOG_TRACE
 			<< "===========ServerCommunication program starting !==============";
 	muduo::Logger::setLogLevel(muduo::Logger::DEBUG);
@@ -110,7 +110,7 @@ int main() {
 //	DP_UDRV_LCD_SetBackLight(1);
 
 	DP_UDRV_LCD_ShowString(0, 0, Welcome, strlen(Welcome));
-	DP_UDRV_LCD_ShowString(0, 1, ip, strlen(ip));
+	DP_UDRV_LCD_ShowString(0, 1, ip, strlen(ip)); // jhbnote add ETH0/1
 	DP_UDRV_LCD_ShowString(0, 2, Working, strlen(Working));
 
 //	DP_S32 DP_UDRV_LCD_DeInit();
@@ -154,7 +154,7 @@ int main() {
 	EventLoop loop; // one loop shared by multiple servers
 	ServerHandle tcpServer(&loop, InetAddress(5010));
 	tcpServer.startServerHandle(1);
-	tcpServer.startHandle(10, 5);
+	tcpServer.startHandle(5, 5);
 
 	EventLoopThread UDPServer;
 	UDPServerHandle udpServer(UDPServer.startLoop());
