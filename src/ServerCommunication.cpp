@@ -25,6 +25,8 @@
 #include "NodeInfo.h"
 #include "GlobalProfile.h"
 #include "CtrlBoardHandle.h"
+#include "LogicHandle.h"
+#include "TaskRestore.h"
 
 //led & lcd
 #include "dp_udrv_led.h"
@@ -75,6 +77,7 @@ void signalCB(int sig) {
 }
 
 void signalHandle() {
+	//jhbnote deinit free
 	signal(SIGPIPE, SIG_IGN);
 	signal(SIGSEGV, signalCB);
 	signal(SIGINT, signalCB);
@@ -100,10 +103,13 @@ int main() {
 #if 1
 	signalHandle();
 	//init
+	sleep(2);
 	muduo::Singleton<NodeInfo>::instance();
+	muduo::Singleton<LogicHandle>::instance();
 	GlobalProfile::getInstance();
+	muduo::Singleton<TaskRestore>::instance().startRunning(15, 1);
 
-#if 1
+#if 0
 	DP_UDRV_LCD_Init();
 	const DP_CHAR *ip =
 			muduo::Singleton<NodeInfo>::instance().getNetInfo().getNetConfStruct().ipAddr.c_str();
@@ -118,7 +124,7 @@ int main() {
 
 #endif
 
-#if 1 // led
+#if 0 // led
 	DP_UDRV_LED_Init();
 //
 //	LOG_INFO<<"close all ";
@@ -151,10 +157,16 @@ int main() {
 //	return 0;
 #endif
 
+//	std::cout << "00000000000000000000" << std::endl;
+//	OpenAndMoveWindow_S winData;
+//	muduo::Singleton<TaskRestore>::instance().setDataToJson(winData );
+//	std::cout << "777777777777" << std::endl;
+
 	EventLoop loop; // one loop shared by multiple servers
 	ServerHandle tcpServer(&loop, InetAddress(5010));
-	tcpServer.startServerHandle(1);
-	tcpServer.startHandle(5, 5);
+	tcpServer.startServerHandle(5);
+	//jhbnote one thread try?
+	tcpServer.startHandle(20, 3);
 
 	EventLoopThread UDPServer;
 	UDPServerHandle udpServer(UDPServer.startLoop());

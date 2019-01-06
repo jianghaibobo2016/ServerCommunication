@@ -22,13 +22,15 @@ static const DP_CHAR *SoftVersion = "V0.0.0.1";
 static const eDeviceType g_DevType = Type_DeviceInput;
 static const DP_CHAR *LogFileName = "/root/APPDIR/Server/In/InputNodeServer";
 static const DP_CHAR *Welcome = "DSPPA IDMS4K IN";
+static const DP_BOOL RecoverTask = DP_TRUE;
 #endif
 
 #if (OutputDevice)
-static const DP_CHAR *SoftVersion = "V0.0.0.1";
+static const DP_CHAR *SoftVersion = "V0.0.0.10";
 static const eDeviceType g_DevType = Type_DeviceOutput;
 static const DP_CHAR *LogFileName = "/root/APPDIR/Server/Out/OutNodeServer";
 static const DP_CHAR *Welcome = "DSPPA IDMS4K OUT";
+static const DP_BOOL RecoverTask = DP_TRUE;
 #endif
 
 static const DP_CHAR *Working = "WORKING";

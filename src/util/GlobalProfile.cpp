@@ -8,7 +8,9 @@
 #include <muduo/base/Logging.h>
 #include <muduo/base/Singleton.h>
 #include "GlobalProfile.h"
-#include "NodeInfo.h"
+#include "SetNetwork.h"
+#include "DevStaticConfigure.h"
+
 #if 1
 
 //namespace DSPPAUtil{
@@ -956,8 +958,10 @@ void GlobalProfile::loadFromXML() {
 	m_stDevBaseInfo.u16DevNum = profile->getUShort("BaseInfo", "u16DevNum",
 			0xFFFF);
 	//注意'/0'
-	const char *localIP =
-			muduo::Singleton<NodeInfo>::instance().getNetInfo().getNetConfStruct().ipAddr.c_str();
+	SetNetwork _netInfo;
+	_netInfo.setIfname(g_IFNAMEDEV);
+	_netInfo.getNetworkConfig();
+	const char *localIP = _netInfo.getNetConfStruct().ipAddr.c_str();
 	strcpy((char*) m_stDevBaseInfo.au8DevName,
 			profile->getString("BaseInfo", "au8DevName", localIP).c_str());
 	strcpy((char*) m_stDevBaseInfo.au8DevID,

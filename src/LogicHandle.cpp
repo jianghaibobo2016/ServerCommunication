@@ -23,6 +23,7 @@
 #include "UnixSockClientData.h"
 #include "LocalInfo.h"
 #include "PrintBuff.h"
+#include "TaskRestore.h"
 
 //jhbnote deinit when codec return not init error.
 int print_avenc_attr(DP_M2S_AVENC_INFO_S data);
@@ -30,7 +31,8 @@ int print_avenc_attr(DP_M2S_AVENC_INFO_S data);
 //muduo::MutexLock LogicHandle::Mutex;
 
 LogicHandle::LogicHandle() :
-		/*Mutex(),*/ _isClearTasking(DP_FALSE), _latch(new muduo::CountDownLatch(0)) {
+		Mutex(), _mutex(), _isClearTasking(DP_FALSE), _latch(
+				new muduo::CountDownLatch(0)) {
 //	_mutex=PTHREAD_MUTEX_INITIALIZER;
 }
 
@@ -286,7 +288,11 @@ void LogicHandle::createWindow(const muduo::net::TcpConnectionPtr connPtr,
 
 void LogicHandle::openAndMoveWindow(const muduo::net::TcpConnectionPtr connPtr,
 		std::string data) {
-	_sRemote_CreateWindow *winData = (_sRemote_CreateWindow*) data.c_str();
+	OpenAndMoveWindow_S *winData = (OpenAndMoveWindow_S*) data.c_str();
+
+//	std::cout << "00000000000000000000" << std::endl;
+//	muduo::Singleton<TaskRestore>::instance().setDataToJson(*winData );
+//	std::cout << "777777777777" << std::endl;
 
 	if (getIsClearTask()) {
 		LOG_DEBUG << "Clear task ing. Latch has reset 1 and wait ! "
@@ -469,13 +475,15 @@ void LogicHandle::openAndMoveWindow(const muduo::net::TcpConnectionPtr connPtr,
 
 		///priority
 		DP_U32 originPriority = 0;
-		NodeInfo::VctrWindowPriorityPtr winPriority;
 		DP_U32 newPriority = 0;
+		NodeInfo::VctrWindowPriorityPtr winPriority;
+		winPriority =
+				muduo::Singleton<NodeInfo>::instance().getVctrWindowPriority();
+		LOG_DEBUG << "winPriority size(1): " << winPriority->size();
 		if (openCMD) {
 //			muduo::MutexLockGuard lock(_mutex);
 			//priority handle
-			winPriority =
-					muduo::Singleton<NodeInfo>::instance().getVctrWindowPriority();
+
 //			DP_U32 newPriority = 0;
 			if (!winPriority->empty()) {
 				newPriority = winPriority->back() + 1;
@@ -483,12 +491,9 @@ void LogicHandle::openAndMoveWindow(const muduo::net::TcpConnectionPtr connPtr,
 			winPriority->push_back(newPriority);
 			//		}
 			sort(winPriority->begin(), winPriority->end());
-//			for (NodeInfo::VctrWindowPriority::iterator itP =
-//					winPriority->begin(); itP != winPriority->end(); itP++)
-//				LOG_INFO << "New win priority: " << *itP;
 
-			muduo::Singleton<NodeInfo>::instance().updateVctrWindowPriority(
-					winPriority);
+//			muduo::Singleton<NodeInfo>::instance().updateVctrWindowPriority(
+//					winPriority);
 			it->stVdec.stSwms.u32Priority = newPriority;
 //			LOG_INFO << "Priority current create win task : " << newPriority;
 		} else {
@@ -496,8 +501,6 @@ void LogicHandle::openAndMoveWindow(const muduo::net::TcpConnectionPtr connPtr,
 			//priority
 			originPriority = it->stVdec.stSwms.u32Priority;
 //			LOG_INFO << "priority current move task : " << originPriority;
-			winPriority =
-					muduo::Singleton<NodeInfo>::instance().getVctrWindowPriority();
 
 			if (!winPriority->empty()) {
 				it->stVdec.stSwms.u32Priority = winPriority->back();
@@ -508,6 +511,7 @@ void LogicHandle::openAndMoveWindow(const muduo::net::TcpConnectionPtr connPtr,
 
 		}
 		if (openCMD) {
+			LOG_DEBUG << "winPriority size(1): " << winPriority->size();
 			for (NodeInfo::VctrWindowPriority::iterator itP =
 					winPriority->begin(); itP != winPriority->end(); itP++)
 				LOG_INFO << "New win priority: " << *itP;
@@ -515,25 +519,6 @@ void LogicHandle::openAndMoveWindow(const muduo::net::TcpConnectionPtr connPtr,
 		} else {
 			LOG_INFO << "priority current move task : " << originPriority;
 		}
-
-//		//priority handle
-//		NodeInfo::VctrWindowPriorityPtr winPriority =
-//				muduo::Singleton<NodeInfo>::instance().getVctrWindowPriority();
-//		DP_U32 newPriority = 0;
-//		if (!winPriority->empty()) {
-//			newPriority = winPriority->back() + 1;
-//		} //else {
-//		winPriority->push_back(newPriority);
-////		}
-//		sort(winPriority->begin(), winPriority->end());
-//		for (NodeInfo::VctrWindowPriority::iterator itP = winPriority->begin();
-//				itP != winPriority->end(); itP++)
-//			LOG_INFO << "New win priority: " << *itP;
-//
-//		muduo::Singleton<NodeInfo>::instance().updateVctrWindowPriority(
-//				winPriority);
-//		it->stVdec.stSwms.u32Priority = newPriority;
-//		LOG_INFO << "Priority current create win task : " << newPriority;
 
 		it->stVdec.bCrop = DP_TRUE;
 		it->stVdec.stCrop = crop;
@@ -544,24 +529,16 @@ void LogicHandle::openAndMoveWindow(const muduo::net::TcpConnectionPtr connPtr,
 				DP_M2S_CMD_AVDEC_SETINFO_S>((DP_M2S_AVDEC_INFO_S) (*it),
 				g_NeedReply, DP_M2S_CMD_AVDEC_SET);
 
-//		if (ret != 0) {
-//			LOG_ERROR << "Send to codec return false in creating win func!";
-//			success = DP_ERR_COMMUNICATE_ABNORMAL_INNER;
-//			muduo::Singleton<NodeInfo>::instance().removeCodecTaskID(
-//					winData->u32TaskID);
-//			winPriority->erase(winPriority->end() - 1);
-//			muduo::Singleton<NodeInfo>::instance().updateAVDecGetInfo(
-//					vAVDecInfo);
-//			break;
-//		}
-
 		if (openCMD) {
 			if (ret != 0) {
 				LOG_ERROR << "Send to codec return false in creating win func!";
 				success = DP_ERR_COMMUNICATE_ABNORMAL_INNER;
 				muduo::Singleton<NodeInfo>::instance().removeCodecTaskID(
 						winData->u32TaskID);
-				winPriority->erase(winPriority->end() - 1);
+
+//					winPriority->erase(winPriority->end() - 1);
+
+				winPriority->pop_back();
 				muduo::Singleton<NodeInfo>::instance().updateAVDecGetInfo(
 						vAVDecInfo);
 				break;
@@ -599,7 +576,14 @@ void LogicHandle::openAndMoveWindow(const muduo::net::TcpConnectionPtr connPtr,
 				}
 			}
 		}
+		//
+		if (RecoverTask) {
+			muduo::Singleton<TaskRestore>::instance().setDataToJson(*it);
+		}
+		//
 
+		muduo::Singleton<NodeInfo>::instance().updateVctrWindowPriority(
+				winPriority);
 		muduo::Singleton<NodeInfo>::instance().updateAVDecGetInfo(vAVDecInfo);
 
 		//src video info
@@ -627,9 +611,6 @@ void LogicHandle::openAndMoveWindow(const muduo::net::TcpConnectionPtr connPtr,
 				swmsDecInfo);
 
 	} while (0);
-//	LOG_DEBUG << "winData cmd...u32RequestID: " << winData->header.u32RequestID;
-//	commonReplyToThird(Command_OpenAndMoveWindow, winData->u32TaskID, success,
-//			connPtr);
 	return;
 }
 
@@ -672,14 +653,6 @@ void LogicHandle::moveWindow(const muduo::net::TcpConnectionPtr connPtr,
 		rect.s32Y = dstVideo.u16StartY;
 		rect.u32Height = dstVideo.u16VideoHeight;
 		rect.u32Width = dstVideo.u16VideoWidth;
-//		if ((dstVideo.u16VideoHeight <= 128)
-//				|| (dstVideo.u16VideoWidth <= 128)) {
-//			LOG_ERROR << "Limited dst width height hei: "
-//					<< dstVideo.u16VideoHeight << " wid: "
-//					<< dstVideo.u16VideoWidth;
-//			success = DP_ERR_TASK_PARAM_ILLEGAL;
-//			break;
-//		}
 		LOG_INFO << "swms x: y: hei: Wid: " << dstVideo.u16StartX << " "
 				<< dstVideo.u16StartY << " " << dstVideo.u16VideoHeight << " "
 				<< dstVideo.u16VideoWidth;
@@ -782,6 +755,7 @@ void LogicHandle::moveWindow(const muduo::net::TcpConnectionPtr connPtr,
 	} while (0);
 	commonReplyToThird(Command_MoveWindow, moveWinData->u32TaskID, success,
 			connPtr);
+
 	muduo::Singleton<NodeInfo>::instance().updateAVDecGetInfo(vAVDecInfo);
 }
 
@@ -845,6 +819,9 @@ void LogicHandle::closeWindow(const muduo::net::TcpConnectionPtr connPtr,
 					closeWinData->u32TaskID);
 		}
 
+		if (RecoverTask) {
+			muduo::Singleton<TaskRestore>::instance().setDataToJson(*it);
+		}
 		//erase swms in dec
 		NodeInfo::MapOutSWMSChCodecDecInfoPtr swmsDecInfo = muduo::Singleton<
 				NodeInfo>::instance().getOutSWMSChCodecDecInfo();
@@ -880,6 +857,10 @@ void LogicHandle::closeWindow(const muduo::net::TcpConnectionPtr connPtr,
 						DP_M2S_CMD_AVDEC_SETINFO_S>(
 						(DP_M2S_AVDEC_INFO_S) (*itP), g_NeedReply,
 						DP_M2S_CMD_AVDEC_SET);
+				if (RecoverTask) {
+					muduo::Singleton<TaskRestore>::instance().setDataToJson(
+							*itP);
+				}
 			}
 		}
 //		muduo::Singleton<NodeInfo>::instance().removeCodecTaskID(
@@ -912,7 +893,7 @@ void LogicHandle::clearAllTask(const muduo::net::TcpConnectionPtr connPtr,
 			<< CurrentThread::tid();
 
 	LOG_DEBUG << "isClearTasking is true";
- 	updateIsClearTask(DP_TRUE);
+	updateIsClearTask(DP_TRUE);
 	_latch.reset(new muduo::CountDownLatch(1));
 	LOG_DEBUG << "Latch will reset 1 ! " << _latch->getCount();
 
@@ -1027,6 +1008,8 @@ void LogicHandle::clearAllTask(const muduo::net::TcpConnectionPtr connPtr,
 		}
 	}
 	if (!swmsChn.empty()) {
+		//jhbnote seg fault
+		LOG_DEBUG << "swms size: " << swmsChn.size();
 		for (NodeInfo::VecErrInfo::iterator iter_swms = swmsChn.begin();
 				iter_swms != swmsChn.end(); iter_swms++) {
 			if (swmsDecInfo->find(*iter_swms) != swmsDecInfo->end()) {
@@ -1038,8 +1021,11 @@ void LogicHandle::clearAllTask(const muduo::net::TcpConnectionPtr connPtr,
 			}
 		}
 	}
+	LOG_DEBUG << "swmsDecInfo size(1): " << swmsDecInfo->size();
 	muduo::Singleton<NodeInfo>::instance().updateMapOutSWMSChCodecDecInfo(
 			swmsDecInfo);
+	LOG_DEBUG << "swmsDecInfo size(2): " << swmsDecInfo->size()
+			<< " srcVideoInfo size: " << srcVideoInfo->size();
 	if (!srcVideoInfo->empty()) {
 		for (NodeInfo::VecErrInfo::iterator itEarse = errThirdiD.begin();
 				itEarse != errThirdiD.end(); itEarse++) {
@@ -1049,9 +1035,11 @@ void LogicHandle::clearAllTask(const muduo::net::TcpConnectionPtr connPtr,
 			}
 		}
 	}
+
+	LOG_DEBUG << "srcVideoInfo size(1): " << srcVideoInfo->size();
 	muduo::Singleton<NodeInfo>::instance().updateMapThirdIDSrcVideoInfo(
 			srcVideoInfo);
-
+	LOG_DEBUG << "srcVideoInfo size(2): " << srcVideoInfo->size();
 	NodeInfo::VctrWindowPriorityPtr winPriority =
 			muduo::Singleton<NodeInfo>::instance().getVctrWindowPriority();
 	if (!winPriority->empty()) {

@@ -64,9 +64,9 @@ void ServerHandle::onMessage(const TcpConnectionPtr &connPtr, Buffer *buff,
 	LOG_DEBUG << "seg test 1";
 //	NodeInfo nodeInfo;
 
-	LogicHandle *logicHandle = &muduo::Singleton<LogicHandle>::instance();
-	printf("log::::::: %p\n", &*logicHandle);
+	LogicHandle &logicHandle = muduo::Singleton<LogicHandle>::instance();
 	LOG_DEBUG << "seg test 2";
+	LOG_DEBUG << "seg test 2.5";
 //	if (strcmp(data.c_str(), "厉害厉害")==0) {
 //		std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: " << std::endl;
 //	}else
@@ -77,57 +77,57 @@ void ServerHandle::onMessage(const TcpConnectionPtr &connPtr, Buffer *buff,
 		break;
 	case _eCreateWindow:
 		_threadPool.run(
-				boost::bind(&LogicHandle::createWindow, logicHandle, connPtr,
+				boost::bind(&LogicHandle::createWindow, &logicHandle, connPtr,
 						data));
 		break;
 	case _eGetInfo:
 		_threadPool.run(
-				boost::bind(&LogicHandle::getInfo, logicHandle, connPtr,
+				boost::bind(&LogicHandle::getInfo, &logicHandle, connPtr,
 						data));
 		break;
 	case _eSetInfo:
 		_threadPool.run(
-				boost::bind(&LogicHandle::setInfo, logicHandle, connPtr,
+				boost::bind(&LogicHandle::setInfo, &logicHandle, connPtr,
 						data));
 		break;
 	case _eMoveWindow:
 		_threadPool.run(
-				boost::bind(&LogicHandle::moveWindow, logicHandle, connPtr,
+				boost::bind(&LogicHandle::moveWindow, &logicHandle, connPtr,
 						data));
 		break;
 	case _eCloseWindow:
 		_threadPool.run(
-				boost::bind(&LogicHandle::closeWindow, logicHandle, connPtr,
+				boost::bind(&LogicHandle::closeWindow, &logicHandle, connPtr,
 						data));
 		break;
 	case _eOpenAudio:
 		_threadPool.run(
-				boost::bind(&LogicHandle::openAudio, logicHandle, connPtr,
+				boost::bind(&LogicHandle::openAudio, &logicHandle, connPtr,
 						data));
 		break;
 	case _eCloseAudio:
 		_threadPool.run(
-				boost::bind(&LogicHandle::closeAudio, logicHandle, connPtr,
+				boost::bind(&LogicHandle::closeAudio, &logicHandle, connPtr,
 						data));
 		break;
 	case _eSetAudio:
 		_threadPool.run(
-				boost::bind(&LogicHandle::setAudioInfo, logicHandle, connPtr,
+				boost::bind(&LogicHandle::setAudioInfo, &logicHandle, connPtr,
 						data));
 		break;
 	case _eClearTask:
 		_threadPool.run(
-				boost::bind(&LogicHandle::clearAllTask, logicHandle, connPtr,
+				boost::bind(&LogicHandle::clearAllTask, &logicHandle, connPtr,
 						data));
 		break;
 	case _eOpenAndMoveWindow:
 		_threadPool.run(
-				boost::bind(&LogicHandle::openAndMoveWindow, logicHandle,
+				boost::bind(&LogicHandle::openAndMoveWindow, &logicHandle,
 						connPtr, data));
 		break;
 	case _eUpdateBatch:
 		_threadPool.run(
-				boost::bind(&LogicHandle::updateBatch, logicHandle, connPtr,
+				boost::bind(&LogicHandle::updateBatch, &logicHandle, connPtr,
 						data));
 		break;
 	default:

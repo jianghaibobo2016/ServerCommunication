@@ -149,12 +149,6 @@ public:
 	void lock() ACQUIRE()
 	{
     MCHECK(pthread_mutex_lock(&mutex_));
-//		pthread_mutex_init(&mutex_,NULL);
-//		LOG_ERROR << "1222222222222";
-
-//		int ret = pthread_mutex_lock(&mutex_);
-//		std::cout << "rettttttttttttttttttttttttt: " << ret << " " << errno
-//				<< " str: " << strerror(errno) << std::endl;
 		assignHolder();
 	}
 
@@ -210,7 +204,6 @@ public:
 	explicit MutexLockGuard(MutexLock& mutex) ACQUIRE(mutex)
 	: mutex_(mutex)
 	{
-		printf("mu: %p,_mu: %p\n",&mutex,&mutex_);
 		mutex_.lock();
 	}
 

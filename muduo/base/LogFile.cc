@@ -7,6 +7,10 @@
 #include <assert.h>
 #include <stdio.h>
 #include <time.h>
+#include <dirent.h>  // delete dir rmdir
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 using namespace muduo;
 
@@ -78,16 +82,36 @@ bool LogFile::rollFile() {
 		lastRoll_ = now;
 		lastFlush_ = now;
 		startOfPeriod_ = start;
+
 		file_.reset(new FileUtil::AppendFile(filename));
+
 		return true;
 	}
 	return false;
 }
 
+//check file existed!
+//	if (0 != access(filename.c_str(), 0)) {
+//
+//	}
+
 string LogFile::getLogFileName(const string& basename, time_t* now) {
 	string filename;
+	string pathName;
 	filename.reserve(basename.size() + 64);
+
 	filename = basename;
+
+	int pos = filename.rfind('/');
+
+	pathName = filename.substr(0, pos);
+
+	if (0 != access(pathName.c_str(), 0)) {
+		int ret = mkdir(pathName.c_str(), S_IRWXO);
+		if (ret == -1) {
+			LOG_SYSERR<<"Can not create log path: "<<pathName;
+		}
+	}
 
 	char timebuf[32];
 	struct tm tm;

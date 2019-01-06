@@ -58,11 +58,6 @@ public:
 
 private:
 	inline DP_BOOL getIsClearTask() {
-
-//		int ret=pthread_mutex_lock(&_mutex);
-//		std::cout<<"rett999999999999999999999999999999: "<<ret<<std::endl;
-//		Mutex.lock();
-//		LOG_ERROR << "11111";
 //		printf("mu1111: %p,this :%p \n", &Mutex, &*this);
 		muduo::MutexLockGuard lock(Mutex);
 		return _isClearTasking;
@@ -75,6 +70,7 @@ private:
 
 private:
 	muduo::MutexLock Mutex;
+	muduo::MutexLock _mutex;
 //	pthread_mutex_t _mutex;
 	DP_BOOL _isClearTasking;
 

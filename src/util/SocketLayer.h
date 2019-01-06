@@ -7,7 +7,6 @@
 
 #ifndef UTIL_SOCKETLAYER_H_
 #define UTIL_SOCKETLAYER_H_
-#include "SystemException.h"
 #include <sys/types.h>          /* See NOTES */
 #include <sys/socket.h>
 #include <assert.h>
@@ -19,7 +18,7 @@
 //using namespace std;
 class SocketLayer {
 public:
-	static int CreateTCPSock(bool bNoblock = true)/* throw (SystemException)*/ {
+	static int CreateTCPSock(bool bNoblock = true)/* throw (SystemException)*/{
 		int ret;
 		if (bNoblock)
 			ret = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, IPPROTO_TCP);
@@ -28,9 +27,9 @@ public:
 //		if (ret < 0)
 //			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
 //		else
-			return ret;
+		return ret;
 	}
-	static int CreateUDPSock(bool bNoblock = true) /*throw (SystemException)*/ {
+	static int CreateUDPSock(bool bNoblock = true) /*throw (SystemException)*/{
 		int ret;
 		if (bNoblock)
 			ret = socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK, IPPROTO_UDP);
@@ -39,9 +38,9 @@ public:
 //		if (ret < 0)
 //			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
 //		else
-			return ret;
+		return ret;
 	}
-	static int CreatePipeSock(bool bNoblock = true)/* throw (SystemException)*/ {
+	static int CreatePipeSock(bool bNoblock = true)/* throw (SystemException)*/{
 		int ret;
 		if (bNoblock)
 			ret = socket(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK, 0);
@@ -50,10 +49,11 @@ public:
 //		if (ret < 0)
 //			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
 //		else
-			return ret;
+		return ret;
 	}
 	/**cIP:＂＂时，表示绑定本机任意ＩＰ*/
-	static void BindAddress(const int sock, const uint16_t port, const std::string addr = "") /*throw (SystemException)*/ {
+	static void BindAddress(const int sock, const uint16_t port,
+			const std::string addr = "") /*throw (SystemException)*/{
 		sockaddr_in saddr;
 		bzero(&saddr, sizeof(saddr));
 		saddr.sin_family = AF_INET;
@@ -62,7 +62,7 @@ public:
 			saddr.sin_addr.s_addr = htonl(INADDR_ANY);
 		else
 			saddr.sin_addr.s_addr = inet_addr(addr.c_str());
-		if (bind(sock, (struct sockaddr*) &saddr, sizeof(saddr)) < 0){
+		if (bind(sock, (struct sockaddr*) &saddr, sizeof(saddr)) < 0) {
 
 		}
 //			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
@@ -102,7 +102,8 @@ public:
 //		throw SystemException("none idle port");
 //		return 0;
 //	}
-	static uint16_t GetIdlePort(const uint16_t startPort = 3000, const int checkCount = 1000) {
+	static uint16_t GetIdlePort(const uint16_t startPort = 3000,
+			const int checkCount = 1000) {
 		uint16_t result;
 		static uint16_t g_tempidleport = startPort;
 		if ((g_tempidleport + 100) > (startPort + checkCount)) {
@@ -112,12 +113,12 @@ public:
 			int sock;
 			result = g_tempidleport + i;
 //			try {
-				sock = CreateUDPSock();
+			sock = CreateUDPSock();
 //			} catch (SystemException &ex) {
 //				throw SystemException("Error create UDP sock");
 //			}
 //			try {
-				BindAddress(sock, result);
+			BindAddress(sock, result);
 //			} catch (SystemException &ex) {
 //				CloseSock(sock);
 //				i += 2;
@@ -138,38 +139,42 @@ public:
 		strcpy(addr.sun_path, strfilepath.c_str());
 		return addr;
 	}
-	static void SetNoneBlock(int sock, bool bBlock = false)/* throw (SystemException) */{
+	static void SetNoneBlock(int sock,
+			bool bBlock = false)/* throw (SystemException) */{
 		int flags = fcntl(sock, F_GETFL, 0);
 //		if (flags < 0)
 //			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
-		if (fcntl(sock, F_SETFL, flags | O_NONBLOCK) < 0){
+		if (fcntl(sock, F_SETFL, flags | O_NONBLOCK) < 0) {
 
 		}
 //			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
 		else
 			return;
 	}
-	static void SetSendBufferSize(int sock, int size) /*throw (SystemException)*/ {
+	static void SetSendBufferSize(int sock,
+			int size) /*throw (SystemException)*/{
 		int ret = setsockopt(sock, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size));
 //		if (ret < 0)
 //			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
 //		else
-			return;
+		return;
 	}
-	static void SetRecvBufferSize(int sock, int size) /*throw (SystemException)*/ {
+	static void SetRecvBufferSize(int sock,
+			int size) /*throw (SystemException)*/{
 		int ret = setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size));
 //		if (ret < 0)
 //			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
 //		else
-			return;
+		return;
 	}
-	static void SetReuseAddr(int sock)/* throw (SystemException)*/ {
+	static void SetReuseAddr(int sock)/* throw (SystemException)*/{
 		int reuse = 1;
-		int ret = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
+		int ret = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse,
+				sizeof(reuse));
 //		if (ret < 0)
 //			throw SystemException(__FILE__, __FUNCTION__, __LINE__);
 //		else
-			return;
+		return;
 	}
 	static void Sock2IPPort(int sock, std::string& ip,
 			uint16_t &port) /*throw (SystemException) */{
@@ -182,7 +187,8 @@ public:
 		ip = inet_ntoa(addr.sin_addr);
 		port = ntohs(addr.sin_port);
 	}
-	static void IP2Address(const std::string& ip, const uint16_t& port, sockaddr_in& saddr) {
+	static void IP2Address(const std::string& ip, const uint16_t& port,
+			sockaddr_in& saddr) {
 		bzero(&saddr, sizeof(saddr));
 		saddr.sin_family = AF_INET;
 		saddr.sin_port = htons(port);
@@ -195,7 +201,11 @@ public:
 		if (sock >= 0) {
 			shutdown(sock, SHUT_RDWR);
 			close(sock);
+//			LOG_WARN
+//					<< "****************************************** close connect countConnect: "
+//					<< countConnect;
 		}
+
 	}
 	static uint32_t IPString2Int(const std::string& ip) {
 
@@ -206,11 +216,13 @@ public:
 		addr.s_addr = ip;
 		return inet_ntoa(addr);
 	}
-	static std::string ByteToHexString(const void *pData, int len, const std::string & split = "") {
+	static std::string ByteToHexString(const void *pData, int len,
+			const std::string & split = "") {
 		char strNum[100];
 		std::string strResult;
 		for (int i = 0; i < len; i++) {
-			sprintf(strNum, "%02x%s", *((unsigned char*) pData + i), split.c_str());
+			sprintf(strNum, "%02x%s", *((unsigned char*) pData + i),
+					split.c_str());
 			strResult += strNum;
 		}
 		return strResult;
@@ -226,7 +238,8 @@ public:
 		}
 
 		for (int ni = 0; ni < nCount / 2; ni++) {
-			data[ni] = hexchar2int(strbuf[ni * 2]) * 16 + hexchar2int(strbuf[ni * 2 + 1]);
+			data[ni] = hexchar2int(strbuf[ni * 2]) * 16
+					+ hexchar2int(strbuf[ni * 2 + 1]);
 		}
 		return nCount;
 	}
@@ -275,6 +288,8 @@ public:
 			return 0;
 		}
 	}
+//	static int countConnect;
 };
+//int SocketLayer::countConnect = 0;
 
 #endif /* UTIL_SOCKETLAYER_H_ */

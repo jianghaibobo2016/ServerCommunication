@@ -968,6 +968,7 @@ typedef struct _sRemote_Reply_JsonSetInfo_tag {
 //	DP_U8* pau8Result;
 } sRemote_Reply_JsonSetInfo_tag;
 
+////////////////////////////////////////////////////0x Command_OpenAndMoveWindow ///////////////////////////////////////////////////
 //Command_OpenAndMoveWindow
 typedef struct _OpenAndMoveWindow_S {
 	_sRemote_Header header;  // sizeof 20

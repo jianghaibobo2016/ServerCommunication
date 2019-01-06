@@ -14,7 +14,7 @@ BaseServerHandle::BaseServerHandle(EventLoop *loop,
 			boost::bind(&BaseServerHandle::onConnection, this, _1));
 	_server.setMessageCallback(
 			boost::bind(&BaseServerHandle::onMessage, this, _1, _2, _3));
-	_server.setThreadNum(2);
+//	_server.setThreadNum(2);
 
 }
 

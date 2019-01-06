@@ -82,10 +82,11 @@ int UnixSockClientData::onlySendMsg(const void* pData, int len)
 	assert(pData);
 	//1.create sock & connect
 	int sock = SocketLayer::CreatePipeSock();
-	int retrycount = 10;
+	int retrycount = 1000;
 	sockaddr_un serveraddr = SocketLayer::FilePath2UnixAddress(
 	DP_M2S_INF_PROT_UNIX_FIFO);
 	bool bConnected = false;
+	LOG_DEBUG << "Will connect in only send msg!";
 	while ((--retrycount) > 0) {
 		/////////////////////////////////////////////////if failed
 		int ret = connect(sock, (const sockaddr*) &serveraddr,
@@ -97,7 +98,7 @@ int UnixSockClientData::onlySendMsg(const void* pData, int len)
 			} else if (errno == EINTR) {
 				continue;
 			} else
-				ThreadUtil::Sleep(5);
+				ThreadUtil::Sleep(100);
 		}
 	}
 	if (!bConnected) {
@@ -105,8 +106,34 @@ int UnixSockClientData::onlySendMsg(const void* pData, int len)
 		return DP_ERR_COMMUNICATE_ABNORMAL;
 //		throw SystemException("can not connect unix socket");
 	}
+	LOG_DEBUG << "Connected in only send msg!";
 	//2.send data
-	int wbytes = send(sock, pData, len, 0);
+	int result = -1;
+	int wbytes = 0;
+	fd_set writefd;
+	timeval tv;
+	tv.tv_sec = 1;
+	tv.tv_usec = 0; //100ms
+	FD_ZERO(&writefd);
+	FD_SET(sock, &writefd);
+	result = select(sock + 1, 0, &writefd, 0, &tv);
+	if (result == 0) {
+		LOG_ERROR
+				<< "selectttttttttttttttttt time out in only send msg!";
+		//timeout
+	} else if (result > 0) {
+		wbytes = send(sock, pData, len, 0);
+		if (wbytes <= 0) {
+			LOG_DEBUG << "2222222222222222222 in only send msg";
+			SocketLayer::CloseSock(sock);
+			return DP_ERR_COMMUNICATE_SEND;  //49415
+		}
+		LOG_DEBUG << " write select > 0 in only send msg!";
+	} else if (result < 0) {
+		LOG_ERROR << " write select <0 in only send msg!";
+	}
+
+	 wbytes = send(sock, pData, len, 0);
 	if (wbytes <= 0) {
 		SocketLayer::CloseSock(sock);
 		return DP_ERR_COMMUNICATE_ABNORMAL;
@@ -118,21 +145,27 @@ int UnixSockClientData::onlySendMsg(const void* pData, int len)
 		return DP_ERR_COMMUNICATE_ABNORMAL;
 //		throw SystemException("send bytes!=actual send bytes");
 	}
+	LOG_DEBUG << "return ! in only send msg";
 	SocketLayer::CloseSock(sock);
 	return wbytes;
 }
 
 int UnixSockClientData::doSendCommand(const void* pData, int len)
 /*throw (SystemException) */{
+
 	assert(pData);
 	//1.create sock & connect
-	int sock = SocketLayer::CreatePipeSock();
-	int retrycount = 10;
+	int sock = SocketLayer::CreatePipeSock(false);
+	int retrycount = 1000;
+	int result = -1;
+	int rbytes;
+	int wbytes = 0;
 	sockaddr_un serveraddr = SocketLayer::FilePath2UnixAddress(
 	DP_M2S_INF_PROT_UNIX_FIFO);
 	bool bConnected = false;
 	while ((--retrycount) > 0) {
 		/////////////////////////////////////////////////if failed
+
 		int ret = connect(sock, (const sockaddr*) &serveraddr,
 				sizeof(serveraddr));
 		if (ret == -1) {
@@ -150,23 +183,57 @@ int UnixSockClientData::doSendCommand(const void* pData, int len)
 		}
 		LOG_DEBUG << "errno: " << errno << " str errno: " << strerror(errno);
 	}
+	LOG_INFO << "retrycount^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << retrycount;
 	if (!bConnected) {
+		LOG_DEBUG << "11111111111111111";
 		SocketLayer::CloseSock(sock);
-		return DP_ERR_COMMUNICATE_CONNECTION;
+//		SocketLayer::countConnect--;
+		return DP_ERR_COMMUNICATE_CONNECTION;  //49414
 //		throw SystemException("can not connect unix socket");
+	} else {
+
+//		SocketLayer::countConnect++;
+//		LOG_WARN
+//				<< "****************************************** open connect countConnect: "
+//				<< SocketLayer::countConnect;
 	}
+
+	fd_set writefd;
+	timeval tv;
+	tv.tv_sec = 1;
+	tv.tv_usec = 0; //100ms
+	FD_ZERO(&writefd);
+	FD_SET(sock, &writefd);
+	result = select(sock + 1, 0, &writefd, 0, &tv);
+	if (result == 0) {
+		LOG_ERROR
+				<< "selecttttttttttttttttttttttttttttttttttttttttttttttttttt time out!";
+		//timeout
+	} else if (result > 0) {
+		wbytes = send(sock, pData, len, 0);
+		if (wbytes <= 0) {
+			LOG_DEBUG << "2222222222222222222";
+			SocketLayer::CloseSock(sock);
+			return DP_ERR_COMMUNICATE_SEND;  //49415
+		}
+		LOG_DEBUG << " write select > 0!";
+	} else if (result < 0) {
+		LOG_ERROR << " write select <0!";
+	}
+
 	//2.send data
-	int wbytes = send(sock, pData, len, 0);
-	if (wbytes <= 0) {
-		SocketLayer::CloseSock(sock);
-		return DP_ERR_COMMUNICATE_SEND;
-//		throw SystemException(__FILE__, __FUNCTION__, __LINE__);
-	}
+//	int wbytes = send(sock, pData, len, 0);
+//	if (wbytes <= 0) {
+//		LOG_DEBUG << "2222222222222222222";
+//		SocketLayer::CloseSock(sock);
+//		return DP_ERR_COMMUNICATE_SEND;  //49415
+//	}
 	LOG_DEBUG << "wbytes: " << wbytes;
 	muduo::PrintBuff::printBufferByHex("send to fifo : ", pData, wbytes);
 	if (wbytes != len) {
+		LOG_DEBUG << "333333333333333333333";
 		SocketLayer::CloseSock(sock);
-		return DP_ERR_COMMUNICATE_SEND;
+		return DP_ERR_COMMUNICATE_SEND;  //49415
 //		throw SystemException("send bytes!=actual send bytes");
 	}
 	//3.recv &&close socket
@@ -174,8 +241,8 @@ int UnixSockClientData::doSendCommand(const void* pData, int len)
 	timeval timeout;
 	timeout.tv_sec = 5;
 	timeout.tv_usec = 0; //100ms
-	int result = -1;
-	int rbytes;
+	result = -1;
+	rbytes = 0;
 
 	memset(_buffer, 0, BUFFER_SIZE_PIPESOCKET);
 //	uint8_t buffer[BUFFER_SIZE];
@@ -184,30 +251,36 @@ int UnixSockClientData::doSendCommand(const void* pData, int len)
 		FD_SET(sock, &readfd);
 		result = select(sock + 1, &readfd, 0, 0, &timeout);
 		if (result == 0) { //timeout
+			LOG_DEBUG << "4444444444444444444444";
 			SocketLayer::CloseSock(sock);
-			return DP_ERR_COMMUNICATE_ABNORMAL_TIMEOUT;
+			return DP_ERR_COMMUNICATE_ABNORMAL_TIMEOUT;  //49413
 		} else if (result > 0) {
 			rbytes = recv(sock, _buffer, BUFFER_SIZE_PIPESOCKET, 0);
 			if (rbytes > 0) {
 				LOG_INFO << "recv data : " << rbytes;
 //				cout << "rbytes:: " << rbytes << "buff: " << _buffer << endl;
 				if (_cb) {
+					LOG_DEBUG << "555555555555555555";
 					SocketLayer::CloseSock(sock);
 					return _cb(_buffer, rbytes);
 				}
+				LOG_DEBUG << "6666666666666666";
 				SocketLayer::CloseSock(sock);
 				return 0;
 //				doRecvCommand((void*) buffer, rbytes);
 			} else if (rbytes == 0) {
+				LOG_DEBUG << "7777777777777777";
 				SocketLayer::CloseSock(sock);
 				return -1;
 			}
 		} else {
+			LOG_DEBUG << "88888888888888888888";
 			SocketLayer::CloseSock(sock);
 			return DP_ERR_COMMUNICATE_SELECT;
 //			throw SystemException("Recv 0 msg from codec !");
 		}
 	}
+	LOG_DEBUG << "999999999999999999999";
 	SocketLayer::CloseSock(sock);
 	//4.end
 }

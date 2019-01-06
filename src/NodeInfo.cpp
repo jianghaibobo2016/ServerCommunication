@@ -238,7 +238,7 @@ DP_BOOL NodeInfo::initOutAVDec() {
 		initAVDec(avDec.get(), taskID, chnID++);
 		AVDecInfo->push_back(*avDec.get());
 	}
-//	cout<<"avdec->stStream._rtsp.stRtspClient.bUDP :::::: "<<avDec->stStream._rtsp.stRtspClient.bUDP <<endl;
+
 	if (setAVInfoToCodec<VctrAVDECGetInfo, DP_M2S_CMD_AVDEC_SETINFO_S>(
 			AVDecInfo, DP_M2S_CMD_AVDEC_SET) != DP_TRUE) {
 		LOG_ERROR << "Set av Dec failed !";
@@ -506,6 +506,10 @@ void NodeInfo::removeCodecTaskID(DP_U32 thirdId) {
 	LOG_INFO << "codec id in remove :" << id << " taskType: " << taskType
 			<< " tid: " << muduo::CurrentThread::tid();
 	muduo::MutexLockGuard lock(_mutexForUsedID);
+
+	DP_U32 codecID = 0;
+	VctrAllUsedCodecTaskID::iterator itUsedID;
+
 	switch (taskType) {
 	case _eAudioTask: {
 		LOG_DEBUG << "_mOutCodecTaskIDBeUsed->operator [](TaskID)in remove  : "
@@ -520,10 +524,9 @@ void NodeInfo::removeCodecTaskID(DP_U32 thirdId) {
 					<< muduo::CurrentThread::tid();
 			return;
 		}
-		DP_U32 codecID = _mOutThirdCodecTaskID->operator [](thirdId);
+		codecID = _mOutThirdCodecTaskID->operator [](thirdId);
 		_mOutThirdCodecTaskID->erase(thirdId);
-		VctrAllUsedCodecTaskID::iterator itUsedID = find(
-				_vAllUseCodecTaskID.begin(), _vAllUseCodecTaskID.end(),
+		itUsedID = find(_vAllUseCodecTaskID.begin(), _vAllUseCodecTaskID.end(),
 				codecID);
 		if (itUsedID != _vAllUseCodecTaskID.end()) {
 			_vAllUseCodecTaskID.erase(itUsedID);
@@ -540,13 +543,18 @@ void NodeInfo::removeCodecTaskID(DP_U32 thirdId) {
 				<< " size:: " << _mOutCodecTaskIDBeUsed->size()
 				<< " _mOutCodecTaskIDBeUsed->operator [](_vVideoTaskID): "
 				<< _mOutCodecTaskIDBeUsed->operator [](_vVideoTaskID);
-		DP_U32 codecID = _mOutThirdCodecTaskID->operator [](thirdId);
+		codecID = _mOutThirdCodecTaskID->operator [](thirdId);
 		_mOutThirdCodecTaskID->erase(thirdId);
-		_vAllUseCodecTaskID.erase(
-				find(_vAllUseCodecTaskID.begin(), _vAllUseCodecTaskID.end(),
-						codecID));
-		if (_mOutCodecTaskIDBeUsed->operator [](_vVideoTaskID) > 0)
-			_mOutCodecTaskIDBeUsed->operator [](_vVideoTaskID) -= 1;
+
+		itUsedID = find(_vAllUseCodecTaskID.begin(), _vAllUseCodecTaskID.end(),
+				codecID);
+
+		if (itUsedID != _vAllUseCodecTaskID.end()) {
+			_vAllUseCodecTaskID.erase(itUsedID);
+			if (_mOutCodecTaskIDBeUsed->operator [](_vVideoTaskID) > 0)
+				_mOutCodecTaskIDBeUsed->operator [](_vVideoTaskID) -= 1;
+		}
+
 	}
 		break;
 	case _eAudioAndVideoTask: {
@@ -556,13 +564,18 @@ void NodeInfo::removeCodecTaskID(DP_U32 thirdId) {
 				<< " _mOutCodecTaskIDBeUsed->operator [](_vAuViTaskID): "
 				<< _mOutCodecTaskIDBeUsed->operator [](_vAuViTaskID) << " tid: "
 				<< muduo::CurrentThread::tid();
-		DP_U32 codecID = _mOutThirdCodecTaskID->operator [](thirdId);
+		codecID = _mOutThirdCodecTaskID->operator [](thirdId);
+
 		_mOutThirdCodecTaskID->erase(thirdId);
-		_vAllUseCodecTaskID.erase(
-				find(_vAllUseCodecTaskID.begin(), _vAllUseCodecTaskID.end(),
-						codecID));
-		if (_mOutCodecTaskIDBeUsed->operator [](_vAuViTaskID) > 0)
-			_mOutCodecTaskIDBeUsed->operator [](_vAuViTaskID) -= 1;
+
+		itUsedID = find(_vAllUseCodecTaskID.begin(), _vAllUseCodecTaskID.end(),
+				codecID);
+
+		if (itUsedID != _vAllUseCodecTaskID.end()) {
+			_vAllUseCodecTaskID.erase(itUsedID);
+			if (_mOutCodecTaskIDBeUsed->operator [](_vAuViTaskID) > 0)
+				_mOutCodecTaskIDBeUsed->operator [](_vAuViTaskID) -= 1;
+		}
 	}
 		break;
 	case _eUnknowTask:
@@ -943,6 +956,11 @@ void NodeInfo::initAVDec(DP_M2S_AVDEC_INFO_S *avdec, DP_S32 taskID,
 	avdec->stStream.enType = DP_M2S_STREAM_RTSP_CLIENT;
 	avdec->stStream._rtsp.stRtspClient.bMulticast = DP_FALSE;
 	avdec->stStream._rtsp.stRtspClient.s32ConnTimeout = 0;
+
+//	//test
+//	avdec->stStream._rtsp.stRtspClient.s8Open=2;
+//	memcpy(avdec->stStream._rtsp.stRtspClient.au8Url,"rtsp://172.16.100.201:554/a0_chn1-v0_chn0",sizeof("rtsp://172.16.100.201:554/a0_chn1-v0_chn0"));
+
 	// not ture udp
 	avdec->stStream._rtsp.stRtspClient.bUDP = DP_TRUE;
 	avdec->stStream._rtsp.stRtspClient.s8Open = DP_FALSE;
