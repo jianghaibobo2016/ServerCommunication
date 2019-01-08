@@ -183,9 +183,9 @@ int UnixSockClientData::doSendCommand(const void* pData, int len)
 		}
 		LOG_DEBUG << "errno: " << errno << " str errno: " << strerror(errno);
 	}
-	LOG_INFO << "retrycount^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << retrycount;
+//	LOG_INFO << "retrycount^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << retrycount;
 	if (!bConnected) {
-		LOG_DEBUG << "11111111111111111";
+//		LOG_DEBUG << "11111111111111111";
 		SocketLayer::CloseSock(sock);
 //		SocketLayer::countConnect--;
 		return DP_ERR_COMMUNICATE_CONNECTION;  //49414
@@ -206,13 +206,13 @@ int UnixSockClientData::doSendCommand(const void* pData, int len)
 	FD_SET(sock, &writefd);
 	result = select(sock + 1, 0, &writefd, 0, &tv);
 	if (result == 0) {
-		LOG_ERROR
-				<< "selecttttttttttttttttttttttttttttttttttttttttttttttttttt time out!";
+//		LOG_ERROR
+//				<< "selecttttttttttttttttttttttttttttttttttttttttttttttttttt time out!";
 		//timeout
 	} else if (result > 0) {
 		wbytes = send(sock, pData, len, 0);
 		if (wbytes <= 0) {
-			LOG_DEBUG << "2222222222222222222";
+//			LOG_DEBUG << "2222222222222222222";
 			SocketLayer::CloseSock(sock);
 			return DP_ERR_COMMUNICATE_SEND;  //49415
 		}
@@ -231,7 +231,7 @@ int UnixSockClientData::doSendCommand(const void* pData, int len)
 	LOG_DEBUG << "wbytes: " << wbytes;
 	muduo::PrintBuff::printBufferByHex("send to fifo : ", pData, wbytes);
 	if (wbytes != len) {
-		LOG_DEBUG << "333333333333333333333";
+//		LOG_DEBUG << "333333333333333333333";
 		SocketLayer::CloseSock(sock);
 		return DP_ERR_COMMUNICATE_SEND;  //49415
 //		throw SystemException("send bytes!=actual send bytes");
@@ -251,7 +251,7 @@ int UnixSockClientData::doSendCommand(const void* pData, int len)
 		FD_SET(sock, &readfd);
 		result = select(sock + 1, &readfd, 0, 0, &timeout);
 		if (result == 0) { //timeout
-			LOG_DEBUG << "4444444444444444444444";
+//			LOG_DEBUG << "4444444444444444444444";
 			SocketLayer::CloseSock(sock);
 			return DP_ERR_COMMUNICATE_ABNORMAL_TIMEOUT;  //49413
 		} else if (result > 0) {
@@ -260,27 +260,27 @@ int UnixSockClientData::doSendCommand(const void* pData, int len)
 				LOG_INFO << "recv data : " << rbytes;
 //				cout << "rbytes:: " << rbytes << "buff: " << _buffer << endl;
 				if (_cb) {
-					LOG_DEBUG << "555555555555555555";
+//					LOG_DEBUG << "555555555555555555";
 					SocketLayer::CloseSock(sock);
 					return _cb(_buffer, rbytes);
 				}
-				LOG_DEBUG << "6666666666666666";
+//				LOG_DEBUG << "6666666666666666";
 				SocketLayer::CloseSock(sock);
 				return 0;
 //				doRecvCommand((void*) buffer, rbytes);
 			} else if (rbytes == 0) {
-				LOG_DEBUG << "7777777777777777";
+//				LOG_DEBUG << "7777777777777777";
 				SocketLayer::CloseSock(sock);
 				return -1;
 			}
 		} else {
-			LOG_DEBUG << "88888888888888888888";
+//			LOG_DEBUG << "88888888888888888888";
 			SocketLayer::CloseSock(sock);
 			return DP_ERR_COMMUNICATE_SELECT;
 //			throw SystemException("Recv 0 msg from codec !");
 		}
 	}
-	LOG_DEBUG << "999999999999999999999";
+//	LOG_DEBUG << "999999999999999999999";
 	SocketLayer::CloseSock(sock);
 	//4.end
 }

@@ -246,7 +246,7 @@ void LogicHandle::createWindow(const muduo::net::TcpConnectionPtr connPtr,
 
 //		muduo::Singleton<NodeInfo>::instance().updateAVDecGetInfo(vAVDecInfo);
 
-		NodeInfo::printAVDEC(&(*it));
+//		NodeInfo::printAVDEC(&(*it));
 		DP_S32 ret = NodeInfo::sendCodecAVEncDecInfo<DP_M2S_AVDEC_INFO_S,
 				DP_M2S_CMD_AVDEC_SETINFO_S>((DP_M2S_AVDEC_INFO_S) (*it),
 				g_NeedReply, DP_M2S_CMD_AVDEC_SET);
@@ -289,10 +289,6 @@ void LogicHandle::createWindow(const muduo::net::TcpConnectionPtr connPtr,
 void LogicHandle::openAndMoveWindow(const muduo::net::TcpConnectionPtr connPtr,
 		std::string data) {
 	OpenAndMoveWindow_S *winData = (OpenAndMoveWindow_S*) data.c_str();
-
-//	std::cout << "00000000000000000000" << std::endl;
-//	muduo::Singleton<TaskRestore>::instance().setDataToJson(*winData );
-//	std::cout << "777777777777" << std::endl;
 
 	if (getIsClearTask()) {
 		LOG_DEBUG << "Clear task ing. Latch has reset 1 and wait ! "
@@ -524,7 +520,7 @@ void LogicHandle::openAndMoveWindow(const muduo::net::TcpConnectionPtr connPtr,
 		it->stVdec.stCrop = crop;
 //		muduo::Singleton<NodeInfo>::instance().updateAVDecGetInfo(vAVDecInfo);
 		it->stStream._rtsp.stRtspClient.bUDP = DP_TRUE;
-		NodeInfo::printAVDEC(&(*it));
+//		NodeInfo::printAVDEC(&(*it));
 		DP_S32 ret = NodeInfo::sendCodecAVEncDecInfo<DP_M2S_AVDEC_INFO_S,
 				DP_M2S_CMD_AVDEC_SETINFO_S>((DP_M2S_AVDEC_INFO_S) (*it),
 				g_NeedReply, DP_M2S_CMD_AVDEC_SET);
@@ -579,6 +575,8 @@ void LogicHandle::openAndMoveWindow(const muduo::net::TcpConnectionPtr connPtr,
 		//
 		if (RecoverTask) {
 			muduo::Singleton<TaskRestore>::instance().setDataToJson(*it);
+			muduo::Singleton<TaskRestore>::instance().setDataToJson(*winData,
+					it->stVdec.stSwms.u32Priority, it->s32TskId);
 		}
 		//
 
@@ -712,7 +710,6 @@ void LogicHandle::moveWindow(const muduo::net::TcpConnectionPtr connPtr,
 		}
 
 //		NodeInfo::printAVDEC(&(*it));
-
 		DP_S32 ret = NodeInfo::sendCodecAVEncDecInfo<DP_M2S_AVDEC_INFO_S,
 				DP_M2S_CMD_AVDEC_SETINFO_S>((DP_M2S_AVDEC_INFO_S) (*it),
 				g_NeedReply, DP_M2S_CMD_AVDEC_SET);
@@ -821,6 +818,8 @@ void LogicHandle::closeWindow(const muduo::net::TcpConnectionPtr connPtr,
 
 		if (RecoverTask) {
 			muduo::Singleton<TaskRestore>::instance().setDataToJson(*it);
+			muduo::Singleton<TaskRestore>::instance().setDataToJson(
+					_eCloseWindow, closeWinData->u32TaskID);
 		}
 		//erase swms in dec
 		NodeInfo::MapOutSWMSChCodecDecInfoPtr swmsDecInfo = muduo::Singleton<
@@ -1125,6 +1124,7 @@ void LogicHandle::openAudio(const muduo::net::TcpConnectionPtr connPtr,
 					success = DP_ERR_COMMUNICATE_ABNORMAL_INNER;
 					break;
 				}
+
 			} else {
 				LOG_ERROR << "Can not find closeAudioTaskID: "
 						<< closeAudioTaskID << " in vAVDecInfo";
@@ -1151,6 +1151,7 @@ void LogicHandle::openAudio(const muduo::net::TcpConnectionPtr connPtr,
 				//update third task id --- codec task id
 				muduo::Singleton<NodeInfo>::instance().updateThirdTaskIDCodecTaskid(
 						openAudioData->u32TaskID, closeAudioTaskID);
+
 			}
 		} else {
 			//new open audio!
@@ -1171,7 +1172,7 @@ void LogicHandle::openAudio(const muduo::net::TcpConnectionPtr connPtr,
 //				if (itAudio->AvBindAttr.enBindType == DP_M2S_AVBIND_ADEC2AO)
 				itAudio->stStream._rtsp.stRtspClient.s8Open = 1;
 				itAudio->AvBindAttr.stAudio.stOut.u32DevId = AOChnID;
-				NodeInfo::printAVDEC(&(*itAudio));
+//				NodeInfo::printAVDEC(&(*itAudio));
 				DP_S32 ret = NodeInfo::sendCodecAVEncDecInfo<
 						DP_M2S_AVDEC_INFO_S, DP_M2S_CMD_AVDEC_SETINFO_S>(
 						(DP_M2S_AVDEC_INFO_S) (*itAudio), g_NeedReply,
@@ -1192,6 +1193,12 @@ void LogicHandle::openAudio(const muduo::net::TcpConnectionPtr connPtr,
 				success = DP_ERR_TASK_ID_NOTEXIST;
 				break;
 			}
+		}
+
+		if (RecoverTask) {
+			muduo::Singleton<TaskRestore>::instance().setDataToJson(*itAudio);
+			muduo::Singleton<TaskRestore>::instance().setDataToJson(
+					openAudioData->u32TaskID, id, AOChnID);
 		}
 
 //jhbnote not be taken effect without update
@@ -1244,7 +1251,7 @@ void LogicHandle::closeAudio(const muduo::net::TcpConnectionPtr connPtr,
 			it->stStream._rtsp.stRtspClient.s8Open = 0x00;
 		}
 
-		NodeInfo::printAVDEC(&(*it));
+//		NodeInfo::printAVDEC(&(*it));
 		DP_S32 ret = NodeInfo::sendCodecAVEncDecInfo<DP_M2S_AVDEC_INFO_S,
 				DP_M2S_CMD_AVDEC_SETINFO_S>((DP_M2S_AVDEC_INFO_S) (*it),
 				g_NeedReply, DP_M2S_CMD_AVDEC_SET);
@@ -1261,6 +1268,11 @@ void LogicHandle::closeAudio(const muduo::net::TcpConnectionPtr connPtr,
 				muduo::Singleton<NodeInfo>::instance().removeCodecTaskID(
 						closeAudio->u32TaskID);
 			}
+		}
+		if (RecoverTask) {
+			muduo::Singleton<TaskRestore>::instance().setDataToJson(*it);
+			muduo::Singleton<TaskRestore>::instance().setDataToJson(
+					_eCloseAudio, closeAudio->u32TaskID);
 		}
 		muduo::Singleton<NodeInfo>::instance().updateAVDecGetInfo(vAVDecInfo);
 		DP_M2S_AO_DEV_E AOChnID;

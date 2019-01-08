@@ -9,10 +9,12 @@
 #include <string.h>
 #include <boost/smart_ptr.hpp>
 #include <muduo/base/Thread.h>
+#include <muduo/base/Singleton.h>
 #include "NodeInfo.h"
 #include "interactivepro.h"
 #include "UnixSockClientData.h"
 #include "LogicHandle.h"
+#include "TaskRestore.h"
 
 int print_avenc_attr(DP_M2S_AVENC_INFO_S data);
 
@@ -239,12 +241,40 @@ DP_BOOL NodeInfo::initOutAVDec() {
 		AVDecInfo->push_back(*avDec.get());
 	}
 
+	LOG_DEBUG << "********************Set av dec";
 	if (setAVInfoToCodec<VctrAVDECGetInfo, DP_M2S_CMD_AVDEC_SETINFO_S>(
 			AVDecInfo, DP_M2S_CMD_AVDEC_SET) != DP_TRUE) {
 		LOG_ERROR << "Set av Dec failed !";
+		return DP_FALSE;
 		// jhbnote will restart prog or not ?
 	} else {
+		if (RecoverTask) {
+			LOG_DEBUG << "*************************Recover av dec !";
+			muduo::Singleton<TaskRestore>::instance().getAVDecJson(AVDecInfo);
+			LOG_DEBUG << "*************************Recover set av dec !";
+			if (setAVInfoToCodec<VctrAVDECGetInfo, DP_M2S_CMD_AVDEC_SETINFO_S>(
+					AVDecInfo, DP_M2S_CMD_AVDEC_SET) != DP_TRUE) {
+				LOG_ERROR << "Recover setting failed !";
+				return DP_FALSE;
+			}
+			//
+			LOG_DEBUG << "******************Recover third task !";
+			MapThirdIDSrcVideoInfoPtr thirdIDSrcVideo =
+					getThirdIDSrcVideoInfo();
+			MapOutThirdCodecTaskIDPtr thirdCodecID = getOutThirdCodecTaskID();
+			MapAODevIDCodecIDPtr aoIDCodecID = getAODevIDCodecID();
+
+			muduo::Singleton<TaskRestore>::instance().getThirdInfo(
+					thirdIDSrcVideo, thirdCodecID, aoIDCodecID);
+		}
+//		for(DP_U32 i=0;i<AVDecInfo->size();i++){
+//			if (AVDecInfo->operator [](i).stStream._rtsp.stRtspClient.s8Open!=0){
+//
+//			LOG_ERROR<<"task: "<<AVDecInfo->operator [](i).s32TskId;
+//			}
+//		}
 		setOutputTaskIDInMap(AVDecInfo);
+
 	}
 
 	updateAVDecGetInfo(AVDecInfo);
@@ -530,11 +560,14 @@ void NodeInfo::removeCodecTaskID(DP_U32 thirdId) {
 				codecID);
 		if (itUsedID != _vAllUseCodecTaskID.end()) {
 			_vAllUseCodecTaskID.erase(itUsedID);
-			if (_mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID) > 0) {
-				_mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID) -= 1;
-			} else {
-			}
+		if (_mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID) > 0) {
+			_mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID) -= 1;
+		} else {
 		}
+		}
+		LOG_ERROR
+				<< "_mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID)22222222222222: "
+				<< _mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID);
 	}
 		break;
 	case _eVideoTask: {
@@ -743,9 +776,46 @@ DP_BOOL NodeInfo::deinitCodec() {
 }
 
 void NodeInfo::setOutputTaskIDInMap(VctrAVDECGetInfoPtr avDecInfo) {
+//	_mOutCodecTaskIDBeUsed->insert(
+//			MapOutCodecTaskIDBeUsed::value_type(_vAudioTaskID, 0));
+////	_mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID) = 0;
+//	printf("_vAudioTaskID: %p\n", &_vAudioTaskID);
+//	_vAudioTaskID.push_back(1);
+//	LOG_ERROR << "size 0.2: " << _mOutCodecTaskIDBeUsed->size();
+//	_mOutCodecTaskIDBeUsed->insert(
+//			MapOutCodecTaskIDBeUsed::value_type(_vVideoTaskID, 1));
+////	_mOutCodecTaskIDBeUsed->operator [](_vVideoTaskID) = 0;
+//	printf("_vVideoTaskID: %p\n", &_vVideoTaskID);
+//	LOG_ERROR << "size 0.3.1: " << _mOutCodecTaskIDBeUsed->size();
+//	_vVideoTaskID.push_back(2);
+//	LOG_ERROR << "size 0.3.2: " << _mOutCodecTaskIDBeUsed->size();
+//	_vVideoTaskID.push_back(4);
+//	LOG_ERROR << "size 0.3.3: " << _mOutCodecTaskIDBeUsed->size();
+//	_mOutCodecTaskIDBeUsed->insert(
+//			MapOutCodecTaskIDBeUsed::value_type(_vAuViTaskID, 2));
+//	MapOutCodecTaskIDBeUsed::iterator it = _mOutCodecTaskIDBeUsed->begin();
+////	it++;
+//	for(;it != _mOutCodecTaskIDBeUsed->end();it++){
+//		printf("ooooooooooooooooooooooooooo\n");
+//	if (it != _mOutCodecTaskIDBeUsed->end()) {
+//			if (it->second == 1) {
+//				printf("_vAuViTaskID: %p, %d\n", &_vAuViTaskID,
+//						it->first.back());
+//			}else{
+//
+//			}
+//		} else {
+//			printf("fffffffffffffffff\n");
+//		}
+//	}
+//	printf("=======================\n");
+////	_mOutCodecTaskIDBeUsed->operator [](_vAuViTaskID) = 0;
+//	LOG_ERROR << "size 0.4: " << _mOutCodecTaskIDBeUsed->size();
 	vector<DP_S32> vSwmsChn;
 	for (DP_U32 i = 0; i < 64; i++)
 		vSwmsChn.push_back(i);
+
+	DP_U32 audioCount = 0, videoCount = 0, audioVideoCount = 0;
 
 	for (VctrAVDECGetInfo::iterator it = avDecInfo->begin();
 			it != avDecInfo->end(); it++) {
@@ -776,51 +846,82 @@ void NodeInfo::setOutputTaskIDInMap(VctrAVDECGetInfoPtr avDecInfo) {
 		if (bindType == DP_M2S_AVBIND_ADEC2AO) {
 			_vAudioTaskID.push_back(it->s32TskId);
 			_allCodecTaskIDCount++;
+//			if (it->stStream._rtsp.stRtspClient.s8Open != 0) {
+//				_mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID) += 1;
+//			}
+//			muduo::MutexLockGuard lock(_mutexForUsedID);
+			if (it->stStream._rtsp.stRtspClient.s8Open != 0) {
+				_vAllUseCodecTaskID.push_back(it->s32TskId);
+				audioCount++;
+//				LOG_ERROR << "size11: " << _mOutCodecTaskIDBeUsed->size();
+//				_mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID) += 1;
+//				LOG_ERROR
+//						<< "_mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID): "
+//						<< _mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID);
+//				LOG_ERROR << "size22: " << _mOutCodecTaskIDBeUsed->size();
+			}
 		} else if (bindType == DP_M2S_AVBIND_VDEC2VO) {
 			_vVideoTaskID.push_back(it->s32TskId);
 			_allCodecTaskIDCount++;
+			if (it->stStream._rtsp.stRtspClient.s8Open != 0) {
+				_vAllUseCodecTaskID.push_back(it->s32TskId);
+				audioVideoCount++;
+			}
+//				_mOutCodecTaskIDBeUsed->operator [](_vVideoTaskID)++;}
 		} else if (bindType == DP_M2S_AVBIND_ADEC2AO_VDEC2VO) {
 			_vAuViTaskID.push_back(it->s32TskId);
 			_allCodecTaskIDCount++;
-		} else {
-			LOG_WARN << "Another bind type: " << bindType;
-		}
-	}
-
-	sort(_vWindowPriority->begin(), _vWindowPriority->end());
-	for (VctrWindowPriority::iterator it = _vWindowPriority->begin();
-			it != _vWindowPriority->end(); it++)
-		LOG_INFO << "_vWindowPriority: " << *it;
-
-	for (VctrAVDECGetInfo::iterator it = avDecInfo->begin();
-			it != avDecInfo->end(); it++) {
-		if (it->stVdec.bSwms != DP_TRUE) {
-			if (it->AvBindAttr.enBindType == DP_M2S_AVBIND_VDEC2VO
-					|| it->AvBindAttr.enBindType
-							== DP_M2S_AVBIND_ADEC2AO_VDEC2VO) {
-				it->stVdec.stSwms.u32SwmsChn = *vSwmsChn.begin();
-				vSwmsChn.erase(vSwmsChn.begin());
+			if (it->stStream._rtsp.stRtspClient.s8Open != 0) {
+				_vAllUseCodecTaskID.push_back(it->s32TskId);
+				videoCount++;
+			}
+//				_mOutCodecTaskIDBeUsed->operator [](_vAuViTaskID)++;}
+			} else {
+				LOG_WARN << "Another bind type: " << bindType;
 			}
 		}
-		LOG_INFO << "after given swms chn " << it->stVdec.stSwms.u32SwmsChn;
+
+		sort(_vWindowPriority->begin(), _vWindowPriority->end());
+		for (VctrWindowPriority::iterator it = _vWindowPriority->begin();
+				it != _vWindowPriority->end(); it++)
+			LOG_INFO << "_vWindowPriority: " << *it;
+
+		for (VctrAVDECGetInfo::iterator it = avDecInfo->begin();
+				it != avDecInfo->end(); it++) {
+			if (it->stVdec.bSwms != DP_TRUE) {
+				if (it->AvBindAttr.enBindType == DP_M2S_AVBIND_VDEC2VO
+						|| it->AvBindAttr.enBindType
+								== DP_M2S_AVBIND_ADEC2AO_VDEC2VO) {
+					it->stVdec.stSwms.u32SwmsChn = *vSwmsChn.begin();
+					vSwmsChn.erase(vSwmsChn.begin());
+				}
+			}
+			LOG_INFO << "after given swms chn " << it->stVdec.stSwms.u32SwmsChn;
+		}
+
+		//jhbnote if used swms is true
+//	_mOutCodecTaskIDBeUsed->insert(
+//			MapOutCodecTaskIDBeUsed::value_type(_vAudioTaskID, 0));
+//	_mOutCodecTaskIDBeUsed->insert(
+//			MapOutCodecTaskIDBeUsed::value_type(_vVideoTaskID, 0));
+//	_mOutCodecTaskIDBeUsed->insert(
+//			MapOutCodecTaskIDBeUsed::value_type(_vAuViTaskID, 0));
+//	LOG_INFO << "_allCodecTaskIDCount num : " << _allCodecTaskIDCount
+//			<< " _mSwmsChCodecDecInfo size: " << _mSwmsChCodecDecInfo->size()
+//			<< " _vVideoTaskID: " << _vVideoTaskID.size()
+//			<< " _mOutCodecTaskIDBeUsed size: "
+//			<< _mOutCodecTaskIDBeUsed->size()
+//			<< " _mOutCodecTaskIDBeUsed[video]: "
+//			<< _mOutCodecTaskIDBeUsed->operator [](_vVideoTaskID);
+//if ()
+	_mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID) = audioCount;
+	_mOutCodecTaskIDBeUsed->operator [](_vVideoTaskID) = videoCount;
+	_mOutCodecTaskIDBeUsed->operator [](_vAuViTaskID) = audioVideoCount;
+	LOG_ERROR << "_mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID): "
+			<< _mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID);
+	LOG_ERROR << "size22: " << _mOutCodecTaskIDBeUsed->size();
 	}
-
-	//jhbnote if used swms is true
-	_mOutCodecTaskIDBeUsed->insert(
-			MapOutCodecTaskIDBeUsed::value_type(_vAudioTaskID, 0));
-	_mOutCodecTaskIDBeUsed->insert(
-			MapOutCodecTaskIDBeUsed::value_type(_vVideoTaskID, 0));
-	_mOutCodecTaskIDBeUsed->insert(
-			MapOutCodecTaskIDBeUsed::value_type(_vAuViTaskID, 0));
-	LOG_INFO << "_allCodecTaskIDCount num : " << _allCodecTaskIDCount
-			<< " _mSwmsChCodecDecInfo size: " << _mSwmsChCodecDecInfo->size()
-			<< " _vVideoTaskID: " << _vVideoTaskID.size()
-			<< " _mOutCodecTaskIDBeUsed size: "
-			<< _mOutCodecTaskIDBeUsed->size()
-			<< " _mOutCodecTaskIDBeUsed[video]: "
-			<< _mOutCodecTaskIDBeUsed->operator [](_vVideoTaskID);
-}
-
+//}
 DP_S32 NodeInfo::recvCB(void* pData, int len) {
 	if (pData == NULL && len <= 0) {
 		return DP_ERR_PROTOCOL_PRASE;
@@ -961,7 +1062,7 @@ void NodeInfo::initAVDec(DP_M2S_AVDEC_INFO_S *avdec, DP_S32 taskID,
 //	avdec->stStream._rtsp.stRtspClient.s8Open=2;
 //	memcpy(avdec->stStream._rtsp.stRtspClient.au8Url,"rtsp://172.16.100.201:554/a0_chn1-v0_chn0",sizeof("rtsp://172.16.100.201:554/a0_chn1-v0_chn0"));
 
-	// not ture udp
+// not ture udp
 	avdec->stStream._rtsp.stRtspClient.bUDP = DP_TRUE;
 	avdec->stStream._rtsp.stRtspClient.s8Open = DP_FALSE;
 	avdec->stStream._rtsp.stRtspServer.bMulticast = DP_FALSE;
@@ -999,7 +1100,7 @@ int NodeInfo::cmd_set_aenc_default(DP_VOID *pPtr, DP_S32 s32TskId,
 	stAttr.stAvBind.stAudio.stOut.u32DevId = 0; //not use
 	stAttr.stAvBind.stAudio.stOut.u32ChnId = AencChn;
 
-	//stAttr.AvBindAttr.stVideo = NULL;
+//stAttr.AvBindAttr.stVideo = NULL;
 
 	/* s3 DP_M2S_AENC_ATTR_S stAenc */
 	stAttr.stAenc.stAlg.enAlg = DP_M2S_ALG_AAC_ENC;
@@ -1044,7 +1145,7 @@ int NodeInfo::cmd_set_aenc_default(DP_VOID *pPtr, DP_S32 s32TskId,
 	memcpy(&stAttr.stVenc.stAlg, &stAlg, sizeof(DP_M2S_ALG_ATTR_S));
 
 	/* s5 DP_M2S_STREAM_ATTR_S stStream; */
-	//DP_M2S_STREAM_ATTR_S stStream;
+//DP_M2S_STREAM_ATTR_S stStream;
 	stAttr.stStream.enType = DP_M2S_STREAM_RTSP_SERVER;
 	DP_M2S_RTSP_SERVER_ATTR_S stRtspServer;
 	stRtspServer.bOpen = DP_TRUE;
@@ -1053,7 +1154,7 @@ int NodeInfo::cmd_set_aenc_default(DP_VOID *pPtr, DP_S32 s32TskId,
 	stRtspServer.s32ConnTimeout = 60;
 	stRtspServer.s32ConnMax = 128;
 	stRtspServer.s32ConnNums = 0; //not use
-	//stRtspServer.au8Url[] = NULL;//not use
+//stRtspServer.au8Url[] = NULL;//not use
 	memcpy(&stAttr.stStream._rtsp.stRtspServer, &stRtspServer,
 			sizeof(DP_M2S_RTSP_SERVER_ATTR_S));
 
@@ -1076,7 +1177,7 @@ int NodeInfo::cmd_set_venc_default(DP_VOID *pPtr, DP_S32 s32TskId,
 	/* s2 DP_M2S_AVBIND_ATTR_S */
 	stAttr.stAvBind.enBindType = DP_M2S_AVBIND_VI2VENC;/* no audio */
 
-	//stAttr.AvBindAttr.stAudio = NULL;
+//stAttr.AvBindAttr.stAudio = NULL;
 	stAttr.stAvBind.stVideo.stIn.ModId = DP_M2S_MOD_VI;
 	stAttr.stAvBind.stVideo.stIn.u32DevId = 0;
 	stAttr.stAvBind.stVideo.stIn.u32ChnId = 0;						//not use
@@ -1125,7 +1226,7 @@ int NodeInfo::cmd_set_venc_default(DP_VOID *pPtr, DP_S32 s32TskId,
 	memcpy(&stAttr.stVenc.stAlg, &stAlg, sizeof(DP_M2S_ALG_ATTR_S));
 
 	/* s5 DP_M2S_STREAM_ATTR_S stStream; */
-	//DP_M2S_STREAM_ATTR_S stStream;
+//DP_M2S_STREAM_ATTR_S stStream;
 	stAttr.stStream.enType = DP_M2S_STREAM_RTSP_SERVER;
 	DP_M2S_RTSP_SERVER_ATTR_S stRtspServer;
 	stRtspServer.bOpen = DP_TRUE;
@@ -1134,7 +1235,7 @@ int NodeInfo::cmd_set_venc_default(DP_VOID *pPtr, DP_S32 s32TskId,
 	stRtspServer.s32ConnTimeout = 60;
 	stRtspServer.s32ConnMax = 128;
 	stRtspServer.s32ConnNums = 0;									//not use
-	//stRtspServer.au8Url[] = NULL;//not use
+//stRtspServer.au8Url[] = NULL;//not use
 	memcpy(&stAttr.stStream._rtsp.stRtspServer, &stRtspServer,
 			sizeof(DP_M2S_RTSP_SERVER_ATTR_S));
 
@@ -1221,7 +1322,7 @@ int NodeInfo::cmd_set_avenc_default(DP_VOID *pPtr, DP_S32 s32TskId,
 	memcpy(&stAttr.stVenc.stAlg, &stAlg, sizeof(DP_M2S_ALG_ATTR_S));
 
 	/* s5 DP_M2S_STREAM_ATTR_S stStream; */
-	//DP_M2S_STREAM_ATTR_S stStream;
+//DP_M2S_STREAM_ATTR_S stStream;
 	stAttr.stStream.enType = DP_M2S_STREAM_RTSP_SERVER;
 	DP_M2S_RTSP_SERVER_ATTR_S stRtspServer;
 	stRtspServer.bOpen = DP_TRUE;
@@ -1230,7 +1331,7 @@ int NodeInfo::cmd_set_avenc_default(DP_VOID *pPtr, DP_S32 s32TskId,
 	stRtspServer.s32ConnTimeout = 60;
 	stRtspServer.s32ConnMax = 128;
 	stRtspServer.s32ConnNums = 0;					//not use
-	//stRtspServer.au8Url[] = NULL;//not use
+//stRtspServer.au8Url[] = NULL;//not use
 	memcpy(&stAttr.stStream._rtsp.stRtspServer, &stRtspServer,
 			sizeof(DP_M2S_RTSP_SERVER_ATTR_S));
 
@@ -1260,7 +1361,7 @@ DP_S32 NodeInfo::cmd_set_adec_default(DP_VOID *pPtr, DP_S32 s32TskId,
 	stAttr.AvBindAttr.stAudio.stOut.u32DevId = 0;
 	stAttr.AvBindAttr.stAudio.stOut.u32ChnId = 0;	//not use
 
-	//stAttr.AvBindAttr.stVideo = NULL;
+//stAttr.AvBindAttr.stVideo = NULL;
 
 	/* s3 DP_M2S_AENC_ATTR_S stAenc */
 	stAttr.stAdec.enAlg = DP_M2S_ALG_AAC_DEC;
@@ -1301,7 +1402,7 @@ DP_S32 NodeInfo::cmd_set_adec_default(DP_VOID *pPtr, DP_S32 s32TskId,
 	memcpy(&stAttr.stVdec.stAlg, &stAlg, sizeof(DP_M2S_ALG_ATTR_S));
 
 	/* s5 DP_M2S_STREAM_ATTR_S stStream; */
-	//DP_M2S_STREAM_ATTR_S stStream;
+//DP_M2S_STREAM_ATTR_S stStream;
 	stAttr.stStream.enType = DP_M2S_STREAM_RTSP_CLIENT;
 	DP_M2S_RTSP_CLIENT_ATTR_S stRtspClient;
 	stRtspClient.s8Open = DP_TRUE;

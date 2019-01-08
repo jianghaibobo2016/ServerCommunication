@@ -59,7 +59,7 @@ DP_BOOL NodeInfo::getAVInfoFromCodec(VecCodecTaskID codecID,
 	DP_U8 *recvBuff = new DP_U8[BUFFER_SIZE_PIPESOCKET];
 	for (itID = codecID.begin(); itID != codecID.end(); itID++) {
 		LOG_INFO << "Ask av info  cmd: " << cmd
-				<< " ======================================task id : "
+				<< " ===================task id : "
 				<< (DP_S32) *itID;
 		getAVDec.s32TskId = (DP_S32) *itID;
 		DP_S32 retResult = 0;

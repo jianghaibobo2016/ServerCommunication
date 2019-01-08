@@ -14,7 +14,8 @@
  *		add print for find seg fault.
  *	v0.0.0.4 :
  *		Modify LogicHandle &logicHandle = muduo::Singleton<LogicHandle>::instance();
- *	v0.0.0.10 :
+ *	v0.0.0.11 :
+ *		Add codec task recover.
  *
  */
 

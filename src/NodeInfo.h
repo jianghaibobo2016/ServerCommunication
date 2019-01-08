@@ -83,7 +83,7 @@ public:
 	typedef std::map<DP_U32, _sSrcVideoInfo> MapThirdIDSrcVideoInfo;
 	typedef boost::shared_ptr<MapThirdIDSrcVideoInfo> MapThirdIDSrcVideoInfoPtr;
 
-	// window present priority (sort)
+	// window present priority (sorted)
 	typedef std::vector<DP_U32> VctrWindowPriority;
 	typedef boost::shared_ptr<VctrWindowPriority> VctrWindowPriorityPtr;
 

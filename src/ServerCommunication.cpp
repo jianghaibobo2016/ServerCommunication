@@ -107,7 +107,7 @@ int main() {
 	muduo::Singleton<NodeInfo>::instance();
 	muduo::Singleton<LogicHandle>::instance();
 	GlobalProfile::getInstance();
-	muduo::Singleton<TaskRestore>::instance().startRunning(15, 1);
+	muduo::Singleton<TaskRestore>::instance().startRunning(32, 2);
 
 #if 0
 	DP_UDRV_LCD_Init();
