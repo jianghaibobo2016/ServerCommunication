@@ -911,7 +911,9 @@ typedef struct _sRemote_JsonGetInfo_tag {
 
 	//##输入节点 10
 	//输入编码信息->数组 视频编码通道
-	//				  音量  (AO)
+	//				  AI音量LINEIN0
+	//				  AI音量HDMI0
+	//				  音量AO
 	//				  裁剪X
 	//				  裁剪Y
 	//				  裁剪Width
@@ -922,7 +924,7 @@ typedef struct _sRemote_JsonGetInfo_tag {
 	//				  OSD字符串
 	//				  OSD字符串颜色
 	//				  OSD图片
-	//				  OSD显示模式
+	//				  OSD显示模式  (0->坐标 1->左上 2->右上 3->左下 4->右下)
 	//				  OSD坐标X
 	//				  OSD坐标Y
 	//				  输入帧率

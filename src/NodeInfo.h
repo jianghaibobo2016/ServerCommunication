@@ -39,6 +39,9 @@ public:
 	typedef std::vector<DP_M2S_AI_GET_INFO_S> VctrAIGetInfo;
 	typedef boost::shared_ptr<VctrAIGetInfo> VctrAIGetInfoPtr;
 
+	typedef vector<DP_M2S_AI_SET_INFO_S> VectAISetInfo;
+	typedef boost::shared_ptr<VectAISetInfo> VectAISetInfoPtr;
+
 	//获取视频输入设备信息
 	typedef std::vector<DP_M2S_VI_GET_INFO_S> VctrVIGetInfo;
 	typedef boost::shared_ptr<VctrVIGetInfo> VctrVIGetInfoPtr;
@@ -386,10 +389,12 @@ private:
 	template<typename T, typename S>
 	DP_BOOL getAVInfoFromCodec(VecCodecTaskID codecID, DP_M2S_CMD_ID_E cmd);
 
+public:
 	template<typename T, typename S>
 	DP_BOOL setAVInfoToCodec(boost::shared_ptr<T> &vAVInfo,
 			DP_M2S_CMD_ID_E cmd);
 
+private:
 	template<typename T, typename ST, typename V, typename ACK>
 	DP_BOOL getAOVOInfoFromCodec(T AOVOInfo, DP_M2S_CMD_ID_E cmd, V aovoDev);
 
@@ -428,6 +433,7 @@ private:
 
 	DP_BOOL initInGetVI();
 	DP_BOOL initInGetAI();
+	DP_BOOL initInGetAO();
 
 private:
 	VecSetInfoKeys _vSetInfoKeys;

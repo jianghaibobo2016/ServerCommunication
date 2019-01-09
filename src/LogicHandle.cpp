@@ -2111,190 +2111,327 @@ DP_BOOL LogicHandle::parseJsonData(Json::Value &JsonValue, vector<string> &vKey,
 	DP_U32 retHandle = 0;
 	DP_BOOL retParse = DP_TRUE;
 	if (JsonValue.isMember(Input_Enc_Info_Str)) {
-		count = JsonValue[Input_Enc_Info_Str].size();
-		vEncInfo.clear();
-		while (count--) {
-			memset(avEncInfo.get(), 0, sizeof(SET_AVENC_INFO_S));
-			if (JsonValue[Input_Enc_Info_Str][count].isMember(
-					Input_Enc_VencCh_Str)) {
-				avEncInfo->_u32VideoVencCh =
-						atoi(
-								JsonValue[Input_Enc_Info_Str][count][Input_Enc_VencCh_Str].asCString());
-			} else {
-			}
-			if (JsonValue[Input_Enc_Info_Str][count].isMember(
-					Input_Enc_Volume_Str)) {
-				avEncInfo->_u32Volume =
-						atoi(
-								JsonValue[Input_Enc_Info_Str][count][Input_Enc_Volume_Str].asCString());
-			} else {
-			}
-			if (JsonValue[Input_Enc_CropX_Str][count].isMember(
-					Input_Enc_Volume_Str)) {
-				avEncInfo->_u32Volume =
-						atoi(
-								JsonValue[Input_Enc_Info_Str][count][Input_Enc_CropX_Str].asCString());
-			} else {
-			}
-			if (JsonValue[Input_Enc_Info_Str][count].isMember(
-					Input_Enc_CropY_Str)) {
-				avEncInfo->_u32Volume =
-						atoi(
-								JsonValue[Input_Enc_Info_Str][count][Input_Enc_CropY_Str].asCString());
-			} else {
-			}
-			if (JsonValue[Input_Enc_Info_Str][count].isMember(
-					Input_Enc_CropWidth_Str)) {
-				avEncInfo->_u32Volume =
-						atoi(
-								JsonValue[Input_Enc_Info_Str][count][Input_Enc_CropWidth_Str].asCString());
-			} else {
-			}
-			if (JsonValue[Input_Enc_Info_Str][count].isMember(
-					Input_Enc_CropHeight_Str)) {
-				avEncInfo->_u32Volume =
-						atoi(
-								JsonValue[Input_Enc_Info_Str][count][Input_Enc_CropHeight_Str].asCString());
-			} else {
-			}
-			if (JsonValue[Input_Enc_Info_Str][count].isMember(
-					Input_Enc_ZOOMWidth_Str)) {
-				avEncInfo->_u32ZoomWidth =
-						atoi(
-								JsonValue[Input_Enc_Info_Str][count][Input_Enc_ZOOMWidth_Str].asCString());
-			} else {
-			}
-			if (JsonValue[Input_Enc_Info_Str][count].isMember(
-					Input_Enc_ZOOMHeight_Str)) {
-				avEncInfo->_u32ZoomHeight =
-						atoi(
-								JsonValue[Input_Enc_Info_Str][count][Input_Enc_ZOOMHeight_Str].asCString());
-			} else {
-			}
-
-			if (JsonValue[Input_Enc_Info_Str][count].isMember(
-					Input_Enc_OSDType_Str)) {
-				avEncInfo->_u32OSDType =
-						atoi(
-								JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDType_Str].asCString());
-			} else {
-			}
-			if (JsonValue[Input_Enc_Info_Str][count].isMember(
-					Input_Enc_OSDStr_Str)) {
-				memcpy(avEncInfo->_pu8OSDStr,
-						JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDStr_Str].asCString(),
-						strlen(
-								JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDStr_Str].asCString()));
-			} else {
-			}
-			if (JsonValue[Input_Enc_Info_Str][count].isMember(
-					Input_Enc_OSDStrColor_Str)) {
-				avEncInfo->_u32OSDStrColor =
-						atoi(
-								JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDStrColor_Str].asCString());
-			} else {
-			}
-			if (JsonValue[Input_Enc_Info_Str][count].isMember(
-					Input_Enc_OSDPic_Str)) {
-				memcpy(avEncInfo->_pu8OSDPic,
-						JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDStr_Str].asCString(),
-						strlen(
-								JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDPic_Str].asCString()));
-			} else {
-			}
-			if (JsonValue[Input_Enc_Info_Str][count].isMember(
-					Input_Enc_OSDPresentModel_Str)) {
-				avEncInfo->_u32OSDPresentModel =
-						atoi(
-								JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDPresentModel_Str].asCString());
-			} else {
-			}
-			if (JsonValue[Input_Enc_Info_Str][count].isMember(
-					Input_Enc_OSDPointX_Str)) {
-				avEncInfo->_u32OSDPointX =
-						atoi(
-								JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDPointX_Str].asCString());
-			} else {
-			}
-			if (JsonValue[Input_Enc_Info_Str][count].isMember(
-					Input_Enc_OSDPointY_Str)) {
-				avEncInfo->_u32OSDPointY =
-						atoi(
-								JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDPointY_Str].asCString());
-			} else {
-			}
-
-			if (JsonValue[Input_Enc_Info_Str][count].isMember(
-					Input_Enc_FrameRate_Str)) {
-				avEncInfo->_u32FrameRate =
-						atoi(
-								JsonValue[Input_Enc_Info_Str][count][Input_Enc_FrameRate_Str].asCString());
-			} else {
-			}
-			if (JsonValue[Input_Enc_Info_Str][count].isMember(
-					Input_Enc_BitRate_Str)) {
-				avEncInfo->_u32BitRate =
-						atoi(
-								JsonValue[Input_Enc_Info_Str][count][Input_Enc_BitRate_Str].asCString());
-			} else {
-			}
-			if (JsonValue[Input_Enc_Info_Str][count].isMember(
-					Input_Enc_Cast_Str)) {
-				avEncInfo->_u32Cast =
-						atoi(
-								JsonValue[Input_Enc_Info_Str][count][Input_Enc_Cast_Str].asCString());
-			} else {
-			}
-			vEncInfo.push_back(*avEncInfo.get());
-		}
-
-		NodeInfo::VctrAVENCGetInfoPtr vAVEncInNodeInfo = muduo::Singleton<
-				NodeInfo>::instance().getAVEncGetInfo();
-		boost::shared_ptr<DP_M2S_AVENC_INFO_S> avEnc_bak(
-				new DP_M2S_AVENC_INFO_S);
-		NodeInfo::VctrAVENCGetInfo::iterator it_cam;
-		for (DP_U32 i = 0; i < vEncInfo.size(); i++) {
-			//get region venc
-			it_cam = std::find_if(vAVEncInNodeInfo->begin(),
-					vAVEncInNodeInfo->end(),
-					bind2nd(compareVencChID<DP_M2S_AVENC_INFO_S>(),
-							vEncInfo[i]._u32VideoVencCh));
-
-			if (it_cam != vAVEncInNodeInfo.get()->end()) {
-
-				memset(avEnc_bak.get(), 0, sizeof(DP_M2S_AVENC_INFO_S));
-				memcpy(avEnc_bak.get(), (DP_M2S_AVENC_INFO_S*) &(*it_cam),
-						sizeof(DP_M2S_AVENC_INFO_S));
-
-				it_cam->stAvBind.stVideo.stOut.u32ChnId =
-						avEnc_bak->stAvBind.stVideo.stOut.u32ChnId;
-				it_cam->stVenc.stAlg.stH264Enc.stSize.u32Width =
-						avEnc_bak->stVenc.stAlg.stH264Enc.stSize.u32Width;
-				it_cam->stVenc.stAlg.stH264Enc.stSize.u32Height =
-						avEnc_bak->stVenc.stAlg.stH264Enc.stSize.u32Height;
-				it_cam->stVenc.stAlg.stH264Enc.u32FrmRate =
-						avEnc_bak->stVenc.stAlg.stH264Enc.u32FrmRate;
-				it_cam->stVenc.stAlg.stH264Enc.u32Bitrate =
-						avEnc_bak->stVenc.stAlg.stH264Enc.u32Bitrate;
-
-				//set venc
-				vKey.push_back(Input_Enc_Info_Str);
-				if ((retHandle = setInfo_AVENCToCodec(*it_cam)) == 0) {
-					result.push_back(0);
+		vKey.push_back(Input_Enc_Info_Str);
+		do {
+			count = JsonValue[Input_Enc_Info_Str].size();
+			vEncInfo.clear();
+			while (count--) {
+				memset(avEncInfo.get(), 0, sizeof(SET_AVENC_INFO_S));
+				if (JsonValue[Input_Enc_Info_Str][count].isMember(
+						Input_Enc_VencCh_Str)) {
+					avEncInfo->_u32VideoVencCh =
+							atoi(
+									JsonValue[Input_Enc_Info_Str][count][Input_Enc_VencCh_Str].asCString());
 				} else {
-					retParse = DP_FALSE;
-					result.push_back(retHandle);
-					memcpy((DP_M2S_AVENC_INFO_S*) &(*it_cam), avEnc_bak.get(),
-							sizeof(DP_M2S_AVENC_INFO_S));
-					if (setInfo_AVENCToCodec(*avEnc_bak.get()) != 0) {
-						LOG_ERROR << "Can not set AVENC!";
-					}
 				}
-			} else {
+				if (JsonValue[Input_Enc_Info_Str][count].isMember(
+						Input_Enc_AILINEIN0Volume_Str)) {
+					avEncInfo->_u32AILINE0Volume =
+							atoi(
+									JsonValue[Input_Enc_Info_Str][count][Input_Enc_AILINEIN0Volume_Str].asCString());
+				} else {
+				}
+				if (JsonValue[Input_Enc_Info_Str][count].isMember(
+						Input_Enc_AIHDMI0Volume_Str)) {
+					avEncInfo->_u32AIHDMI0Volume =
+							atoi(
+									JsonValue[Input_Enc_Info_Str][count][Input_Enc_AIHDMI0Volume_Str].asCString());
+				} else {
+				}
+				if (JsonValue[Input_Enc_Info_Str][count].isMember(
+						Input_Enc_AOVolume_Str)) {
+					avEncInfo->_u32AOVolume =
+							atoi(
+									JsonValue[Input_Enc_Info_Str][count][Input_Enc_AOVolume_Str].asCString());
+				} else {
+				}
+
+				if (JsonValue[Input_Enc_CropX_Str][count].isMember(
+						Input_Enc_CropX_Str)) {
+					avEncInfo->_u32CropX =
+							atoi(
+									JsonValue[Input_Enc_Info_Str][count][Input_Enc_CropX_Str].asCString());
+				} else {
+				}
+				if (JsonValue[Input_Enc_Info_Str][count].isMember(
+						Input_Enc_CropY_Str)) {
+					avEncInfo->_u32CropY =
+							atoi(
+									JsonValue[Input_Enc_Info_Str][count][Input_Enc_CropY_Str].asCString());
+				} else {
+				}
+				if (JsonValue[Input_Enc_Info_Str][count].isMember(
+						Input_Enc_CropWidth_Str)) {
+					avEncInfo->_u32CropWidth =
+							atoi(
+									JsonValue[Input_Enc_Info_Str][count][Input_Enc_CropWidth_Str].asCString());
+				} else {
+				}
+				if (JsonValue[Input_Enc_Info_Str][count].isMember(
+						Input_Enc_CropHeight_Str)) {
+					avEncInfo->_u32CropHeight =
+							atoi(
+									JsonValue[Input_Enc_Info_Str][count][Input_Enc_CropHeight_Str].asCString());
+				} else {
+				}
+				if (JsonValue[Input_Enc_Info_Str][count].isMember(
+						Input_Enc_ZOOMWidth_Str)) {
+					avEncInfo->_u32ZoomWidth =
+							atoi(
+									JsonValue[Input_Enc_Info_Str][count][Input_Enc_ZOOMWidth_Str].asCString());
+				} else {
+				}
+				if (JsonValue[Input_Enc_Info_Str][count].isMember(
+						Input_Enc_ZOOMHeight_Str)) {
+					avEncInfo->_u32ZoomHeight =
+							atoi(
+									JsonValue[Input_Enc_Info_Str][count][Input_Enc_ZOOMHeight_Str].asCString());
+				} else {
+				}
+				if (JsonValue[Input_Enc_Info_Str][count].isMember(
+						Input_Enc_OSDType_Str)) {
+					avEncInfo->_u32OSDType =
+							atoi(
+									JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDType_Str].asCString());
+				} else {
+				}
+				if (JsonValue[Input_Enc_Info_Str][count].isMember(
+						Input_Enc_OSDStr_Str)) {
+					memcpy(avEncInfo->_pu8OSDStr,
+							JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDStr_Str].asCString(),
+							strlen(
+									JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDStr_Str].asCString()));
+				} else {
+				}
+				if (JsonValue[Input_Enc_Info_Str][count].isMember(
+						Input_Enc_OSDStrColor_Str)) {
+					avEncInfo->_u32OSDStrColor =
+							atoi(
+									JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDStrColor_Str].asCString());
+				} else {
+				}
+				if (JsonValue[Input_Enc_Info_Str][count].isMember(
+						Input_Enc_OSDPic_Str)) {
+					memcpy(avEncInfo->_pu8OSDPic,
+							JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDPic_Str].asCString(),
+							strlen(
+									JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDPic_Str].asCString()));
+				} else {
+				}
+				if (JsonValue[Input_Enc_Info_Str][count].isMember(
+						Input_Enc_OSDPresentModel_Str)) {
+					avEncInfo->_u32OSDPresentModel =
+							atoi(
+									JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDPresentModel_Str].asCString());
+				} else {
+				}
+				if (JsonValue[Input_Enc_Info_Str][count].isMember(
+						Input_Enc_OSDPointX_Str)) {
+					avEncInfo->_u32OSDPointX =
+							atoi(
+									JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDPointX_Str].asCString());
+				} else {
+				}
+				if (JsonValue[Input_Enc_Info_Str][count].isMember(
+						Input_Enc_OSDPointY_Str)) {
+					avEncInfo->_u32OSDPointY =
+							atoi(
+									JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDPointY_Str].asCString());
+				} else {
+				}
+				if (JsonValue[Input_Enc_Info_Str][count].isMember(
+						Input_Enc_FrameRate_Str)) {
+					avEncInfo->_u32FrameRate =
+							atoi(
+									JsonValue[Input_Enc_Info_Str][count][Input_Enc_FrameRate_Str].asCString());
+				} else {
+				}
+				if (JsonValue[Input_Enc_Info_Str][count].isMember(
+						Input_Enc_BitRate_Str)) {
+					avEncInfo->_u32BitRate =
+							atoi(
+									JsonValue[Input_Enc_Info_Str][count][Input_Enc_BitRate_Str].asCString());
+				} else {
+				}
+				if (JsonValue[Input_Enc_Info_Str][count].isMember(
+						Input_Enc_Cast_Str)) {
+					avEncInfo->_u32Cast =
+							atoi(
+									JsonValue[Input_Enc_Info_Str][count][Input_Enc_Cast_Str].asCString());
+				} else {
+				}
+				vEncInfo.push_back(*avEncInfo.get());
 			}
-		}
-		muduo::Singleton<NodeInfo>::instance().updateAVEncGetInfo(
-				vAVEncInNodeInfo);
+
+			NodeInfo::VctrAVENCGetInfoPtr vAVEncInNodeInfo = muduo::Singleton<
+					NodeInfo>::instance().getAVEncGetInfo();
+			boost::shared_ptr<DP_M2S_AVENC_INFO_S> avEnc_bak(
+					new DP_M2S_AVENC_INFO_S);
+			NodeInfo::VctrAVENCGetInfo::iterator it_cam;
+			for (DP_U32 i = 0; i < vEncInfo.size(); i++) {
+				//get region venc
+				it_cam = std::find_if(vAVEncInNodeInfo->begin(),
+						vAVEncInNodeInfo->end(),
+						bind2nd(compareVencChID<DP_M2S_AVENC_INFO_S>(),
+								vEncInfo[i]._u32VideoVencCh));
+
+				if (it_cam != vAVEncInNodeInfo.get()->end()) {
+
+					memset(avEnc_bak.get(), 0, sizeof(DP_M2S_AVENC_INFO_S));
+					memcpy(avEnc_bak.get(), (DP_M2S_AVENC_INFO_S*) &(*it_cam),
+							sizeof(DP_M2S_AVENC_INFO_S));
+
+					it_cam->stVenc.stCrop.s32X = avEncInfo->_u32CropX;
+					it_cam->stVenc.stCrop.s32Y = avEncInfo->_u32CropY;
+					it_cam->stVenc.stCrop.u32Width = avEncInfo->_u32CropWidth;
+					it_cam->stVenc.stCrop.u32Height = avEncInfo->_u32CropHeight;
+					it_cam->stVenc.stZoom.stRect.u32Width =
+							avEncInfo->_u32ZoomWidth;
+					it_cam->stVenc.stZoom.stRect.u32Height =
+							avEncInfo->_u32ZoomHeight;
+					if (avEncInfo->_u32OSDType == 0) {
+						it_cam->stVenc.stOsd.enType = DP_M2S_OSD_PIC;
+						memcpy(it_cam->stVenc.stOsd.au8PicPath,
+								avEncInfo->_pu8OSDPic,
+								DP_M2S_OSD_PIC_PATH_LEN);
+					} else if (avEncInfo->_u32OSDType == 1) {
+						it_cam->stVenc.stOsd.enType = DP_M2S_OSD_STRING;
+						memcpy(it_cam->stVenc.stOsd.stStr.au8Str,
+								avEncInfo->_pu8OSDStr,
+								DP_M2S_OSD_STRING_LEN);
+						it_cam->stVenc.stOsd.stStr.u32Color =
+								avEncInfo->_u32OSDStrColor;
+					} else {
+					}
+					if (avEncInfo->_u32OSDPresentModel == 0) {
+						it_cam->stVenc.stOsd.enDispMode =
+								DP_M2S_OSD_DISPLAY_MODE_COORD;
+					} else if (avEncInfo->_u32OSDType == 1) {
+						it_cam->stVenc.stOsd.enDispMode =
+								DP_M2S_OSD_DISPLAY_MODE_LTOP;
+					} else if (avEncInfo->_u32OSDType == 2) {
+						it_cam->stVenc.stOsd.enDispMode =
+								DP_M2S_OSD_DISPLAY_MODE_RTOP;
+					} else if (avEncInfo->_u32OSDType == 3) {
+						it_cam->stVenc.stOsd.enDispMode =
+								DP_M2S_OSD_DISPLAY_MODE_LBOTTOM;
+					} else if (avEncInfo->_u32OSDType == 4) {
+						it_cam->stVenc.stOsd.enDispMode =
+								DP_M2S_OSD_DISPLAY_MODE_RBOTTOM;
+					} else {
+					}
+					it_cam->stVenc.stOsd.stPoint.s32X =
+							avEncInfo->_u32OSDPointX;
+					it_cam->stVenc.stOsd.stPoint.s32Y =
+							avEncInfo->_u32OSDPointY;
+					it_cam->stVenc.stAlg.stH264Enc.u32FrmRate =
+							avEncInfo->_u32FrameRate;
+					it_cam->stVenc.stAlg.stH264Enc.u32Bitrate =
+							avEncInfo->_u32BitRate;
+					if (avEncInfo->_u32Cast == 0) {
+						it_cam->stStream._rtsp.stRtspServer.bMulticast =
+								DP_FALSE;
+					} else if (avEncInfo->_u32Cast == 1) {
+						it_cam->stStream._rtsp.stRtspServer.bMulticast =
+								DP_TRUE;
+					} else {
+					}
+
+					//set venc
+
+					if ((retHandle = setInfo_AVENCToCodec(*it_cam)) == 0) {
+//					result.push_back(0);
+					} else {
+						retParse = DP_FALSE;
+						result.push_back(retHandle);
+						memcpy((DP_M2S_AVENC_INFO_S*) &(*it_cam),
+								avEnc_bak.get(), sizeof(DP_M2S_AVENC_INFO_S));
+						if (setInfo_AVENCToCodec(*avEnc_bak.get()) != 0) {
+							LOG_ERROR << "Can not set AVENC!";
+						}
+						break;
+					}
+				} else {
+				}
+			}
+			muduo::Singleton<NodeInfo>::instance().updateAVEncGetInfo(
+					vAVEncInNodeInfo);
+
+			//set audio volume
+			//no recover
+//			do {
+			NodeInfo::VctrAIGetInfoPtr aiInfo =
+					muduo::Singleton<NodeInfo>::instance().getAIGetInfo();
+			NodeInfo::VctrAIGetInfo::iterator it_AI;
+			NodeInfo::VectAISetInfoPtr aiSet(new NodeInfo::VectAISetInfo);
+			aiSet->clear();
+			it_AI = find_if(aiInfo->begin(), aiInfo->end(),
+					bind2nd(
+							findAudioVolume<DP_M2S_AI_GET_INFO_S,
+									DP_M2S_AI_DEV_E>(),
+							DP_M2S_AI_DEV_LINEIN0_HI3536));
+			if (it_AI != aiInfo->end()) {
+				it_AI->u8Vol = avEncInfo->_u32AILINE0Volume;
+				aiSet->push_back(
+						DP_M2S_AI_SET_INFO_S(it_AI->enDevId, it_AI->u8Vol,
+								it_AI->stCommAttr));
+			} else {
+				retParse = DP_FALSE;
+				result.push_back(DP_ERR_AI_ID_INVALID);
+				break;
+			}
+			it_AI = find_if(aiInfo->begin(), aiInfo->end(),
+					bind2nd(
+							findAudioVolume<DP_M2S_AI_GET_INFO_S,
+									DP_M2S_AI_DEV_E>(),
+							DP_M2S_AI_DEV_HDMI0_ITE6801));
+			if (it_AI == aiInfo->end()) {
+				it_AI->u8Vol = avEncInfo->_u32AIHDMI0Volume;
+				aiSet->push_back(
+						DP_M2S_AI_SET_INFO_S(it_AI->enDevId, it_AI->u8Vol,
+								it_AI->stCommAttr));
+			} else {
+				retParse = DP_FALSE;
+				result.push_back(DP_ERR_AI_ID_INVALID);
+				break;
+			}
+
+			if (muduo::Singleton<NodeInfo>::instance().setAVInfoToCodec<
+					NodeInfo::VectAISetInfo, DP_M2S_CMD_AI_SETINFO_S>(aiSet,
+					DP_M2S_CMD_AI_SET) == DP_TRUE) {
+				muduo::Singleton<NodeInfo>::instance().updateAIGetInfo(aiInfo);
+			} else {
+				retParse = DP_FALSE;
+				result.push_back(DP_ERR_TASK_OPERATE);
+				break;
+			}
+
+			NodeInfo::VctrAOGetInfoPtr aoInfo =
+					muduo::Singleton<NodeInfo>::instance().getAOGetInfo();
+			NodeInfo::VctrAOGetInfo::iterator it_AO =
+					find_if(aoInfo->begin(), aoInfo->end(),
+							bind2nd(
+									findAudioVolume<DP_M2S_AO_INFO_S,
+											DP_M2S_AO_DEV_E>(),
+									DP_M2S_AO_DEV_LINEOUT0_HI3536));
+			if (it_AO != aoInfo->end()) {
+				it_AO->u8Vol = avEncInfo->_u32AOVolume;
+			} else {
+				retParse = DP_FALSE;
+				result.push_back(DP_ERR_AO_ID_INVALID);
+				break;
+			}
+			if (muduo::Singleton<NodeInfo>::instance().setAVInfoToCodec<
+					NodeInfo::VctrAOGetInfo, DP_M2S_CMD_AO_SETINFO_S>(aoInfo,
+					DP_M2S_CMD_AO_SET) == DP_TRUE) {
+				muduo::Singleton<NodeInfo>::instance().updateAOGetInfo(aoInfo);
+			} else {
+				retParse = DP_FALSE;
+				result.push_back(DP_ERR_TASK_OPERATE);
+				break;
+			}
+			result.push_back(0);
+		} while (0);
 	} else {
 	}
 

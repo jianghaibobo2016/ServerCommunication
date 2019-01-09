@@ -107,6 +107,7 @@ typedef enum _DP_M2S_AO_DEV_E {
  *注意：无
  */
 typedef enum _DP_M2S_VO_DEV_E {
+
 	DP_M2S_VO_DEV_HDMI0_HI3536 = 0x0, DP_M2S_VO_DEV_MAX
 } DP_M2S_VO_DEV_E;
 
@@ -1157,6 +1158,10 @@ typedef struct _DP_M2S_AI_SET_INFO_S {
 	_DP_M2S_AI_SET_INFO_S() :
 			enDevId(), u8Vol(), stCommAttr() {
 	}
+	_DP_M2S_AI_SET_INFO_S(DP_M2S_AI_DEV_E devId, DP_U8 vol,
+			DP_M2S_AUDIO_COMM_ATTR_S commAttr) :
+			enDevId(devId), u8Vol(vol), stCommAttr(commAttr) {
+	}
 	DP_M2S_AI_DEV_E enDevId;
 	DP_U8 u8Vol;
 	DP_M2S_AUDIO_COMM_ATTR_S stCommAttr;
@@ -1282,6 +1287,9 @@ typedef struct _DP_M2S_AVDEC_INFO_S {
 typedef struct _DP_M2S_AO_INFO_S {
 	_DP_M2S_AO_INFO_S(DP_M2S_AO_DEV_E devId, DP_U8 vol) :
 			enDevId(devId), u8Vol(vol) {
+	}
+	_DP_M2S_AO_INFO_S() :
+			enDevId(), u8Vol() {
 	}
 	DP_M2S_AO_DEV_E enDevId;
 	DP_U8 u8Vol;
@@ -1470,6 +1478,7 @@ typedef DP_M2S_CMD_ACK_S DP_M2S_CMD_EXIT_ACK_S;
  *注意：无
  */
 typedef struct _DP_M2S_CMD_AI_GETINFO_S {
+
 	_DP_M2S_CMD_AI_GETINFO_S(DP_M2S_CMD_ID_E cmd, DP_M2S_AI_DEV_E dev) :
 			stHeader(sizeof(_DP_M2S_CMD_AI_GETINFO_S), cmd, 0x01), enDevId(dev) {
 	}
@@ -1504,7 +1513,9 @@ typedef struct _DP_M2S_CMD_AI_GETINFO_ACK_S {
  *注意：无
  */
 typedef struct _DP_M2S_CMD_AI_SETINFO_S {
-
+	_DP_M2S_CMD_AI_SETINFO_S(DP_M2S_CMD_ID_E cmd) :
+			stHeader(sizeof(_DP_M2S_CMD_AI_SETINFO_S), cmd, 0x01), stInfo() {
+	}
 	DP_M2S_INF_PROT_HEAD_S stHeader;
 	DP_M2S_AI_SET_INFO_S stInfo;
 } DP_M2S_CMD_AI_SETINFO_S;
@@ -2090,7 +2101,12 @@ typedef struct _DP_M2S_CMD_AO_GETINFO_ACK_S {
  *注意：无
  */
 typedef struct _DP_M2S_CMD_AO_SETINFO_S {
-
+	_DP_M2S_CMD_AO_SETINFO_S(DP_M2S_CMD_ID_E cmd) :
+			stHeader(sizeof(_DP_M2S_CMD_AO_SETINFO_S), cmd, 0x01), stInfo() {
+	}
+	_DP_M2S_CMD_AO_SETINFO_S(DP_M2S_CMD_ID_E cmd, DP_M2S_AO_INFO_S info) :
+			stHeader(sizeof(_DP_M2S_CMD_AO_SETINFO_S), cmd, 0x01), stInfo(info) {
+	}
 	DP_M2S_INF_PROT_HEAD_S stHeader;
 	DP_M2S_AO_INFO_S stInfo;
 } DP_M2S_CMD_AO_SETINFO_S;

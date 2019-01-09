@@ -93,6 +93,7 @@ DP_BOOL NodeInfo::getAVInfoFromCodec(VecCodecTaskID codecID,
 	return DP_TRUE;
 }
 
+//send vector
 template<typename T, typename S> //VctrAVDECGetInfoPtr DP_M2S_CMD_AVDEC_SETINFO_S
 DP_BOOL NodeInfo::setAVInfoToCodec(boost::shared_ptr<T> &vAVInfo,
 		DP_M2S_CMD_ID_E cmd) {
@@ -110,12 +111,13 @@ DP_BOOL NodeInfo::setAVInfoToCodec(boost::shared_ptr<T> &vAVInfo,
 			LOG_ERROR << "Recv from codec : " << ret;
 			return DP_FALSE;
 		} else {
-			LOG_INFO << "Set to codec task id: " << setAVInfo->stInfo.s32TskId;
+//			LOG_INFO << "Set to codec task id: " << setAVInfo->stInfo.s32TskId;
 		}
 	}
 	return DP_TRUE;
 }
 
+//only one
 template<typename T, typename S> // DP_M2S_AVDEC_INFO_S  DP_M2S_CMD_AVDEC_SETINFO_S
 DP_S32 NodeInfo::sendCodecAVEncDecInfo(T info, DP_U8 isReply,
 		DP_M2S_CMD_ID_E cmd) {

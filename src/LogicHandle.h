@@ -181,6 +181,16 @@ private:
 		}
 	};
 
+	template<typename S, typename E>
+	struct findAudioVolume: public std::binary_function<S, E, bool> {
+		bool operator()(const S & lhs, const E vol) const {
+			if (lhs.enDevId == vol)
+				return true;
+			else
+				return false;
+		}
+	};
+
 //	typedef enum _AOChnID_E {
 //		_pureAudioChn = 0x00, _videoAudioChn
 //	} AOChnID_E;
@@ -195,7 +205,9 @@ private:
 
 typedef struct _SET_AVENC_INFO_S {
 	DP_U32 _u32VideoVencCh;
-	DP_U32 _u32Volume;
+	DP_U32 _u32AILINE0Volume;
+	DP_U32 _u32AIHDMI0Volume;
+	DP_U32 _u32AOVolume;
 	DP_U32 _u32CropX;
 	DP_U32 _u32CropY;
 	DP_U32 _u32CropWidth;
@@ -218,7 +230,9 @@ typedef struct _SET_AVENC_INFO_S {
 
 static const DP_CHAR *Input_Enc_Info_Str = "输入编码信息";
 static const DP_CHAR *Input_Enc_VencCh_Str = "视频编码通道";
-static const DP_CHAR *Input_Enc_Volume_Str = "音量";
+static const DP_CHAR *Input_Enc_AILINEIN0Volume_Str = "AI音量LINEIN0";
+static const DP_CHAR *Input_Enc_AIHDMI0Volume_Str = " AI音量HDMI0";
+static const DP_CHAR *Input_Enc_AOVolume_Str = "音量AO";
 static const DP_CHAR *Input_Enc_CropX_Str = "裁剪X";
 static const DP_CHAR *Input_Enc_CropY_Str = " 裁剪Y";
 static const DP_CHAR *Input_Enc_CropWidth_Str = "裁剪Width";
