@@ -111,6 +111,8 @@ public:
 	typedef std::vector<DP_M2S_VI_DEV_E> VecVIDEV;
 	typedef std::vector<DP_M2S_AI_DEV_E> VecAIDEV;
 
+	typedef std::vector<std::string> VecSetInfoKeys;
+
 	//----------------------------get --------------------------//
 	inline const VctrAIGetInfoPtr getAIGetInfo() const {
 		muduo::MutexLockGuard lock(_mutex);
@@ -339,7 +341,7 @@ public:
 	static DP_U32 batchGetting(DP_M2S_CMD_ID_E cmd, VecCodecTaskID &vTaskID,
 			std::vector<S> &info, VecErrInfo &errInfo);
 
-private:
+public:
 
 	inline static void sendToCodecAndRecv(DP_S32 &retResult, const void* data,
 			DP_S32 len, DP_U8* recvBuff) {
@@ -378,6 +380,7 @@ private:
 		return 0;
 	}
 
+private:
 	void initLocalInfo();
 
 	template<typename T, typename S>
@@ -426,6 +429,9 @@ private:
 	DP_BOOL initInGetVI();
 	DP_BOOL initInGetAI();
 
+private:
+	VecSetInfoKeys _vSetInfoKeys;
+	void initInfoKeys();
 private:
 	DP_U32 setID(MapServerTaskIDPtr mTaskID, DP_U32 taskID, DP_U32 min,
 			DP_U32 max, TaskObjectType_E taskType);

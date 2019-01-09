@@ -62,7 +62,6 @@ void TaskRestore::setAVDecInfoToJson(DP_M2S_AVDEC_INFO_S info) {
 	if (parseOk == DP_TRUE && count > 0) {
 		while (notFound) {
 			//jhbnote ismember! check
-			std::cout << "pars ok count " << count << std::endl;
 			if (JsonValue[CODEC_AVDEC_TITLE][--count]["s32TskId"].asInt()
 					== info.s32TskId) {
 				notFound = DP_FALSE;
@@ -388,7 +387,7 @@ void TaskRestore::setWindowInfoToJson(OpenAndMoveWindow_S *info) {
 }
 
 void TaskRestore::setThirdWindowTaskToJson(OpenAndMoveWindow_S info,
-		DP_U32 priority, DP_S32 codecID) {
+		DP_S32 codecID) {
 	Json::Reader JsonReader;
 	Json::StyledWriter JsonSWriter;
 	Json::Value JsonValue;
@@ -410,7 +409,7 @@ void TaskRestore::setThirdWindowTaskToJson(OpenAndMoveWindow_S info,
 		}
 	}
 	IFStream.close();
-	thirdWindowData2JsonValue(info, priority, codecID, newValue);
+	thirdWindowData2JsonValue(info, codecID, newValue);
 	DP_U32 count = JsonValue[THIRD_WINDOW_TITLE].size();
 	DP_U32 index = 0;
 	DP_BOOL notFound = DP_TRUE;
@@ -532,7 +531,8 @@ void TaskRestore::removeThirdTask(CloseThirdTask_E enClose, DP_U32 thirdID) {
 		muduo::MutexLockGuard lock(_thirdAudioMutex);
 		IFStream.open(THIRD_AUDIO_TASK_JSON_PATH, std::ios::binary);
 		if (!JsonReader.parse(IFStream, JsonValue, FALSE)) {
-			LOG_ERROR << "Can not parser and find third id : " << thirdID << " in json";
+			LOG_ERROR << "Can not parser and find third id : " << thirdID
+					<< " in json";
 			return;
 		} else {
 			DP_U32 count = JsonValue[THIRD_AUDIO_TITLE].size();
@@ -560,7 +560,6 @@ void TaskRestore::removeThirdTask(CloseThirdTask_E enClose, DP_U32 thirdID) {
 	std::string strBetterWrite = oJsonSWriter.write(JsonValue);
 	if (enClose == _eCloseWindow) {
 		OFStream.open(THIRD_WINDOW_TASK_JSON_PATH);
-
 	} else if (enClose == _eCloseAudio) {
 		OFStream.open(THIRD_AUDIO_TASK_JSON_PATH);
 	}
@@ -583,6 +582,7 @@ DP_BOOL TaskRestore::getAVDecJson(NodeInfo::VctrAVDECGetInfoPtr &AVDecInfo) {
 			setDataToJson(*it);
 		}
 	} else {
+//		Json::FastWriter fast_writer;
 		jsonValue2AVDec(JsonValue, AVDecInfo);
 	}
 	IFStream.close();
@@ -922,7 +922,6 @@ void TaskRestore::jsonValue2AVDec(Json::Value JsonValue,
 					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspClient"]["au8Url"].asCString(),
 					strlen(
 							JsonValue[CODEC_AVDEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspClient"]["au8Url"].asCString()));
-
 		}
 
 		tmp->stAdec.enAlg =
@@ -976,8 +975,8 @@ void TaskRestore::jsonValue2AVDec(Json::Value JsonValue,
 		} else if (tmp->stVdec.stAlg.enAlg == DP_M2S_ALG_AAC_DEC) {
 			tmp->stVdec.stAlg.stAACDec.bAdts =
 					(DP_BOOL) JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stAlg"]["stAACDec"]["bAdts"].asInt();
-
 		}
+
 		tmp->stVdec.stCrop.s32X =
 				JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stCrop"]["s32X"].asInt();
 		tmp->stVdec.stCrop.s32Y =
@@ -988,6 +987,7 @@ void TaskRestore::jsonValue2AVDec(Json::Value JsonValue,
 				JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stCrop"]["u32Height"].asUInt();
 		tmp->stVdec.stZoom.enType =
 				(DP_M2S_ZOOM_TYPE_E) JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stZoom"]["enType"].asUInt();
+
 		if (tmp->stVdec.stZoom.enType == DP_M2S_ZOOM_RECT) {
 			tmp->stVdec.stZoom.stRect.s32X =
 					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stZoom"]["stRect"]["s32X"].asInt();
@@ -1052,7 +1052,7 @@ void TaskRestore::jsonValue2AVDec(Json::Value JsonValue,
 }
 
 void TaskRestore::thirdWindowData2JsonValue(OpenAndMoveWindow_S info,
-		DP_U32 priority, DP_S32 codecID, Json::Value &value) {
+		DP_S32 codecID, Json::Value &value) {
 	value["codecID"] = codecID;
 //	value["priority"] = priority;
 //	value["VOCHID"] = info.u8VoChnID;

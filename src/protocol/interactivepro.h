@@ -522,7 +522,6 @@ typedef struct _s_AVServer_Header_tag {
 
 typedef _s_AVServer_Header _sRemote_Header; ///<定义_sRemote_Header类型，协议头 20B
 
-
 /// @defgroup 控制软件与输入输出节点的协议
 /// @{
 
@@ -886,7 +885,7 @@ typedef struct _sRemote_JsonGetInfo_tag {
 	DP_U8 au8KeyCount;
 //	DP_U8* pau8Key[64]; //每一个键大小
 //#pragma region key
-	//##本机信息
+	//##本机信息 22
 	//设备id
 	//设备类型
 	//运行模式
@@ -910,19 +909,39 @@ typedef struct _sRemote_JsonGetInfo_tag {
 	//本机运行性能
 	//本机运行模式（矩阵、拼接屏、KVM）
 
-	//##输入节点
+	//##输入节点 10
+	//输入编码信息->数组 视频编码通道
+	//				  音量  (AO)
+	//				  裁剪X
+	//				  裁剪Y
+	//				  裁剪Width
+	//				  裁剪Height
+	//				  缩放Width
+	//				  缩放Height
+	//				  OSD类型  (0->图片,1->字符串)
+	//				  OSD字符串
+	//				  OSD字符串颜色
+	//				  OSD图片
+	//				  OSD显示模式
+	//				  OSD坐标X
+	//				  OSD坐标Y
+	//				  输入帧率
+	//				  输入码率(单位Kb)
+	//				  单组播  (0->单播,1->组播) |第二个
+	//视频编码通道
 	//采集设备id
 	//输入连接状态
 	//输入信号源状态
-	//输入分辨率
-	//输入帧率
-	//已拉取音频流->数组 源Rtsp|源Rtsp
+	//
+	//
+	//
+	//已拉取音频流->数组 "源Rtsp"|"源Rtsp"
 	//输出总带宽
 	//rtsp接入数量（正在拉取流的rtsp客户端数量）
 	//rtsp客户端详情->数组 Rtsp地址，客户端ip，客户端ip|Rtsp地址，客户端ip，客户端ip
 
-	//##输出节点
-	//视频通道1窗口详情->数组  源Rtsp、分辨率、帧率、码流|源Rtsp、分辨率、帧率、码流
+	//##输出节点 6
+	//视频通道1窗口详情->数组  源Rtsp、分辨率(Width,Height)、帧率、码率(单位Kb)|源Rtsp、分辨率、帧率、码率(单位Kb)
 	//视频通道2窗口详情
 	//视音频通道1音频详情->源Rtsp
 	//视音频通道2音频详情
@@ -941,8 +960,8 @@ typedef struct _sRemote_Reply_JsonGetInfo_tag {
 ////////////////////////////////////////////////////0x21.设置参数（Json格式）///////////////////////////////////////////////////
 typedef struct _sRemote_JsonSetInfo_tag {
 	_sRemote_Header header;
-	DP_U8 au8KeyCount;
-//	DP_U8* pau8Key[64]; //每一个键大小
+//	DP_U8 au8KeyCount; //remove
+//	DP_U8* pau8Key[64]; //每一个键大小	 //remove
 //#pragma region key
 	//###基本信息
 	//运行模式
@@ -962,10 +981,17 @@ typedef struct _sRemote_JsonSetInfo_tag {
 } sRemote_JsonSetInfo_tag;
 
 typedef struct _sRemote_Reply_JsonSetInfo_tag {
+	_sRemote_Reply_JsonSetInfo_tag(DP_U32 u32IP, eDeviceType devType,
+			DP_U8 packageType, DP_U16 packageLen, DP_U8 cmdID, DP_U16 cmdLen,
+			DP_U8 keyCount) :
+			header(u32IP, devType, packageType, packageLen, cmdID, cmdLen), au8KeyCount(
+					keyCount) {
+	}
 	_sRemote_Header header;
 	DP_U8 au8KeyCount;
 //	DP_U8* pau8Key[64];
-//	DP_U8* pau8Result;
+//	DP_U32 *pu32Result;
+//	DP_U8* pau8Result; //remove
 } sRemote_Reply_JsonSetInfo_tag;
 
 ////////////////////////////////////////////////////0x Command_OpenAndMoveWindow ///////////////////////////////////////////////////

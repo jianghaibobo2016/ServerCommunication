@@ -11,14 +11,14 @@
 #include "interactivepro.h"
 #include "dp_sd_type.h"
 //
-#define OutputDevice 1
-#define InputDevice  0
+//#define OutputDevice 1
+//#define InputDevice  0
 //
-//#define OutputDevice 0
-//#define InputDevice  1
+#define OutputDevice 0
+#define InputDevice  1
 
 #if (InputDevice)
-static const DP_CHAR *SoftVersion = "V0.0.0.1";
+static const DP_CHAR *SoftVersion = "V0.0.0.10";
 static const eDeviceType g_DevType = Type_DeviceInput;
 static const DP_CHAR *LogFileName = "/root/APPDIR/Server/In/InputNodeServer";
 static const DP_CHAR *Welcome = "DSPPA IDMS4K IN";
@@ -26,11 +26,11 @@ static const DP_BOOL RecoverTask = DP_TRUE;
 #endif
 
 #if (OutputDevice)
-static const DP_CHAR *SoftVersion = "V0.0.0.11";
+static const DP_CHAR *SoftVersion = "V0.0.0.13";
 static const eDeviceType g_DevType = Type_DeviceOutput;
 static const DP_CHAR *LogFileName = "/root/APPDIR/Server/Out/OutNodeServer";
 static const DP_CHAR *Welcome = "DSPPA IDMS4K OUT";
-static const DP_BOOL RecoverTask = DP_TRUE;
+static const DP_BOOL RecoverTask = DP_FALSE;
 #endif
 
 static const DP_CHAR *Working = "WORKING";

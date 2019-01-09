@@ -73,7 +73,6 @@ public:
 	}
 
 	void setDataToJson(DP_M2S_AVDEC_INFO_S data) {
-//		std::cout << "data taks id : " << data.s32TskId << std::endl;
 		_threadPool.run(
 				boost::bind(&TaskRestore::setAVDecInfoToJson, this, data));
 	}
@@ -87,11 +86,10 @@ public:
 				boost::bind(&TaskRestore::setOpenAudioInfoToJson, this, &data));
 	}
 
-	void setDataToJson(OpenAndMoveWindow_S data, DP_U32 priority,
-			DP_S32 codecID) {
+	void setDataToJson(OpenAndMoveWindow_S data, DP_S32 codecID) {
 		_threadPool.run(
 				boost::bind(&TaskRestore::setThirdWindowTaskToJson, this, data,
-						priority, codecID));
+						codecID));
 	}
 
 	void setDataToJson(DP_U32 thirdID, DP_S32 codecID,
@@ -128,8 +126,7 @@ private:
 
 	void setWindowInfoToJson(OpenAndMoveWindow_S *info);
 
-	void setThirdWindowTaskToJson(OpenAndMoveWindow_S info, DP_U32 priority,
-			DP_S32 codecID);
+	void setThirdWindowTaskToJson(OpenAndMoveWindow_S info, DP_S32 codecID);
 
 	void setThirdAudioTaskToJson(DP_U32 thirdID, DP_S32 codecID,
 			DP_M2S_AO_DEV_E AOChnID);
@@ -141,8 +138,8 @@ private:
 	void avDec2JsonValue(DP_M2S_AVDEC_INFO_S &info, Json::Value &value);
 	void jsonValue2AVDec(Json::Value JsonValue,
 			NodeInfo::VctrAVDECGetInfoPtr &AVDecInfo);
-	void thirdWindowData2JsonValue(OpenAndMoveWindow_S info, DP_U32 priority,
-			DP_S32 codecID, Json::Value &value);
+	void thirdWindowData2JsonValue(OpenAndMoveWindow_S info, DP_S32 codecID,
+			Json::Value &value);
 	void thirdAudioData2JsonValue(DP_U32 thirdID, DP_S32 codecID,
 			DP_M2S_AO_DEV_E AOChnID, Json::Value &value);
 //	void jsonValue2ThirdData(Json::Value JsonValue,

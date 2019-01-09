@@ -32,6 +32,7 @@ NodeInfo::NodeInfo() :
 				DP_FALSE) {
 	_netInfo.setIfname(g_IFNAMEDEV);
 	_netInfo.getNetworkConfig();
+	initInfoKeys();
 	initLocalInfo();
 
 }
@@ -435,6 +436,49 @@ DP_BOOL NodeInfo::initInGetAI() {
 	return DP_TRUE;
 }
 
+void NodeInfo::initInfoKeys() {
+	_vAuViTaskID.clear();
+	_vSetInfoKeys.push_back("设备id");
+	_vSetInfoKeys.push_back("设备类型");
+	_vSetInfoKeys.push_back("运行模式");
+	_vSetInfoKeys.push_back("子网掩码");
+	_vSetInfoKeys.push_back("网关");
+	_vSetInfoKeys.push_back("网卡工作模式");
+	_vSetInfoKeys.push_back("当前网卡状态");
+	_vSetInfoKeys.push_back("设备版本号");
+	_vSetInfoKeys.push_back("中控启用状态");
+	_vSetInfoKeys.push_back("当前中控状态");
+	_vSetInfoKeys.push_back("键鼠控制启用状态");
+	_vSetInfoKeys.push_back("当前键鼠状态");
+	_vSetInfoKeys.push_back("文件传输启用状态");
+	_vSetInfoKeys.push_back("音频启用状态");
+	_vSetInfoKeys.push_back("视频启用状态");
+	_vSetInfoKeys.push_back("当前工作状态");
+	_vSetInfoKeys.push_back("音视频接口连接状态");
+	_vSetInfoKeys.push_back("当前是否有u盘");
+	_vSetInfoKeys.push_back("本机环境温度");
+	_vSetInfoKeys.push_back("本机运行性能");
+
+	_vSetInfoKeys.push_back("输入编码信息");
+	_vSetInfoKeys.push_back("采集设备id");
+	_vSetInfoKeys.push_back("输入连接状态");
+	_vSetInfoKeys.push_back("输入信号源状态");
+	_vSetInfoKeys.push_back("输入分辨率");
+	_vSetInfoKeys.push_back("输入帧率");
+	_vSetInfoKeys.push_back("输入码率");
+	_vSetInfoKeys.push_back("已拉取音频流");
+	_vSetInfoKeys.push_back("输出总带宽");
+	_vSetInfoKeys.push_back("rtsp接入数量");
+	_vSetInfoKeys.push_back("rtsp客户端详情");
+
+	_vSetInfoKeys.push_back("视频通道1窗口详情");
+	_vSetInfoKeys.push_back("视频通道2窗口详情");
+	_vSetInfoKeys.push_back("视音频通道1音频详情");
+	_vSetInfoKeys.push_back("视音频通道2音频详情");
+	_vSetInfoKeys.push_back("纯音频通道1音频详情");
+	_vSetInfoKeys.push_back("纯音频通道2音频详情");
+}
+
 DP_S32 NodeInfo::getNewCodecTaskID(DP_U32 thirdId, TaskObjectType_E taskType) {
 	DP_S32 codecID;
 	switch (taskType) {
@@ -560,10 +604,10 @@ void NodeInfo::removeCodecTaskID(DP_U32 thirdId) {
 				codecID);
 		if (itUsedID != _vAllUseCodecTaskID.end()) {
 			_vAllUseCodecTaskID.erase(itUsedID);
-		if (_mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID) > 0) {
-			_mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID) -= 1;
-		} else {
-		}
+			if (_mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID) > 0) {
+				_mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID) -= 1;
+			} else {
+			}
 		}
 		LOG_ERROR
 				<< "_mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID)22222222222222: "
@@ -776,41 +820,6 @@ DP_BOOL NodeInfo::deinitCodec() {
 }
 
 void NodeInfo::setOutputTaskIDInMap(VctrAVDECGetInfoPtr avDecInfo) {
-//	_mOutCodecTaskIDBeUsed->insert(
-//			MapOutCodecTaskIDBeUsed::value_type(_vAudioTaskID, 0));
-////	_mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID) = 0;
-//	printf("_vAudioTaskID: %p\n", &_vAudioTaskID);
-//	_vAudioTaskID.push_back(1);
-//	LOG_ERROR << "size 0.2: " << _mOutCodecTaskIDBeUsed->size();
-//	_mOutCodecTaskIDBeUsed->insert(
-//			MapOutCodecTaskIDBeUsed::value_type(_vVideoTaskID, 1));
-////	_mOutCodecTaskIDBeUsed->operator [](_vVideoTaskID) = 0;
-//	printf("_vVideoTaskID: %p\n", &_vVideoTaskID);
-//	LOG_ERROR << "size 0.3.1: " << _mOutCodecTaskIDBeUsed->size();
-//	_vVideoTaskID.push_back(2);
-//	LOG_ERROR << "size 0.3.2: " << _mOutCodecTaskIDBeUsed->size();
-//	_vVideoTaskID.push_back(4);
-//	LOG_ERROR << "size 0.3.3: " << _mOutCodecTaskIDBeUsed->size();
-//	_mOutCodecTaskIDBeUsed->insert(
-//			MapOutCodecTaskIDBeUsed::value_type(_vAuViTaskID, 2));
-//	MapOutCodecTaskIDBeUsed::iterator it = _mOutCodecTaskIDBeUsed->begin();
-////	it++;
-//	for(;it != _mOutCodecTaskIDBeUsed->end();it++){
-//		printf("ooooooooooooooooooooooooooo\n");
-//	if (it != _mOutCodecTaskIDBeUsed->end()) {
-//			if (it->second == 1) {
-//				printf("_vAuViTaskID: %p, %d\n", &_vAuViTaskID,
-//						it->first.back());
-//			}else{
-//
-//			}
-//		} else {
-//			printf("fffffffffffffffff\n");
-//		}
-//	}
-//	printf("=======================\n");
-////	_mOutCodecTaskIDBeUsed->operator [](_vAuViTaskID) = 0;
-//	LOG_ERROR << "size 0.4: " << _mOutCodecTaskIDBeUsed->size();
 	vector<DP_S32> vSwmsChn;
 	for (DP_U32 i = 0; i < 64; i++)
 		vSwmsChn.push_back(i);
@@ -846,19 +855,9 @@ void NodeInfo::setOutputTaskIDInMap(VctrAVDECGetInfoPtr avDecInfo) {
 		if (bindType == DP_M2S_AVBIND_ADEC2AO) {
 			_vAudioTaskID.push_back(it->s32TskId);
 			_allCodecTaskIDCount++;
-//			if (it->stStream._rtsp.stRtspClient.s8Open != 0) {
-//				_mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID) += 1;
-//			}
-//			muduo::MutexLockGuard lock(_mutexForUsedID);
 			if (it->stStream._rtsp.stRtspClient.s8Open != 0) {
 				_vAllUseCodecTaskID.push_back(it->s32TskId);
 				audioCount++;
-//				LOG_ERROR << "size11: " << _mOutCodecTaskIDBeUsed->size();
-//				_mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID) += 1;
-//				LOG_ERROR
-//						<< "_mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID): "
-//						<< _mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID);
-//				LOG_ERROR << "size22: " << _mOutCodecTaskIDBeUsed->size();
 			}
 		} else if (bindType == DP_M2S_AVBIND_VDEC2VO) {
 			_vVideoTaskID.push_back(it->s32TskId);
@@ -867,7 +866,6 @@ void NodeInfo::setOutputTaskIDInMap(VctrAVDECGetInfoPtr avDecInfo) {
 				_vAllUseCodecTaskID.push_back(it->s32TskId);
 				audioVideoCount++;
 			}
-//				_mOutCodecTaskIDBeUsed->operator [](_vVideoTaskID)++;}
 		} else if (bindType == DP_M2S_AVBIND_ADEC2AO_VDEC2VO) {
 			_vAuViTaskID.push_back(it->s32TskId);
 			_allCodecTaskIDCount++;
@@ -875,31 +873,30 @@ void NodeInfo::setOutputTaskIDInMap(VctrAVDECGetInfoPtr avDecInfo) {
 				_vAllUseCodecTaskID.push_back(it->s32TskId);
 				videoCount++;
 			}
-//				_mOutCodecTaskIDBeUsed->operator [](_vAuViTaskID)++;}
-			} else {
-				LOG_WARN << "Another bind type: " << bindType;
+		} else {
+			LOG_WARN << "Another bind type: " << bindType;
+		}
+	}
+
+	sort(_vWindowPriority->begin(), _vWindowPriority->end());
+	for (VctrWindowPriority::iterator it = _vWindowPriority->begin();
+			it != _vWindowPriority->end(); it++)
+		LOG_INFO << "_vWindowPriority: " << *it;
+
+	for (VctrAVDECGetInfo::iterator it = avDecInfo->begin();
+			it != avDecInfo->end(); it++) {
+		if (it->stVdec.bSwms != DP_TRUE) {
+			if (it->AvBindAttr.enBindType == DP_M2S_AVBIND_VDEC2VO
+					|| it->AvBindAttr.enBindType
+							== DP_M2S_AVBIND_ADEC2AO_VDEC2VO) {
+				it->stVdec.stSwms.u32SwmsChn = *vSwmsChn.begin();
+				vSwmsChn.erase(vSwmsChn.begin());
 			}
 		}
+		LOG_INFO << "after given swms chn " << it->stVdec.stSwms.u32SwmsChn;
+	}
 
-		sort(_vWindowPriority->begin(), _vWindowPriority->end());
-		for (VctrWindowPriority::iterator it = _vWindowPriority->begin();
-				it != _vWindowPriority->end(); it++)
-			LOG_INFO << "_vWindowPriority: " << *it;
-
-		for (VctrAVDECGetInfo::iterator it = avDecInfo->begin();
-				it != avDecInfo->end(); it++) {
-			if (it->stVdec.bSwms != DP_TRUE) {
-				if (it->AvBindAttr.enBindType == DP_M2S_AVBIND_VDEC2VO
-						|| it->AvBindAttr.enBindType
-								== DP_M2S_AVBIND_ADEC2AO_VDEC2VO) {
-					it->stVdec.stSwms.u32SwmsChn = *vSwmsChn.begin();
-					vSwmsChn.erase(vSwmsChn.begin());
-				}
-			}
-			LOG_INFO << "after given swms chn " << it->stVdec.stSwms.u32SwmsChn;
-		}
-
-		//jhbnote if used swms is true
+	//jhbnote if used swms is true
 //	_mOutCodecTaskIDBeUsed->insert(
 //			MapOutCodecTaskIDBeUsed::value_type(_vAudioTaskID, 0));
 //	_mOutCodecTaskIDBeUsed->insert(
@@ -917,10 +914,10 @@ void NodeInfo::setOutputTaskIDInMap(VctrAVDECGetInfoPtr avDecInfo) {
 	_mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID) = audioCount;
 	_mOutCodecTaskIDBeUsed->operator [](_vVideoTaskID) = videoCount;
 	_mOutCodecTaskIDBeUsed->operator [](_vAuViTaskID) = audioVideoCount;
-	LOG_ERROR << "_mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID): "
-			<< _mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID);
-	LOG_ERROR << "size22: " << _mOutCodecTaskIDBeUsed->size();
-	}
+//	LOG_ERROR << "_mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID): "
+//			<< _mOutCodecTaskIDBeUsed->operator [](_vAudioTaskID);
+//	LOG_ERROR << "size22: " << _mOutCodecTaskIDBeUsed->size();
+}
 //}
 DP_S32 NodeInfo::recvCB(void* pData, int len) {
 	if (pData == NULL && len <= 0) {

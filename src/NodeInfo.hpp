@@ -59,8 +59,7 @@ DP_BOOL NodeInfo::getAVInfoFromCodec(VecCodecTaskID codecID,
 	DP_U8 *recvBuff = new DP_U8[BUFFER_SIZE_PIPESOCKET];
 	for (itID = codecID.begin(); itID != codecID.end(); itID++) {
 		LOG_INFO << "Ask av info  cmd: " << cmd
-				<< " ===================task id : "
-				<< (DP_S32) *itID;
+				<< " ===================task id : " << (DP_S32) *itID;
 		getAVDec.s32TskId = (DP_S32) *itID;
 		DP_S32 retResult = 0;
 		memset(recvBuff, 0, BUFFER_SIZE_PIPESOCKET);
@@ -149,6 +148,8 @@ DP_BOOL NodeInfo::getAOVOInfoFromCodec(T AOVOInfo, DP_M2S_CMD_ID_E cmd,
 	for (it = aovoDev.begin(); it != aovoDev.end(); it++) {
 		ST getCmd(cmd, *it);
 //		try {
+		LOG_DEBUG << "Send dev id : " << getCmd.enDevId;
+
 		retSend = client.doSendCommand(&getCmd, sizeof(ST));
 		if (retSend != 0) {
 			LOG_ERROR << "Send avdec failed dev in ask : " << *it;
