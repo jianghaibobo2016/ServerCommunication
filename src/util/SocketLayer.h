@@ -199,11 +199,10 @@ public:
 	}
 	static void CloseSock(int sock) /*throw (SystemException) */{
 		if (sock >= 0) {
+//			LOG_WARN
+//					<< "****************************************** close connect countConnect: ";
 			shutdown(sock, SHUT_RDWR);
 			close(sock);
-//			LOG_WARN
-//					<< "****************************************** close connect countConnect: "
-//					<< countConnect;
 		}
 
 	}

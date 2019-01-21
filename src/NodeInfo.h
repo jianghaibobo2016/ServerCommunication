@@ -398,6 +398,7 @@ private:
 	template<typename T, typename ST, typename V, typename ACK>
 	DP_BOOL getAOVOInfoFromCodec(T AOVOInfo, DP_M2S_CMD_ID_E cmd, V aovoDev);
 
+public:
 	template<typename T>
 	DP_S32 batchGetAVInfoFromCodec(VecCodecTaskID taskID, DP_M2S_CMD_ID_E cmd,
 			boost::shared_ptr<std::vector<T>> &avInfo);

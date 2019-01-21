@@ -15,7 +15,7 @@
 
 class ServerHandle: public BaseServerHandle {
 public:
-	ServerHandle(EventLoop *loop, const InetAddress &listenAddr);
+	ServerHandle(EventLoop *loop, const InetAddress &listenAddr, int idleSeconds);
 	virtual ~ServerHandle();
 
 	void startHandle(int maxQueueSize = 0, int numThreads = 0);

@@ -12,7 +12,8 @@
 
 CROSS_COMPILE = arm-hisiv400-linux-
 OPTIMIZE := -O2
-WARNINGS := -g -Wall -Wno-unused -std=c++11  #-Wno-format  
+#-ggdb3
+WARNINGS := -ggdb3 -Wall -Wno-unused -std=c++11  #-Wno-format  
 DEFS     :=
 EXTRA_CFLAGS := 
 
@@ -76,6 +77,13 @@ all_objs = $(foreach i,$(SUFFIX),$(obj-$i))
 all_srcs = $(foreach i,$(SUFFIX),$(src-$i))
 
 CFLAGS       = $(EXTRA_CFLAGS) $(WARNINGS) $(OPTIMIZE) $(DEFS)
+
+ifeq ($(NODE_TYPE),IN)
+CFLAGS += -DIN
+else ifeq ($(NODE_TYPE),OUT)
+CFLAGS += -DOUT
+endif
+
 TARGET_TYPE := $(strip $(TARGET_TYPE))
 
 ifeq ($(filter $(TARGET_TYPE),so ar app),)
@@ -109,7 +117,7 @@ $(TARGET): LD = $(if $(strip $(src-cpp) $(src-cc) $(src-cxx)),$(G++),$(GCC))
 $(TARGET): $(all_objs)
 	$(LD) $(LDFLAGS) $(all_objs) -o $@  -lpthread -lrt ./src/DPUDrv/DPUDrvLib_1217/DPUDrvLib/libDPUDriver.a
 endif
-	arm-hisiv400-linux-strip ./bin/ServerCommunication
+#	arm-hisiv400-linux-strip ./bin/ServerCommunication
 
 .mkdir:
 	@if [ ! -d $(OBJ_DIR) ]; then mkdir -p $(OBJ_DIR); fi

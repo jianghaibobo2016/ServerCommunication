@@ -33,13 +33,12 @@
 
 typedef struct {
 
-    DP_S32 s32ActiveMacId;
-    DP_S32 s32RxStatus;
-    DP_S32 s32TxStatus;
-}DP_UDRV_NET_INFO_ATTR_S;
+	DP_S32 s32ActiveMacId;
+	DP_S32 s32RxStatus;
+	DP_S32 s32TxStatus;
+} DP_UDRV_NET_INFO_ATTR_S;
 
-typedef struct {
-
+typedef struct _DP_RUNNING_INFO_ATTR_S {
 	DP_DEV_TYPE_E eDevtype;
 
 	DP_CHAR u8IP[16];
@@ -47,17 +46,20 @@ typedef struct {
 	DP_DEV_WORK_MODE_E eDevWorkMode;
 	DP_DEV_RUNNING_STATE_E eDevRunningState;
 	DP_DEV_WORK_STATE_E eDevWorkState;
-}DP_RUNNING_INFO_ATTR_S;
+} DP_RUNNING_INFO_ATTR_S;
 
 class StateDisplayHandle {
 public:
 	StateDisplayHandle();
 	virtual ~StateDisplayHandle();
 
-	static DP_S32 DP_Running_GetStatusInfo(DP_RUNNING_INFO_ATTR_S *pstRunningInfo);
-	static DP_S32 DP_UDRV_NET_GetStatusInfo(DP_UDRV_NET_INFO_ATTR_S *pstNetInfo);
+	static DP_S32 DP_Running_GetStatusInfo(
+			DP_RUNNING_INFO_ATTR_S *pstRunningInfo);
+	static DP_S32 DP_UDRV_NET_GetStatusInfo(
+			DP_UDRV_NET_INFO_ATTR_S *pstNetInfo);
 
-	static DP_S32 DP_LCD_Fresh(DP_RUNNING_INFO_ATTR_S *pstRunningInfo, DP_UDRV_NET_INFO_ATTR_S *pstNetInfo);
+	static DP_S32 DP_LCD_Fresh(DP_RUNNING_INFO_ATTR_S *pstRunningInfo,
+			DP_UDRV_NET_INFO_ATTR_S *pstNetInfo);
 };
 
 #endif /* STATEDISPLAYHANDLE_H_ */

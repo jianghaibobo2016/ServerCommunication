@@ -29,362 +29,6 @@ void TaskRestore::startRunning(DP_S32 maxDequeSize, DP_S32 numThreads) {
 	_threadPool.start(numThreads);
 }
 
-void TaskRestore::setAVEncInfoToJson(DP_M2S_AVENC_INFO_S *info) {
-
-}
-
-void TaskRestore::setAVDecInfoToJson(DP_M2S_AVDEC_INFO_S info) {
-	Json::Reader JsonReader;
-	Json::StyledWriter JsonSWriter;
-	Json::Value JsonValue;
-	Json::Value newValue;
-	std::ifstream IFStream;
-	std::ofstream OFStream;
-	DP_BOOL parseOk = DP_TRUE;
-	muduo::MutexLockGuard lock(_AVDecMutex);
-	IFStream.open(CODEC_AVDEC_JSON_PATH, std::ios::binary);
-	if (!JsonReader.parse(IFStream, JsonValue, FALSE)) {
-		parseOk = DP_FALSE;
-//		IFStream.close();
-		//could not parse json file to value
-		LOG_INFO << "Could not parse json file to value";
-		const DP_CHAR strJson_2[] = "{\"" CODEC_AVDEC_TITLE "\": []}";
-		if (!JsonReader.parse(strJson_2, JsonValue)) {
-			LOG_ERROR << "Parse failed!";
-			return;
-		}
-	}
-	IFStream.close();
-	avDec2JsonValue(info, newValue);
-	DP_U32 count = JsonValue[CODEC_AVDEC_TITLE].size();
-	DP_U32 index = 0;
-	DP_BOOL notFound = DP_TRUE;
-	if (parseOk == DP_TRUE && count > 0) {
-		while (notFound) {
-			//jhbnote ismember! check
-			if (JsonValue[CODEC_AVDEC_TITLE][--count]["s32TskId"].asInt()
-					== info.s32TskId) {
-				notFound = DP_FALSE;
-			} else if (count == 0) {
-				std::cout << "count 0 " << std::endl;
-				break;
-			}
-		}
-	}
-	if (!notFound) {
-		std::cout << "!notFound " << std::endl;
-		JsonValue[CODEC_AVDEC_TITLE][count] = newValue;
-	} else {
-		std::cout << "notFound " << std::endl;
-		JsonValue[CODEC_AVDEC_TITLE].append(newValue);
-	}
-	Json::StyledWriter oJsonSWriter;
-	std::string strBetterWrite = oJsonSWriter.write(JsonValue);
-
-	OFStream.open(CODEC_AVDEC_JSON_PATH);
-	OFStream << strBetterWrite;
-	OFStream.close();
-}
-
-void TaskRestore::setWindowInfoToJson(OpenAndMoveWindow_S *info) {
-//	sleep(1);
-	std::cout << "111111111task id : " << info->u32TaskID << std::endl;
-	std::ofstream oOFStream;
-	std::ifstream oIFStream;
-	Json::Reader oJsonReader;
-	Json::Value oJsonValue;
-	oIFStream.open(THIRD_WINDOW_TASK_JSON_PATH, std::ios::binary);
-	if (!oJsonReader.parse(oIFStream, oJsonValue, FALSE)) {
-		oIFStream.close();
-#if 0
-		DP_DEV_PUBLIC_USER_INFO_S use_1;
-		memset(&use_1, 0, sizeof(DP_DEV_PUBLIC_USER_INFO_S));
-		memcpy(use_1.au8PassWord, "us1", 3);
-		memcpy(use_1.au8UserName, "name1", 5);
-		use_1.u8Priority = 1;
-		DP_DEV_PUBLIC_USER_INFO_S use_2;
-		memset(&use_2, 0, sizeof(DP_DEV_PUBLIC_USER_INFO_S));
-		memcpy(use_2.au8PassWord, "us2", 3);
-		memcpy(use_2.au8UserName, "name2", 5);
-		use_2.u8Priority = 2;
-
-		map<string, DP_DEV_PUBLIC_USER_INFO_S> m_mPubUserInfo;
-
-		m_mPubUserInfo["str1"] = use_1;
-		m_mPubUserInfo["str2"] = use_2;
-
-		std::stringstream strJson;
-		map<string, DP_DEV_PUBLIC_USER_INFO_S>::iterator itor, last =
-		m_mPubUserInfo.end();
-
-		strJson << "{\"" << "PubUserInfo" << "\":[";
-		for (itor = m_mPubUserInfo.begin(); itor != last; itor++) {
-			strJson << "{";
-			strJson << "\"au8UserName\":" << "\"" << itor->second.au8UserName
-			<< "\",";
-			strJson << "\"au8PassWord\":" << "\"" << itor->second.au8PassWord
-			<< "\",";
-			strJson << "\"u8Priority\":"
-			/*<< "\""*/<< (DP_S32) itor->second.u8Priority
-			/*		<< "\""*/;
-			strJson << "}";
-			if ((++itor) != last) {
-				strJson << ",";
-			}
-			itor--;
-		}
-		strJson << "]}";
-#endif
-		Json::Reader oJsonReader;
-		Json::StyledWriter oJsonSWriter;
-		Json::Value oJsonRoot;
-		std::ofstream oOFStream;
-		const char* strJson_2 =
-				"{\"DevList\": { \"TaskID\": [{ \"DevSn\":11111 , \"DevType\":4 , \"DevNum\":1 , \"DevName\":\"测试终端1\" , \"DevID\":\"3111000909\" , \"DevIP\":\"172.16.0.1\" , \"DevSoftVersion\":1 , \"DevHardVersion\":1 } , { \"DevSn\":1 , \"DevType\":4 , \"DevNum\":1 , \"DevName\":\"测试终端2\" , \"DevID\":\"3111000910\" , \"DevIP\":\"172.16.0.2\" , \"DevSoftVersion\":1 , \"DevHardVersion\":1 }]}}";
-//		std::cout << "parsssssssssssssssss " << strJson.str() << std::endl;
-
-//		const char* strJson_2 = "{\"Codec AV Dec\": []}";
-
-//		if (oJsonReader.parse(strJson_2, oJsonRoot)) {
-//			std::string strBetterWrite = oJsonSWriter.write(oJsonRoot);
-//			oOFStream.open(CODEC_AVDEC_JSON_PATH);
-//			oOFStream << strBetterWrite;
-//			oOFStream.close();
-//			std::cout << "pars ok1 " << std::endl;
-//		}
-
-		if (oJsonReader.parse(strJson_2, oJsonRoot)) {
-			std::cout << "pars ok1 " << std::endl;
-//			oIFStream.open(CODEC_AVDEC_JSON_PATH, std::ios::binary);
-//			if (!oJsonReader.parse(oIFStream, oJsonValue, FALSE)) {
-//			Json::Value newValue;
-//			DP_M2S_AVDEC_INFO_S info;
-//			avDec2JsonValue(info, newValue);
-//			oJsonRoot["Codec AV Dec"].append(newValue);
-			std::string strBetterWrite = oJsonSWriter.write(oJsonRoot);
-			oOFStream.open(THIRD_WINDOW_TASK_JSON_PATH);
-			oOFStream << strBetterWrite;
-			oOFStream.close();
-//			} else {
-//				std::cout << "pars ok3 " << std::endl;
-//
-//			}
-//			oIFStream.close();
-		}
-//		Json::Value newValue;
-//		DP_M2S_AVDEC_INFO_S info;
-//		avDec2JsonValue(info, newValue);
-//		if (oJsonReader.parse(strJson.str(), oJsonRoot)) {
-//			std::cout << "pars ok" << std::endl;
-//			std::string strBetterWrite = oJsonSWriter.write(oJsonRoot);
-//			oOFStream.open(CODEC_AVDEC_JSON_PATH);
-//			oOFStream << strBetterWrite;
-//			oOFStream.close();
-//		}
-
-#if 0
-		Json::Value oJsonRoot_test;
-		oJsonRoot_test["Devsn"] = "000";
-		oJsonRoot_test["DevType"] = 93;
-
-		Json::Value oJsonRoot_test_2;
-		oJsonRoot_test_2["Devsn"] = "1111";
-		oJsonRoot_test_2["DevType"] = 9;
-
-		Json::Value array;
-		oJsonValue["dev 1"] = oJsonRoot_test;
-		array.append(oJsonValue);
-		oJsonValue.clear();
-		oJsonValue["dev 2"] = oJsonRoot_test_2;
-		array.append(oJsonValue);
-//		oJsonReader.parse(strJsonApp, tmpAppend);
-
-		Json::StyledWriter oJsonSWriter;
-		std::string strBetterWrite = oJsonSWriter.write(array);
-
-		oOFStream.open(CODEC_AVDEC_JSON_PATH);
-		oOFStream << strBetterWrite;
-		oOFStream.close();
-
-#endif
-#if 0
-		const char* strJson =
-		"{\"DevList\": [{ \"DevSn\":11111 , \"DevType\":4 , \"DevNum\":1 , \"DevName\":\"测试终端1\" , \"DevID\":\"3111000909\" , \"DevIP\":\"172.16.0.1\" , \"DevSoftVersion\":1 , \"DevHardVersion\":1 } , { \"DevSn\":1 , \"DevType\":4 , \"DevNum\":1 , \"DevName\":\"测试终端2\" , \"DevID\":\"3111000910\" , \"DevIP\":\"172.16.0.2\" , \"DevSoftVersion\":1 , \"DevHardVersion\":1 }]}";
-		Json::Reader oJsonReader;
-		Json::StyledWriter oJsonSWriter;
-		Json::Value oJsonRoot;
-		std::ofstream oOFStream;
-
-		if (oJsonReader.parse(strJson, oJsonRoot)) {
-
-//			oJsonRoot["DevListesttt"];
-//			oJsonRoot["DevListesttt"]["DevSn"]="cccc";
-
-			const char* strJsonApp =
-			"{\"DevLisTTT\": [{ \"DevSn\":4444444444 , \"DevType\":4 , \"DevNum\":1 , \"DevName\":\"测试终端1\" , \"DevID\":\"3111000909\" , \"DevIP\":\"172.16.0.1\" , \"DevSoftVersion\":1 , \"DevHardVersion\":1 } , { \"DevSn\":1 , \"DevType\":4 , \"DevNum\":1 , \"DevName\":\"测试终端2\" , \"DevID\":\"3111000910\" , \"DevIP\":\"172.16.0.2\" , \"DevSoftVersion\":1 , \"DevHardVersion\":1 }]}";
-			Json::Value tmpAppend;
-			oJsonReader.parse(strJsonApp, tmpAppend);
-
-			std::string strBetterWrite = oJsonSWriter.write(oJsonRoot);
-			std::string strBetterWrite_2 = oJsonSWriter.write(tmpAppend);
-
-			oOFStream.open(CODEC_AVDEC_JSON_PATH);
-			oOFStream << strBetterWrite;
-			oOFStream << strBetterWrite_2;
-			oOFStream.close();
-		}
-#endif
-
-#if 0
-		Json::Value jsonItem;
-		Json::StyledWriter oJsonSWriterApp;
-		const char* strJsonApp =
-		"{\"DevList\": [{ \"DevSn\":22222222222 , \"DevType\":4 , \"DevNum\":1 , \"DevName\":\"测试终端1\" , \"DevID\":\"3111000909\" , \"DevIP\":\"172.16.0.1\" , \"DevSoftVersion\":1 , \"DevHardVersion\":1 } , { \"DevSn\":1 , \"DevType\":4 , \"DevNum\":1 , \"DevName\":\"测试终端2\" , \"DevID\":\"3111000910\" , \"DevIP\":\"172.16.0.2\" , \"DevSoftVersion\":1 , \"DevHardVersion\":1 }]}";
-		Json::Reader oJsonReaderApp;
-		oJsonReaderApp.parse(strJsonApp, jsonItem);
-		oJsonValue.append(jsonItem);
-		std::string strBetterWrite = oJsonSWriterApp.write(oJsonValue);
-
-		oOFStream.open(CODEC_AVDEC_JSON_PATH);
-		oOFStream << strBetterWrite;
-		oOFStream.close();
-
-#endif
-		std::cout << "2222222222222" << std::endl;
-	} else {
-		oIFStream.close();
-//		if (oJsonValue.isMember("dev 2")) {
-		std::cout << "3333333333333" << std::endl;
-
-//			if (oJsonValue.isMember("dev 3")) {
-//		Json::Value getValue;
-//		getValue = oJsonValue.get(1, oJsonValue);
-//				oJsonValue.get(2, getValue);
-
-		Json::Value::Members oMember;
-		oMember = oJsonValue["DevList"]["TaskID"][0].getMemberNames();
-//
-//		for(Json::Value::Members::iterator iter = oMember.begin();
-//						iter != oMember.end(); iter++){
-//
-//		std::cout<<"member: "<<*iter<<std::endl;
-//		}
-		std::cout << "member: " << *oMember.begin() << std::endl;
-		Json::Value vatmp;
-		if (oJsonValue["DevList"]["TaskID"].removeIndex(1, &vatmp)) {
-			std::cout << "remove 1 " << std::endl;
-		} else {
-			std::cout << "remove 2" << std::endl;
-		}
-		Json::StyledWriter oJsonSWriter_2;
-		std::string strBetterWrite_2 = oJsonSWriter_2.write(oJsonValue);
-		oOFStream.open(THIRD_WINDOW_TASK_JSON_PATH);
-		oOFStream << strBetterWrite_2;
-		oOFStream.close();
-//		std::cout << "finddev  3333333" << "size: " /*<< oJsonValue.size()*/
-//		<< " Devsn: "
-//				<< oJsonValue["Codec AV Dec"][0]["stStream"]["_rtsp"]["stRtspServer"]["s32ConnMax"].asInt()
-//				<< std::endl;
-
-		return;
-		Json::Value newValue;
-		Json::StyledWriter oJsonSWriter;
-		DP_M2S_AVDEC_INFO_S info;
-		info.s32TskId = 99999;
-		avDec2JsonValue(info, newValue);
-		DP_U32 count = oJsonValue.size();
-		DP_U32 index = 0;
-		DP_BOOL notFound = DP_TRUE;
-		while (notFound) {
-			std::cout << "pars ok count " << count << std::endl;
-			if (oJsonValue["Codec AV Dec"][--count]["s32TskId"].asInt()
-					== 100) {
-				notFound = DP_FALSE;
-			} else if (count == 0) {
-				break;
-			}
-		}
-		if (!notFound) {
-			oJsonValue["Codec AV Dec"][count] = newValue;
-		} else {
-			std::cout << "pars ok count return " << count << std::endl;
-			return;
-		}
-		std::cout << "pars ok 12 " << std::endl;
-//		oJsonValue["Codec AV Dec"].append(newValue);
-		std::string strBetterWrite = oJsonSWriter.write(oJsonValue);
-		oOFStream.open(THIRD_WINDOW_TASK_JSON_PATH);
-		oOFStream << strBetterWrite;
-		oOFStream.close();
-
-//				<< " Devsn: "
-//				<< getValue.get(1, defaultValue)  .asInt()
-//				<< std::endl;
-//				oJsonValue.removeMember("dev:100");
-
-//			} else {
-//				std::cout << "not finddev  33333" << std::endl;
-//			}
-		{
-//			Json::Value oJsonRoot_test_3;
-//			oJsonRoot_test_3["Devsn"] = "111";
-//			oJsonRoot_test_3["DevType"] = 3444;
-//
-//			int a = 100;
-//			DP_CHAR taskID[16] = { 0 };
-//			sprintf(taskID, "dev:%d", a);
-//			oJsonValue[taskID] = oJsonRoot_test_3;
-//			Json::StyledWriter oJsonSWriter;
-//			std::string strBetterWrite = oJsonSWriter.write(oJsonValue);
-//
-//			oOFStream.open(CODEC_AVDEC_JSON_PATH);
-//			oOFStream << strBetterWrite;
-//			oOFStream.close();
-		}
-//		} else {
-//			std::cout << "3333333333333*************" << std::endl;
-//		}
-
-		return;
-//		Json::Value jsonItem;
-//		Json::StyledWriter oJsonSWriterApp;
-//		const char* strJsonApp =
-//				"{\"DevLisTTT\": [{ \"DevSn\":4444444444 , \"DevType\":4 , \"DevNum\":1 , \"DevName\":\"测试终端1\" , \"DevID\":\"3111000909\" , \"DevIP\":\"172.16.0.1\" , \"DevSoftVersion\":1 , \"DevHardVersion\":1 } , { \"DevSn\":1 , \"DevType\":4 , \"DevNum\":1 , \"DevName\":\"测试终端2\" , \"DevID\":\"3111000910\" , \"DevIP\":\"172.16.0.2\" , \"DevSoftVersion\":1 , \"DevHardVersion\":1 }]}";
-//		Json::Reader oJsonReaderApp;
-//		oJsonReaderApp.parse(strJsonApp, jsonItem);
-//		oJsonValue.append(jsonItem);
-//		std::string strBetterWrite = oJsonSWriterApp.write(oJsonValue);
-//
-//		oOFStream.open(CODEC_AVDEC_JSON_PATH);
-//		oOFStream << strBetterWrite;
-//		oOFStream.close();
-#if 0
-		oIFStream.close();
-		DP_CHAR taskID[6] = {0};
-		sprintf(taskID, "%d", info->u32TaskID);
-		if (oJsonValue.isMember(taskID)) {
-			std::cout << "444444444444" << std::endl;
-		} else {
-			std::cout << "5555555555" << std::endl;
-
-			const char* strJson =
-			"{\"DevList\": [{ \"DevSn\":0 , \"DevType\":4 , \"DevNum\":1 , \"DevName\":\"测试终端1\" , \"DevID\":\"3111000909\" , \"DevIP\":\"172.16.0.1\" , \"DevSoftVersion\":1 , \"DevHardVersion\":1 } , { \"DevSn\":1 , \"DevType\":4 , \"DevNum\":1 , \"DevName\":\"测试终端2\" , \"DevID\":\"3111000910\" , \"DevIP\":\"172.16.0.2\" , \"DevSoftVersion\":1 , \"DevHardVersion\":1 }]}";
-			Json::Reader oJsonReader;
-			Json::StyledWriter oJsonSWriter;
-			Json::Value oJsonRoot;
-			std::ofstream oOFStream;
-
-			if (oJsonReader.parse(strJson, oJsonRoot)) {
-				std::string strBetterWrite = oJsonSWriter.write(oJsonRoot);
-
-				oOFStream.open(CODEC_AVDEC_JSON_PATH);
-				oOFStream << strBetterWrite;
-				oOFStream.close();
-			}
-		}
-#endif
-	}
-}
 
 void TaskRestore::setThirdWindowTaskToJson(OpenAndMoveWindow_S info,
 		DP_S32 codecID) {
@@ -420,16 +64,16 @@ void TaskRestore::setThirdWindowTaskToJson(OpenAndMoveWindow_S info,
 					== info.u32TaskID) {
 				notFound = DP_FALSE;
 			} else if (count == 0) {
-				std::cout << "count 0 " << std::endl;
+//				std::cout << "count 0 " << std::endl;
 				break;
 			}
 		}
 	}
 	if (!notFound) {
-		std::cout << "!notFound " << std::endl;
+//		std::cout << "!notFound " << std::endl;
 		JsonValue[THIRD_WINDOW_TITLE][count] = newValue;
 	} else {
-		std::cout << "notFound " << std::endl;
+//		std::cout << "notFound " << std::endl;
 		JsonValue[THIRD_WINDOW_TITLE].append(newValue);
 	}
 	Json::StyledWriter oJsonSWriter;
@@ -473,16 +117,16 @@ void TaskRestore::setThirdAudioTaskToJson(DP_U32 thirdID, DP_S32 codecID,
 					== codecID) {
 				notFound = DP_FALSE;
 			} else if (count == 0) {
-				std::cout << "count 0 " << std::endl;
+//				std::cout << "count 0 " << std::endl;
 				break;
 			}
 		}
 	}
 	if (!notFound) {
-		std::cout << "!notFound " << std::endl;
+//		std::cout << "!notFound " << std::endl;
 		JsonValue[THIRD_AUDIO_TITLE][count] = newValue;
 	} else {
-		std::cout << "notFound " << std::endl;
+//		std::cout << "notFound " << std::endl;
 		JsonValue[THIRD_AUDIO_TITLE].append(newValue);
 	}
 	Json::StyledWriter oJsonSWriter;
@@ -509,6 +153,9 @@ void TaskRestore::removeThirdTask(CloseThirdTask_E enClose, DP_U32 thirdID) {
 		} else {
 			DP_U32 count = JsonValue[THIRD_WINDOW_TITLE].size();
 			while (count--) {
+//				LOG_DEBUG << "Json window count[ " << count << " ] task id: "
+//						<< JsonValue[THIRD_WINDOW_TITLE][count]["u32TaskID"].asUInt();
+//				LOG_DEBUG << "thirdID: " << thirdID;
 				if (JsonValue[THIRD_WINDOW_TITLE][count]["u32TaskID"].asUInt()
 						== thirdID) {
 					if (!JsonValue[THIRD_WINDOW_TITLE].removeIndex(count,
@@ -571,10 +218,8 @@ DP_BOOL TaskRestore::getAVDecJson(NodeInfo::VctrAVDECGetInfoPtr &AVDecInfo) {
 	Json::Reader JsonReader;
 	Json::Value JsonValue;
 	std::ifstream IFStream;
-//	muduo::MutexLockGuard lock(_AVDecmutex);
-	IFStream.open(CODEC_AVDEC_JSON_PATH, std::ios::binary);
+	IFStream.open(CODEC_AVCODEC_JSON_PATH, std::ios::binary);
 	if (!JsonReader.parse(IFStream, JsonValue, FALSE)) {
-//		IFStream.close();
 		//could not parse json file to value
 		LOG_INFO << "Could not parse json file to value";
 		for (NodeInfo::VctrAVDECGetInfo::iterator it = AVDecInfo->begin();
@@ -673,7 +318,29 @@ DP_BOOL TaskRestore::getThirdInfo(
 	return DP_TRUE;
 }
 
-void TaskRestore::avDec2JsonValue(DP_M2S_AVDEC_INFO_S &info,
+DP_BOOL TaskRestore::getAVEncJson(NodeInfo::VctrAVENCGetInfoPtr &AVEncInfo) {
+	Json::Reader JsonReader;
+	Json::Value JsonValue;
+	std::ifstream IFStream;
+	IFStream.open(CODEC_AVCODEC_JSON_PATH, std::ios::binary);
+	if (!JsonReader.parse(IFStream, JsonValue, FALSE)) {
+		//could not parse json file to value
+		LOG_INFO << "Could not parse json file to value";
+		for (NodeInfo::VctrAVENCGetInfo::iterator it = AVEncInfo->begin();
+				it != AVEncInfo->end(); it++) {
+//			std::cout << "set 1" << std::endl;
+			setDataToJson(*it);
+		}
+	} else {
+//		Json::FastWriter fast_writer;
+		jsonValue2AVEnc(JsonValue, AVEncInfo);
+	}
+	IFStream.close();
+
+	return DP_TRUE;
+}
+
+void TaskRestore::avDECENC2JsonValue(DP_M2S_AVDEC_INFO_S &info,
 		Json::Value &value) {
 	value["s32TskId"] = info.s32TskId;
 	value["AvBindAttr"]["enBindType"] = info.AvBindAttr.enBindType;
@@ -687,11 +354,11 @@ void TaskRestore::avDec2JsonValue(DP_M2S_AVDEC_INFO_S &info,
 //	std::cout << "pars ok6.1 " << std::endl;
 
 	value["AvBindAttr"]["stAudio"]["stOut"]["ModId"] =
-			info.AvBindAttr.stAudio.stIn.ModId;
+			info.AvBindAttr.stAudio.stOut.ModId;
 	value["AvBindAttr"]["stAudio"]["stOut"]["u32DevId"] =
-			info.AvBindAttr.stAudio.stIn.u32DevId;
+			info.AvBindAttr.stAudio.stOut.u32DevId;
 	value["AvBindAttr"]["stAudio"]["stOut"]["u32ChnId"] =
-			info.AvBindAttr.stAudio.stIn.u32ChnId;
+			info.AvBindAttr.stAudio.stOut.u32ChnId;
 
 	value["AvBindAttr"]["stVideo"]["stIn"]["ModId"] =
 			info.AvBindAttr.stVideo.stIn.ModId;
@@ -701,11 +368,11 @@ void TaskRestore::avDec2JsonValue(DP_M2S_AVDEC_INFO_S &info,
 			info.AvBindAttr.stVideo.stIn.u32ChnId;
 
 	value["AvBindAttr"]["stVideo"]["stOut"]["ModId"] =
-			info.AvBindAttr.stVideo.stIn.ModId;
+			info.AvBindAttr.stVideo.stOut.ModId;
 	value["AvBindAttr"]["stVideo"]["stOut"]["u32DevId"] =
-			info.AvBindAttr.stVideo.stIn.u32DevId;
+			info.AvBindAttr.stVideo.stOut.u32DevId;
 	value["AvBindAttr"]["stVideo"]["stOut"]["u32ChnId"] =
-			info.AvBindAttr.stVideo.stIn.u32ChnId;
+			info.AvBindAttr.stVideo.stOut.u32ChnId;
 
 	value["stStream"]["enType"] = info.stStream.enType;
 //	std::cout << "pars ok6.11 " << std::endl;
@@ -843,212 +510,556 @@ void TaskRestore::avDec2JsonValue(DP_M2S_AVDEC_INFO_S &info,
 			info.stVdec.stSwms.stRect.u32Width;
 	value["stVdec"]["stSwms"]["stRect"]["u32Height"] =
 			info.stVdec.stSwms.stRect.u32Height;
-//	std::cout << "pars ok6.5 " << std::endl;
 }
 
 void TaskRestore::jsonValue2AVDec(Json::Value JsonValue,
 		NodeInfo::VctrAVDECGetInfoPtr &AVDecInfo) {
-	DP_U32 taskCount = JsonValue[CODEC_AVDEC_TITLE].size();
-	if (taskCount == 0) {
+	DP_U32 size = JsonValue[CODEC_AVCODEC_TITLE].size();
+	if (size == 0) {
 		return;
 	} else {
 		AVDecInfo->clear();
 	}
 	boost::shared_ptr<DP_M2S_AVDEC_INFO_S> tmp(new DP_M2S_AVDEC_INFO_S);
-	while (taskCount--) {
+//	while (taskCount--) {
+	for (DP_U32 taskCount = 0; taskCount < size; taskCount++) {
+
 		memset(tmp.get(), 0, sizeof(DP_M2S_AVDEC_INFO_S));
 		tmp->s32TskId =
-				JsonValue[CODEC_AVDEC_TITLE][taskCount]["s32TskId"].asInt();
+				JsonValue[CODEC_AVCODEC_TITLE][taskCount]["s32TskId"].asInt();
 		tmp->AvBindAttr.enBindType =
-				(DP_M2S_AVBIND_TYPE_E) JsonValue[CODEC_AVDEC_TITLE][taskCount]["AvBindAttr"]["enBindType"].asUInt();
+				(DP_M2S_AVBIND_TYPE_E) JsonValue[CODEC_AVCODEC_TITLE][taskCount]["AvBindAttr"]["enBindType"].asUInt();
 		tmp->AvBindAttr.stAudio.stIn.ModId =
-				(DP_M2S_MOD_ID_E) JsonValue[CODEC_AVDEC_TITLE][taskCount]["AvBindAttr"]["stAudio"]["stIn"]["ModId"].asUInt();
+				(DP_M2S_MOD_ID_E) JsonValue[CODEC_AVCODEC_TITLE][taskCount]["AvBindAttr"]["stAudio"]["stIn"]["ModId"].asUInt();
 		tmp->AvBindAttr.stAudio.stIn.u32DevId =
-				JsonValue[CODEC_AVDEC_TITLE][taskCount]["AvBindAttr"]["stAudio"]["stIn"]["u32DevId"].asUInt();
+				JsonValue[CODEC_AVCODEC_TITLE][taskCount]["AvBindAttr"]["stAudio"]["stIn"]["u32DevId"].asUInt();
 		tmp->AvBindAttr.stAudio.stIn.u32ChnId =
-				JsonValue[CODEC_AVDEC_TITLE][taskCount]["AvBindAttr"]["stAudio"]["stIn"]["u32ChnId"].asUInt();
+				JsonValue[CODEC_AVCODEC_TITLE][taskCount]["AvBindAttr"]["stAudio"]["stIn"]["u32ChnId"].asUInt();
 
-		tmp->AvBindAttr.stAudio.stIn.ModId =
-				(DP_M2S_MOD_ID_E) JsonValue[CODEC_AVDEC_TITLE][taskCount]["AvBindAttr"]["stAudio"]["stOut"]["ModId"].asUInt();
-		tmp->AvBindAttr.stAudio.stIn.u32DevId =
-				JsonValue[CODEC_AVDEC_TITLE][taskCount]["AvBindAttr"]["stAudio"]["stOut"]["u32DevId"].asUInt();
-		tmp->AvBindAttr.stAudio.stIn.u32ChnId =
-				JsonValue[CODEC_AVDEC_TITLE][taskCount]["AvBindAttr"]["stAudio"]["stOut"]["u32ChnId"].asUInt();
+		tmp->AvBindAttr.stAudio.stOut.ModId =
+				(DP_M2S_MOD_ID_E) JsonValue[CODEC_AVCODEC_TITLE][taskCount]["AvBindAttr"]["stAudio"]["stOut"]["ModId"].asUInt();
+		tmp->AvBindAttr.stAudio.stOut.u32DevId =
+				JsonValue[CODEC_AVCODEC_TITLE][taskCount]["AvBindAttr"]["stAudio"]["stOut"]["u32DevId"].asUInt();
+		tmp->AvBindAttr.stAudio.stOut.u32ChnId =
+				JsonValue[CODEC_AVCODEC_TITLE][taskCount]["AvBindAttr"]["stAudio"]["stOut"]["u32ChnId"].asUInt();
 		tmp->AvBindAttr.stVideo.stIn.ModId =
-				(DP_M2S_MOD_ID_E) JsonValue[CODEC_AVDEC_TITLE][taskCount]["AvBindAttr"]["stVideo"]["stIn"]["ModId"].asUInt();
+				(DP_M2S_MOD_ID_E) JsonValue[CODEC_AVCODEC_TITLE][taskCount]["AvBindAttr"]["stVideo"]["stIn"]["ModId"].asUInt();
 		tmp->AvBindAttr.stVideo.stIn.u32DevId =
-				JsonValue[CODEC_AVDEC_TITLE][taskCount]["AvBindAttr"]["stVideo"]["stIn"]["u32DevId"].asUInt();
+				JsonValue[CODEC_AVCODEC_TITLE][taskCount]["AvBindAttr"]["stVideo"]["stIn"]["u32DevId"].asUInt();
 		tmp->AvBindAttr.stVideo.stIn.u32ChnId =
-				JsonValue[CODEC_AVDEC_TITLE][taskCount]["AvBindAttr"]["stVideo"]["stIn"]["u32ChnId"].asUInt();
-		tmp->AvBindAttr.stVideo.stIn.ModId =
-				(DP_M2S_MOD_ID_E) JsonValue[CODEC_AVDEC_TITLE][taskCount]["AvBindAttr"]["stVideo"]["stOut"]["ModId"].asUInt();
-		tmp->AvBindAttr.stVideo.stIn.u32DevId =
-				JsonValue[CODEC_AVDEC_TITLE][taskCount]["AvBindAttr"]["stVideo"]["stOut"]["u32DevId"].asUInt();
-		tmp->AvBindAttr.stVideo.stIn.u32ChnId =
-				JsonValue[CODEC_AVDEC_TITLE][taskCount]["AvBindAttr"]["stVideo"]["stOut"]["u32ChnId"].asUInt();
+				JsonValue[CODEC_AVCODEC_TITLE][taskCount]["AvBindAttr"]["stVideo"]["stIn"]["u32ChnId"].asUInt();
+		tmp->AvBindAttr.stVideo.stOut.ModId =
+				(DP_M2S_MOD_ID_E) JsonValue[CODEC_AVCODEC_TITLE][taskCount]["AvBindAttr"]["stVideo"]["stOut"]["ModId"].asUInt();
+		tmp->AvBindAttr.stVideo.stOut.u32DevId =
+				JsonValue[CODEC_AVCODEC_TITLE][taskCount]["AvBindAttr"]["stVideo"]["stOut"]["u32DevId"].asUInt();
+		tmp->AvBindAttr.stVideo.stOut.u32ChnId =
+				JsonValue[CODEC_AVCODEC_TITLE][taskCount]["AvBindAttr"]["stVideo"]["stOut"]["u32ChnId"].asUInt();
 		tmp->stStream.enType =
-				(DP_M2S_STREAM_TYPE_E) JsonValue[CODEC_AVDEC_TITLE][taskCount]["stStream"]["enType"].asUInt();
+				(DP_M2S_STREAM_TYPE_E) JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stStream"]["enType"].asUInt();
 		if (tmp->stStream.enType == DP_M2S_STREAM_RTSP_SERVER) {
 			tmp->stStream._rtsp.stRtspServer.bOpen =
-					(DP_BOOL) JsonValue[CODEC_AVDEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspServer"]["bOpen"].asInt();
+					(DP_BOOL) JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspServer"]["bOpen"].asInt();
 
 			tmp->stStream._rtsp.stRtspServer.bUDP =
-					(DP_BOOL) JsonValue[CODEC_AVDEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspServer"]["bUDP"].asInt();
+					(DP_BOOL) JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspServer"]["bUDP"].asInt();
 			tmp->stStream._rtsp.stRtspServer.bMulticast =
-					(DP_BOOL) JsonValue[CODEC_AVDEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspServer"]["bMulticast"].asUInt();
+					(DP_BOOL) JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspServer"]["bMulticast"].asUInt();
 			tmp->stStream._rtsp.stRtspServer.s32ConnTimeout =
-					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspServer"]["s32ConnTimeout"].asInt();
+					JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspServer"]["s32ConnTimeout"].asInt();
 			tmp->stStream._rtsp.stRtspServer.s32ConnMax =
-					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspServer"]["s32ConnMax"].asInt();
+					JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspServer"]["s32ConnMax"].asInt();
 			tmp->stStream._rtsp.stRtspServer.s32ConnNums =
-					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspServer"]["s32ConnNums"].asInt();
+					JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspServer"]["s32ConnNums"].asInt();
 			memset(tmp->stStream._rtsp.stRtspServer.au8Url, 0, DP_M2S_URL_LEN);
 			memcpy(tmp->stStream._rtsp.stRtspServer.au8Url,
-					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspServer"]["au8Url"].asCString(),
+					JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspServer"]["au8Url"].asCString(),
 					strlen(
-							JsonValue[CODEC_AVDEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspServer"]["au8Url"].asCString()));
+							JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspServer"]["au8Url"].asCString()));
 
 		} else if (tmp->stStream.enType == DP_M2S_STREAM_RTSP_CLIENT) {
 			tmp->stStream._rtsp.stRtspClient.s8Open =
-					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspClient"]["s8Open"].asUInt();
+					JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspClient"]["s8Open"].asUInt();
 			tmp->stStream._rtsp.stRtspClient.bUDP =
-					(DP_BOOL) JsonValue[CODEC_AVDEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspClient"]["bUDP"].asInt();
+					(DP_BOOL) JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspClient"]["bUDP"].asInt();
 			tmp->stStream._rtsp.stRtspClient.bMulticast =
-					(DP_BOOL) JsonValue[CODEC_AVDEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspClient"]["bMulticast"].asUInt();
+					(DP_BOOL) JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspClient"]["bMulticast"].asUInt();
 			tmp->stStream._rtsp.stRtspClient.s32ConnTimeout =
-					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspClient"]["s32ConnTimeout"].asInt();
+					JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspClient"]["s32ConnTimeout"].asInt();
 			memset(tmp->stStream._rtsp.stRtspClient.au8Url, 0, DP_M2S_URL_LEN);
 			memcpy(tmp->stStream._rtsp.stRtspClient.au8Url,
-					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspClient"]["au8Url"].asCString(),
+					JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspClient"]["au8Url"].asCString(),
 					strlen(
-							JsonValue[CODEC_AVDEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspClient"]["au8Url"].asCString()));
+							JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stStream"]["_rtsp"]["stRtspClient"]["au8Url"].asCString()));
 		}
 
 		tmp->stAdec.enAlg =
-				(DP_M2S_ALG_TYPE_E) JsonValue[CODEC_AVDEC_TITLE][taskCount]["stAdec"]["enAlg"].asUInt();
+				(DP_M2S_ALG_TYPE_E) JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stAdec"]["enAlg"].asUInt();
 		tmp->stVdec.bCrop =
-				(DP_BOOL) JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["bCrop"].asInt();
+				(DP_BOOL) JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["bCrop"].asInt();
 		tmp->stVdec.bZoom =
-				(DP_BOOL) JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["bZoom"].asInt();
+				(DP_BOOL) JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["bZoom"].asInt();
 		tmp->stVdec.bOsd =
-				(DP_BOOL) JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["bOsd"].asInt();
+				(DP_BOOL) JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["bOsd"].asInt();
 		tmp->stVdec.bSwms =
-				(DP_BOOL) JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["bSwms"].asInt();
+				(DP_BOOL) JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["bSwms"].asInt();
 
 		tmp->stVdec.stAlg.enAlg =
-				(DP_M2S_ALG_TYPE_E) JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stAlg"]["enAlg"].asUInt();
+				(DP_M2S_ALG_TYPE_E) JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stAlg"]["enAlg"].asUInt();
 		if (tmp->stVdec.stAlg.enAlg == DP_M2S_ALG_H264_ENC) {
 			tmp->stVdec.stAlg.stH264Enc.u32FrmRate =
-					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stAlg"]["stH264Enc"]["u32FrmRate"].asUInt();
+					JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stAlg"]["stH264Enc"]["u32FrmRate"].asUInt();
 			tmp->stVdec.stAlg.stH264Enc.stSize.u32Width =
-					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stAlg"]["stH264Enc"]["stSize"]["u32Width"].asUInt();
+					JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stAlg"]["stH264Enc"]["stSize"]["u32Width"].asUInt();
 			tmp->stVdec.stAlg.stH264Enc.stSize.u32Height =
-					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stAlg"]["stH264Enc"]["stSize"]["u32Height"].asUInt();
+					JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stAlg"]["stH264Enc"]["stSize"]["u32Height"].asUInt();
 			tmp->stVdec.stAlg.stH264Enc.enRcMode =
-					(DP_M2S_RC_MODE_E) JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stAlg"]["stH264Enc"]["enRcMode"].asUInt();
+					(DP_M2S_RC_MODE_E) JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stAlg"]["stH264Enc"]["enRcMode"].asUInt();
 			tmp->stVdec.stAlg.stH264Enc.u32Bitrate =
-					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stAlg"]["stH264Enc"]["u32Bitrate"].asUInt();
+					JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stAlg"]["stH264Enc"]["u32Bitrate"].asUInt();
 			tmp->stVdec.stAlg.stH264Enc.enProfile =
-					(DP_M2S_ALG_PROFILE_E) JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stAlg"]["stH264Enc"]["enProfile"].asUInt();
+					(DP_M2S_ALG_PROFILE_E) JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stAlg"]["stH264Enc"]["enProfile"].asUInt();
 			tmp->stVdec.stAlg.stH264Enc.u32Gop =
-					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stAlg"]["stH264Enc"]["u32Gop"].asUInt();
+					JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stAlg"]["stH264Enc"]["u32Gop"].asUInt();
 			tmp->stVdec.stAlg.stH264Enc.u16SF =
-					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stAlg"]["stH264Enc"]["u16SF"].asUInt();
+					JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stAlg"]["stH264Enc"]["u16SF"].asUInt();
 			tmp->stVdec.stAlg.stH264Enc.u16TF =
-					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stAlg"]["stH264Enc"]["u16TF"].asUInt();
+					JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stAlg"]["stH264Enc"]["u16TF"].asUInt();
 
 		} else if (tmp->stVdec.stAlg.enAlg == DP_M2S_ALG_H264_DEC) {
 			tmp->stVdec.stAlg.enAlg =
-					(DP_M2S_ALG_TYPE_E) JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stAlg"]["enAlg"].asUInt();
+					(DP_M2S_ALG_TYPE_E) JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stAlg"]["enAlg"].asUInt();
 			tmp->stVdec.stAlg.stH264Dec.enProfile =
-					(DP_M2S_ALG_PROFILE_E) JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stAlg"]["stH264Dec"]["enProfile"].asUInt();
+					(DP_M2S_ALG_PROFILE_E) JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stAlg"]["stH264Dec"]["enProfile"].asUInt();
 			tmp->stVdec.stAlg.stH264Dec.stSize.u32Width =
-					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stAlg"]["stH264Dec"]["stSize"]["u32Width"].asUInt();
+					JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stAlg"]["stH264Dec"]["stSize"]["u32Width"].asUInt();
 			tmp->stVdec.stAlg.stH264Dec.stSize.u32Height =
-					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stAlg"]["stH264Dec"]["stSize"]["u32Height"].asUInt();
+					JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stAlg"]["stH264Dec"]["stSize"]["u32Height"].asUInt();
 
 		} else if (tmp->stVdec.stAlg.enAlg == DP_M2S_ALG_AAC_ENC) {
 			tmp->stVdec.stAlg.stAACEnc.u32Bitrate =
-					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stAlg"]["stAACEnc"]["u32Bitrate"].asUInt();
+					JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stAlg"]["stAACEnc"]["u32Bitrate"].asUInt();
 			tmp->stVdec.stAlg.stAACEnc.bAdts =
-					(DP_BOOL) JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stAlg"]["stAACEnc"]["bAdts"].asInt();
+					(DP_BOOL) JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stAlg"]["stAACEnc"]["bAdts"].asInt();
 		} else if (tmp->stVdec.stAlg.enAlg == DP_M2S_ALG_AAC_DEC) {
 			tmp->stVdec.stAlg.stAACDec.bAdts =
-					(DP_BOOL) JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stAlg"]["stAACDec"]["bAdts"].asInt();
+					(DP_BOOL) JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stAlg"]["stAACDec"]["bAdts"].asInt();
 		}
 
 		tmp->stVdec.stCrop.s32X =
-				JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stCrop"]["s32X"].asInt();
+				JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stCrop"]["s32X"].asInt();
 		tmp->stVdec.stCrop.s32Y =
-				JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stCrop"]["s32Y"].asInt();
+				JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stCrop"]["s32Y"].asInt();
 		tmp->stVdec.stCrop.u32Width =
-				JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stCrop"]["u32Width"].asUInt();
+				JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stCrop"]["u32Width"].asUInt();
 		tmp->stVdec.stCrop.u32Height =
-				JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stCrop"]["u32Height"].asUInt();
+				JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stCrop"]["u32Height"].asUInt();
 		tmp->stVdec.stZoom.enType =
-				(DP_M2S_ZOOM_TYPE_E) JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stZoom"]["enType"].asUInt();
+				(DP_M2S_ZOOM_TYPE_E) JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stZoom"]["enType"].asUInt();
 
 		if (tmp->stVdec.stZoom.enType == DP_M2S_ZOOM_RECT) {
 			tmp->stVdec.stZoom.stRect.s32X =
-					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stZoom"]["stRect"]["s32X"].asInt();
+					JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stZoom"]["stRect"]["s32X"].asInt();
 			tmp->stVdec.stZoom.stRect.s32Y =
-					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stZoom"]["stRect"]["s32Y"].asInt();
+					JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stZoom"]["stRect"]["s32Y"].asInt();
 			tmp->stVdec.stZoom.stRect.u32Width =
-					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stZoom"]["stRect"]["u32Width"].asUInt();
+					JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stZoom"]["stRect"]["u32Width"].asUInt();
 			tmp->stVdec.stZoom.stRect.u32Height =
-					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stZoom"]["stRect"]["u32Height"].asUInt();
+					JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stZoom"]["stRect"]["u32Height"].asUInt();
 
 		} else if (tmp->stVdec.stZoom.enType == DP_M2S_ZOOM_RATIO) {
 			tmp->stVdec.stZoom.stRatio.u32XRatio =
-					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stZoom"]["stRatio"]["u32XRatio"].asUInt();
+					JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stZoom"]["stRatio"]["u32XRatio"].asUInt();
 			tmp->stVdec.stZoom.stRatio.u32YRatio =
-					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stZoom"]["stRatio"]["u32YRatio"].asUInt();
+					JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stZoom"]["stRatio"]["u32YRatio"].asUInt();
 			tmp->stVdec.stZoom.stRatio.u32WRatio =
-					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stZoom"]["stRatio"]["u32WRatio"].asUInt();
+					JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stZoom"]["stRatio"]["u32WRatio"].asUInt();
 			tmp->stVdec.stZoom.stRatio.u32HRatio =
-					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stZoom"]["stRatio"]["u32HRatio"].asUInt();
+					JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stZoom"]["stRatio"]["u32HRatio"].asUInt();
 		}
 		tmp->stVdec.stOsd.enType =
-				(DP_M2S_OSD_TYPE_E) JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stOsd"]["enType"].asUInt();
+				(DP_M2S_OSD_TYPE_E) JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stOsd"]["enType"].asUInt();
 		if (tmp->stVdec.stOsd.enType == DP_M2S_OSD_PIC) {
 			memset(tmp->stVdec.stOsd.au8PicPath, 0, DP_M2S_OSD_PIC_PATH_LEN);
 			memcpy(tmp->stVdec.stOsd.au8PicPath,
-					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stOsd"]["au8PicPath"].asCString(),
+					JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stOsd"]["au8PicPath"].asCString(),
 					strlen(
-							JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stOsd"]["au8PicPath"].asCString()));
+							JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stOsd"]["au8PicPath"].asCString()));
 		} else if (tmp->stVdec.stOsd.enType == DP_M2S_OSD_STRING) {
 			//		std::cout << "pars ok6.34 " << std::endl;
 			memset(tmp->stVdec.stOsd.stStr.au8Str, 0, DP_M2S_OSD_STRING_LEN);
 			memcpy(tmp->stVdec.stOsd.stStr.au8Str,
-					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stOsd"]["stStr"]["au8Str"].asCString(),
+					JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stOsd"]["stStr"]["au8Str"].asCString(),
 					strlen(
-							JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stOsd"]["stStr"]["au8Str"].asCString()));
+							JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stOsd"]["stStr"]["au8Str"].asCString()));
 			tmp->stVdec.stOsd.stStr.u32Color =
-					JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stOsd"]["stStr"]["u32Color"].asUInt();
+					JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stOsd"]["stStr"]["u32Color"].asUInt();
 
 		}
 		tmp->stVdec.stOsd.enDispMode =
-				(DP_M2S_OSD_DISPLAY_MODE_E) JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stOsd"]["enDispMode"].asUInt();
+				(DP_M2S_OSD_DISPLAY_MODE_E) JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stOsd"]["enDispMode"].asUInt();
 		tmp->stVdec.stOsd.stPoint.s32X =
-				JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stOsd"]["stPoint"]["s32X"].asInt();
+				JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stOsd"]["stPoint"]["s32X"].asInt();
 		tmp->stVdec.stOsd.stPoint.s32Y =
-				JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stOsd"]["stPoint"]["s32Y"].asInt();
+				JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stOsd"]["stPoint"]["s32Y"].asInt();
 		tmp->stVdec.stSwms.enVoDevId =
-				(DP_M2S_VO_DEV_E) JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stSwms"]["enVoDevId"].asUInt();
+				(DP_M2S_VO_DEV_E) JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stSwms"]["enVoDevId"].asUInt();
 		tmp->stVdec.stSwms.u32SwmsChn =
-				JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stSwms"]["u32SwmsChn"].asUInt();
+				JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stSwms"]["u32SwmsChn"].asUInt();
 		tmp->stVdec.stSwms.u32Priority =
-				JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stSwms"]["u32Priority"].asUInt();
+				JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stSwms"]["u32Priority"].asUInt();
 		tmp->stVdec.stSwms.stRect.s32X =
-				JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stSwms"]["stRect"]["s32X"].asInt();
+				JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stSwms"]["stRect"]["s32X"].asInt();
 		tmp->stVdec.stSwms.stRect.s32Y =
-				JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stSwms"]["stRect"]["s32Y"].asInt();
+				JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stSwms"]["stRect"]["s32Y"].asInt();
 		tmp->stVdec.stSwms.stRect.u32Width =
-				JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stSwms"]["stRect"]["u32Width"].asUInt();
+				JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stSwms"]["stRect"]["u32Width"].asUInt();
 		tmp->stVdec.stSwms.stRect.u32Height =
-				JsonValue[CODEC_AVDEC_TITLE][taskCount]["stVdec"]["stSwms"]["stRect"]["u32Height"].asUInt();
+				JsonValue[CODEC_AVCODEC_TITLE][taskCount]["stVdec"]["stSwms"]["stRect"]["u32Height"].asUInt();
 		AVDecInfo->push_back(*tmp.get());
+//	}
 	}
+}
+
+void TaskRestore::jsonValue2AVEnc(Json::Value JsonValue,
+		NodeInfo::VctrAVENCGetInfoPtr &AVEncInfo) {
+	DP_U32 taskCount = JsonValue[CODEC_AVCODEC_TITLE].size();
+	if (taskCount == 0) {
+		return;
+	} else {
+		AVEncInfo->clear();
+	}
+	boost::shared_ptr<DP_M2S_AVENC_INFO_S> tmp(new DP_M2S_AVENC_INFO_S);
+	memset(tmp.get(), 0, sizeof(DP_M2S_AVENC_INFO_S));
+	while (taskCount--) {
+		jsonValue2AVEnc(JsonValue[CODEC_AVCODEC_TITLE][taskCount], *tmp.get());
+		AVEncInfo->push_back(*tmp.get());
+	}
+	return;
+}
+
+void TaskRestore::avDECENC2JsonValue(DP_M2S_AVENC_INFO_S &info,
+		Json::Value &value) {
+	value["s32TskId"] = info.s32TskId;
+	value["stAvBind"]["enBindType"] = info.stAvBind.enBindType;
+
+	value["stAvBind"]["stAudio"]["stIn"]["ModId"] =
+			info.stAvBind.stAudio.stIn.ModId;
+	value["stAvBind"]["stAudio"]["stIn"]["u32DevId"] =
+			info.stAvBind.stAudio.stIn.u32DevId;
+	value["stAvBind"]["stAudio"]["stIn"]["u32ChnId"] =
+			info.stAvBind.stAudio.stIn.u32ChnId;
+
+	value["stAvBind"]["stAudio"]["stOut"]["ModId"] =
+			info.stAvBind.stAudio.stOut.ModId;
+	value["stAvBind"]["stAudio"]["stOut"]["u32DevId"] =
+			info.stAvBind.stAudio.stOut.u32DevId;
+	value["stAvBind"]["stAudio"]["stOut"]["u32ChnId"] =
+			info.stAvBind.stAudio.stOut.u32ChnId;
+
+	value["stAvBind"]["stVideo"]["stIn"]["ModId"] =
+			info.stAvBind.stVideo.stIn.ModId;
+	value["stAvBind"]["stVideo"]["stIn"]["u32DevId"] =
+			info.stAvBind.stVideo.stIn.u32DevId;
+	value["stAvBind"]["stVideo"]["stIn"]["u32ChnId"] =
+			info.stAvBind.stVideo.stIn.u32ChnId;
+
+	value["stAvBind"]["stVideo"]["stOut"]["ModId"] =
+			info.stAvBind.stVideo.stOut.ModId;
+	value["stAvBind"]["stVideo"]["stOut"]["u32DevId"] =
+			info.stAvBind.stVideo.stOut.u32DevId;
+	value["stAvBind"]["stVideo"]["stOut"]["u32ChnId"] =
+			info.stAvBind.stVideo.stOut.u32ChnId;
+
+	value["stStream"]["enType"] = info.stStream.enType;
+	if (info.stStream.enType == DP_M2S_STREAM_RTSP_SERVER) {
+		value["stStream"]["_rtsp"]["stRtspServer"]["bOpen"] =
+				info.stStream._rtsp.stRtspServer.bOpen;
+		value["stStream"]["_rtsp"]["stRtspServer"]["bUDP"] =
+				info.stStream._rtsp.stRtspServer.bUDP;
+		value["stStream"]["_rtsp"]["stRtspServer"]["bMulticast"] =
+				info.stStream._rtsp.stRtspServer.bMulticast;
+		value["stStream"]["_rtsp"]["stRtspServer"]["s32ConnTimeout"] =
+				info.stStream._rtsp.stRtspServer.s32ConnTimeout;
+		value["stStream"]["_rtsp"]["stRtspServer"]["s32ConnMax"] =
+				info.stStream._rtsp.stRtspServer.s32ConnMax;
+		value["stStream"]["_rtsp"]["stRtspServer"]["s32ConnNums"] =
+				info.stStream._rtsp.stRtspServer.s32ConnNums;
+		value["stStream"]["_rtsp"]["stRtspServer"]["au8Url"] =
+				(DP_CHAR*) info.stStream._rtsp.stRtspServer.au8Url;
+	} else if (info.stStream.enType == DP_M2S_STREAM_RTSP_CLIENT) {
+		value["stStream"]["_rtsp"]["stRtspClient"]["s8Open"] =
+				info.stStream._rtsp.stRtspClient.s8Open;
+		value["stStream"]["_rtsp"]["stRtspClient"]["bUDP"] =
+				info.stStream._rtsp.stRtspClient.bUDP;
+		value["stStream"]["_rtsp"]["stRtspClient"]["bMulticast"] =
+				info.stStream._rtsp.stRtspClient.bMulticast;
+		value["stStream"]["_rtsp"]["stRtspClient"]["s32ConnTimeout"] =
+				info.stStream._rtsp.stRtspClient.s32ConnTimeout;
+		value["stStream"]["_rtsp"]["stRtspClient"]["au8Url"] =
+				(DP_CHAR*) info.stStream._rtsp.stRtspClient.au8Url;
+	}
+
+	value["stAenc"]["stAlg"]["enAlg"] = info.stAenc.stAlg.enAlg;
+	if (info.stAenc.stAlg.enAlg == DP_M2S_ALG_AAC_ENC) {
+		value["stAenc"]["stAlg"]["stAACEnc"]["bAdts"] =
+				info.stAenc.stAlg.stAACEnc.bAdts;
+		value["stAenc"]["stAlg"]["stAACEnc"]["u32Bitrate"] =
+				info.stAenc.stAlg.stAACEnc.u32Bitrate;
+	}
+
+	value["stVenc"]["bCrop"] = info.stVenc.bCrop;
+	value["stVenc"]["bZoom"] = info.stVenc.bZoom;
+	value["stVenc"]["bOsd"] = info.stVenc.bOsd;
+
+	value["stVenc"]["stAlg"]["enAlg"] = info.stVenc.stAlg.enAlg;
+	if (info.stVenc.stAlg.enAlg == DP_M2S_ALG_H264_ENC) {
+		value["stVenc"]["stAlg"]["stH264Enc"]["u32FrmRate"] =
+				info.stVenc.stAlg.stH264Enc.u32FrmRate;
+		value["stVenc"]["stAlg"]["stH264Enc"]["stSize"]["u32Width"] =
+				info.stVenc.stAlg.stH264Enc.stSize.u32Width;
+		value["stVenc"]["stAlg"]["stH264Enc"]["stSize"]["u32Height"] =
+				info.stVenc.stAlg.stH264Enc.stSize.u32Height;
+		value["stVenc"]["stAlg"]["stH264Enc"]["enRcMode"] =
+				info.stVenc.stAlg.stH264Enc.enRcMode;
+		value["stVenc"]["stAlg"]["stH264Enc"]["u32Bitrate"] =
+				info.stVenc.stAlg.stH264Enc.u32Bitrate;
+		value["stVenc"]["stAlg"]["stH264Enc"]["enProfile"] =
+				info.stVenc.stAlg.stH264Enc.enProfile;
+		value["stVenc"]["stAlg"]["stH264Enc"]["u32Gop"] =
+				info.stVenc.stAlg.stH264Enc.u32Gop;
+		value["stVenc"]["stAlg"]["stH264Enc"]["u16SF"] =
+				info.stVenc.stAlg.stH264Enc.u16SF;
+		value["stVenc"]["stAlg"]["stH264Enc"]["u16TF"] =
+				info.stVenc.stAlg.stH264Enc.u16TF;
+	} else if (info.stVenc.stAlg.enAlg == DP_M2S_ALG_H264_DEC) {
+		value["stVenc"]["stAlg"]["enAlg"] = info.stVenc.stAlg.enAlg;
+		value["stVenc"]["stAlg"]["stH264Dec"]["enProfile"] =
+				info.stVenc.stAlg.stH264Dec.enProfile;
+		value["stVenc"]["stAlg"]["stH264Dec"]["stSize"]["u32Width"] =
+				info.stVenc.stAlg.stH264Dec.stSize.u32Width;
+		value["stVenc"]["stAlg"]["stH264Dec"]["stSize"]["u32Height"] =
+				info.stVenc.stAlg.stH264Dec.stSize.u32Height;
+	} else if (info.stVenc.stAlg.enAlg == DP_M2S_ALG_AAC_ENC) {
+		value["stVenc"]["stAlg"]["stAACEnc"]["u32Bitrate"] =
+				info.stVenc.stAlg.stAACEnc.u32Bitrate;
+		value["stVenc"]["stAlg"]["stAACEnc"]["bAdts"] =
+				info.stVenc.stAlg.stAACEnc.bAdts;
+	} else if (info.stVenc.stAlg.enAlg == DP_M2S_ALG_AAC_DEC) {
+		value["stVenc"]["stAlg"]["stAACDec"]["bAdts"] =
+				info.stVenc.stAlg.stAACDec.bAdts;
+	}
+	value["stVenc"]["stCrop"]["s32X"] = info.stVenc.stCrop.s32X;
+	value["stVenc"]["stCrop"]["s32Y"] = info.stVenc.stCrop.s32Y;
+	value["stVenc"]["stCrop"]["u32Width"] = info.stVenc.stCrop.u32Width;
+	value["stVenc"]["stCrop"]["u32Height"] = info.stVenc.stCrop.u32Height;
+
+	value["stVenc"]["stZoom"]["enType"] = info.stVenc.stZoom.enType;
+	if (info.stVenc.stZoom.enType == DP_M2S_ZOOM_RECT) {
+		value["stVenc"]["stZoom"]["stRect"]["s32X"] =
+				info.stVenc.stZoom.stRect.s32X;
+		value["stVenc"]["stZoom"]["stRect"]["s32Y"] =
+				info.stVenc.stZoom.stRect.s32Y;
+		value["stVenc"]["stZoom"]["stRect"]["u32Width"] =
+				info.stVenc.stZoom.stRect.u32Width;
+		value["stVenc"]["stZoom"]["stRect"]["u32Height"] =
+				info.stVenc.stZoom.stRect.u32Height;
+	} else if (info.stVenc.stZoom.enType == DP_M2S_ZOOM_RATIO) {
+		value["stVenc"]["stZoom"]["stRatio"]["u32XRatio"] =
+				info.stVenc.stZoom.stRatio.u32XRatio;
+		value["stVenc"]["stZoom"]["stRatio"]["u32YRatio"] =
+				info.stVenc.stZoom.stRatio.u32YRatio;
+		value["stVenc"]["stZoom"]["stRatio"]["u32WRatio"] =
+				info.stVenc.stZoom.stRatio.u32WRatio;
+		value["stVenc"]["stZoom"]["stRatio"]["u32HRatio"] =
+				info.stVenc.stZoom.stRatio.u32HRatio;
+	}
+	value["stVenc"]["stOsd"]["enType"] = info.stVenc.stOsd.enType;
+
+	if (info.stVenc.stOsd.enType == DP_M2S_OSD_PIC) {
+		value["stVenc"]["stOsd"]["au8PicPath"] =
+				(DP_CHAR*) info.stVenc.stOsd.au8PicPath;
+	} else if (info.stVenc.stOsd.enType == DP_M2S_OSD_STRING) {
+		value["stVenc"]["stOsd"]["stStr"]["au8Str"] =
+				(DP_CHAR*) info.stVenc.stOsd.stStr.au8Str;
+		value["stVenc"]["stOsd"]["stStr"]["u32Color"] =
+				info.stVenc.stOsd.stStr.u32Color;
+	}
+	value["stVenc"]["stOsd"]["enDispMode"] = info.stVenc.stOsd.enDispMode;
+	value["stVenc"]["stOsd"]["stPoint"]["s32X"] =
+			info.stVenc.stOsd.stPoint.s32X;
+	value["stVenc"]["stOsd"]["stPoint"]["s32Y"] =
+			info.stVenc.stOsd.stPoint.s32Y;
+}
+
+void TaskRestore::jsonValue2AVEnc(Json::Value JsonValue,
+		DP_M2S_AVENC_INFO_S &info) {
+	info.s32TskId = JsonValue["s32TskId"].asInt();
+	info.stAvBind.enBindType =
+			(DP_M2S_AVBIND_TYPE_E) JsonValue["stAvBind"]["enBindType"].asUInt();
+
+	info.stAvBind.stAudio.stIn.ModId =
+			(DP_M2S_MOD_ID_E) JsonValue["stAvBind"]["stAudio"]["stIn"]["ModId"].asUInt();
+	info.stAvBind.stAudio.stIn.u32DevId =
+			JsonValue["stAvBind"]["stAudio"]["stIn"]["u32DevId"].asUInt();
+	info.stAvBind.stAudio.stIn.u32ChnId =
+			JsonValue["stAvBind"]["stAudio"]["stIn"]["u32ChnId"].asUInt();
+	info.stAvBind.stAudio.stOut.ModId =
+			(DP_M2S_MOD_ID_E) JsonValue["stAvBind"]["stAudio"]["stOut"]["ModId"].asUInt();
+	info.stAvBind.stAudio.stOut.u32DevId =
+			JsonValue["stAvBind"]["stAudio"]["stOut"]["u32DevId"].asUInt();
+	info.stAvBind.stAudio.stOut.u32ChnId =
+			JsonValue["stAvBind"]["stAudio"]["stOut"]["u32ChnId"].asUInt();
+	info.stAvBind.stVideo.stIn.ModId =
+			(DP_M2S_MOD_ID_E) JsonValue["stAvBind"]["stVideo"]["stIn"]["ModId"].asUInt();
+	info.stAvBind.stVideo.stIn.u32DevId =
+			JsonValue["stAvBind"]["stVideo"]["stIn"]["u32DevId"].asUInt();
+	info.stAvBind.stVideo.stIn.u32ChnId =
+			JsonValue["stAvBind"]["stVideo"]["stIn"]["u32ChnId"].asUInt();
+	info.stAvBind.stVideo.stOut.ModId =
+			(DP_M2S_MOD_ID_E) JsonValue["stAvBind"]["stVideo"]["stOut"]["ModId"].asUInt();
+	info.stAvBind.stVideo.stOut.u32DevId =
+			JsonValue["stAvBind"]["stVideo"]["stOut"]["u32DevId"].asUInt();
+	info.stAvBind.stVideo.stOut.u32ChnId =
+			JsonValue["stAvBind"]["stVideo"]["stOut"]["u32ChnId"].asUInt();
+
+	info.stStream.enType =
+			(DP_M2S_STREAM_TYPE_E) JsonValue["stStream"]["enType"].asUInt();
+	if (info.stStream.enType == DP_M2S_STREAM_RTSP_SERVER) {
+		info.stStream._rtsp.stRtspServer.bOpen =
+				(DP_BOOL) JsonValue["stStream"]["_rtsp"]["stRtspServer"]["bOpen"].asInt();
+		info.stStream._rtsp.stRtspServer.bUDP =
+				(DP_BOOL) JsonValue["stStream"]["_rtsp"]["stRtspServer"]["bUDP"].asInt();
+		info.stStream._rtsp.stRtspServer.bMulticast =
+				(DP_BOOL) JsonValue["stStream"]["_rtsp"]["stRtspServer"]["bMulticast"].asInt();
+		info.stStream._rtsp.stRtspServer.s32ConnTimeout =
+				JsonValue["stStream"]["_rtsp"]["stRtspServer"]["s32ConnTimeout"].asInt();
+		info.stStream._rtsp.stRtspServer.s32ConnMax =
+				JsonValue["stStream"]["_rtsp"]["stRtspServer"]["s32ConnMax"].asInt();
+		info.stStream._rtsp.stRtspServer.s32ConnNums =
+				JsonValue["stStream"]["_rtsp"]["stRtspServer"]["s32ConnNums"].asInt();
+		memcpy(info.stStream._rtsp.stRtspServer.au8Url,
+				JsonValue["stStream"]["_rtsp"]["stRtspServer"]["au8Url"].asCString(),
+				strlen(
+						JsonValue["stStream"]["_rtsp"]["stRtspServer"]["au8Url"].asCString()));
+
+	} else if (info.stStream.enType == DP_M2S_STREAM_RTSP_CLIENT) {
+		info.stStream._rtsp.stRtspClient.s8Open =
+				JsonValue["stStream"]["_rtsp"]["stRtspClient"]["s8Open"].asInt();
+		info.stStream._rtsp.stRtspClient.bUDP =
+				(DP_BOOL) JsonValue["stStream"]["_rtsp"]["stRtspClient"]["bUDP"].asInt();
+		info.stStream._rtsp.stRtspClient.bMulticast =
+				(DP_BOOL) JsonValue["stStream"]["_rtsp"]["stRtspClient"]["bMulticast"].asInt();
+		info.stStream._rtsp.stRtspClient.s32ConnTimeout =
+				JsonValue["stStream"]["_rtsp"]["stRtspClient"]["s32ConnTimeout"].asInt();
+		memcpy(info.stStream._rtsp.stRtspClient.au8Url,
+				JsonValue["stStream"]["_rtsp"]["stRtspClient"]["au8Url"].asCString(),
+				strlen(
+						JsonValue["stStream"]["_rtsp"]["stRtspClient"]["au8Url"].asCString()));
+	}
+
+	info.stAenc.stAlg.enAlg =
+			(DP_M2S_ALG_TYPE_E) JsonValue["stAenc"]["stAlg"]["enAlg"].asUInt();
+	if (info.stAenc.stAlg.enAlg == DP_M2S_ALG_AAC_ENC) {
+		info.stAenc.stAlg.stAACEnc.bAdts =
+				(DP_BOOL) JsonValue["stAenc"]["stAlg"]["stAACEnc"]["bAdts"].asInt();
+		info.stAenc.stAlg.stAACEnc.u32Bitrate =
+				JsonValue["stAenc"]["stAlg"]["stAACEnc"]["u32Bitrate"].asUInt();
+	}
+
+	info.stVenc.bCrop = (DP_BOOL) JsonValue["stVenc"]["bCrop"].asInt();
+	info.stVenc.bZoom = (DP_BOOL) JsonValue["stVenc"]["bZoom"].asInt();
+	info.stVenc.bOsd = (DP_BOOL) JsonValue["stVenc"]["bOsd"].asInt();
+
+	info.stVenc.stAlg.enAlg =
+			(DP_M2S_ALG_TYPE_E) JsonValue["stVenc"]["stAlg"]["enAlg"].asUInt();
+	if (info.stVenc.stAlg.enAlg == DP_M2S_ALG_H264_ENC) {
+		info.stVenc.stAlg.stH264Enc.u32FrmRate =
+				JsonValue["stVenc"]["stAlg"]["stH264Enc"]["u32FrmRate"].asUInt();
+		info.stVenc.stAlg.stH264Enc.stSize.u32Width =
+				JsonValue["stVenc"]["stAlg"]["stH264Enc"]["stSize"]["u32Width"].asUInt();
+		info.stVenc.stAlg.stH264Enc.stSize.u32Height =
+				JsonValue["stVenc"]["stAlg"]["stH264Enc"]["stSize"]["u32Height"].asUInt();
+		info.stVenc.stAlg.stH264Enc.enRcMode =
+				(DP_M2S_RC_MODE_E) JsonValue["stVenc"]["stAlg"]["stH264Enc"]["enRcMode"].asUInt();
+		info.stVenc.stAlg.stH264Enc.u32Bitrate =
+				JsonValue["stVenc"]["stAlg"]["stH264Enc"]["u32Bitrate"].asUInt();
+		info.stVenc.stAlg.stH264Enc.enProfile =
+				(DP_M2S_ALG_PROFILE_E) JsonValue["stVenc"]["stAlg"]["stH264Enc"]["enProfile"].asUInt();
+		info.stVenc.stAlg.stH264Enc.u32Gop =
+				JsonValue["stVenc"]["stAlg"]["stH264Enc"]["u32Gop"].asUInt();
+		info.stVenc.stAlg.stH264Enc.u16SF =
+				JsonValue["stVenc"]["stAlg"]["stH264Enc"]["u16SF"].asUInt();
+		info.stVenc.stAlg.stH264Enc.u16TF =
+				JsonValue["stVenc"]["stAlg"]["stH264Enc"]["u16TF"].asUInt();
+	} else if (info.stVenc.stAlg.enAlg == DP_M2S_ALG_H264_DEC) {
+		info.stVenc.stAlg.enAlg =
+				(DP_M2S_ALG_TYPE_E) JsonValue["stVenc"]["stAlg"]["enAlg"].asUInt();
+		info.stVenc.stAlg.stH264Dec.enProfile =
+				(DP_M2S_ALG_PROFILE_E) JsonValue["stVenc"]["stAlg"]["stH264Dec"]["enProfile"].asUInt();
+		info.stVenc.stAlg.stH264Dec.stSize.u32Width =
+				JsonValue["stVenc"]["stAlg"]["stH264Dec"]["stSize"]["u32Width"].asUInt();
+		info.stVenc.stAlg.stH264Dec.stSize.u32Height =
+				JsonValue["stVenc"]["stAlg"]["stH264Dec"]["stSize"]["u32Height"].asUInt();
+	} else if (info.stVenc.stAlg.enAlg == DP_M2S_ALG_AAC_ENC) {
+		info.stVenc.stAlg.stAACEnc.u32Bitrate =
+				JsonValue["stVenc"]["stAlg"]["stAACEnc"]["u32Bitrate"].asUInt();
+		info.stVenc.stAlg.stAACEnc.bAdts =
+				(DP_BOOL) JsonValue["stVenc"]["stAlg"]["stAACEnc"]["bAdts"].asInt();
+	} else if (info.stVenc.stAlg.enAlg == DP_M2S_ALG_AAC_DEC) {
+		info.stVenc.stAlg.stAACDec.bAdts =
+				(DP_BOOL) JsonValue["stVenc"]["stAlg"]["stAACDec"]["bAdts"].asInt();
+	}
+
+	info.stVenc.stCrop.s32X = JsonValue["stVenc"]["stCrop"]["s32X"].asInt();
+	info.stVenc.stCrop.s32Y = JsonValue["stVenc"]["stCrop"]["s32Y"].asInt();
+	info.stVenc.stCrop.u32Width =
+			JsonValue["stVenc"]["stCrop"]["u32Width"].asUInt();
+	info.stVenc.stCrop.u32Height =
+			JsonValue["stVenc"]["stCrop"]["u32Height"].asUInt();
+
+	info.stVenc.stZoom.enType =
+			(DP_M2S_ZOOM_TYPE_E) JsonValue["stVenc"]["stZoom"]["enType"].asUInt();
+	if (info.stVenc.stZoom.enType == DP_M2S_ZOOM_RECT) {
+		info.stVenc.stZoom.stRect.s32X =
+				JsonValue["stVenc"]["stZoom"]["stRect"]["s32X"].asInt();
+		info.stVenc.stZoom.stRect.s32Y =
+				JsonValue["stVenc"]["stZoom"]["stRect"]["s32Y"].asInt();
+		info.stVenc.stZoom.stRect.u32Width =
+				JsonValue["stVenc"]["stZoom"]["stRect"]["u32Width"].asUInt();
+		info.stVenc.stZoom.stRect.u32Height =
+				JsonValue["stVenc"]["stZoom"]["stRect"]["u32Height"].asUInt();
+	} else if (info.stVenc.stZoom.enType == DP_M2S_ZOOM_RATIO) {
+		info.stVenc.stZoom.stRatio.u32XRatio =
+				JsonValue["stVenc"]["stZoom"]["stRatio"]["u32XRatio"].asUInt();
+		info.stVenc.stZoom.stRatio.u32YRatio =
+				JsonValue["stVenc"]["stZoom"]["stRatio"]["u32YRatio"].asUInt();
+		info.stVenc.stZoom.stRatio.u32WRatio =
+				JsonValue["stVenc"]["stZoom"]["stRatio"]["u32WRatio"].asUInt();
+		info.stVenc.stZoom.stRatio.u32HRatio =
+				JsonValue["stVenc"]["stZoom"]["stRatio"]["u32HRatio"].asUInt();
+	}
+	info.stVenc.stOsd.enType =
+			(DP_M2S_OSD_TYPE_E) JsonValue["stVenc"]["stOsd"]["enType"].asUInt();
+
+	if (info.stVenc.stOsd.enType == DP_M2S_OSD_PIC) {
+		memcpy(info.stVenc.stOsd.au8PicPath,
+				JsonValue["stVenc"]["stOsd"]["au8PicPath"].asCString(),
+				strlen(JsonValue["stVenc"]["stOsd"]["au8PicPath"].asCString()));
+	} else if (info.stVenc.stOsd.enType == DP_M2S_OSD_STRING) {
+		memcpy(info.stVenc.stOsd.stStr.au8Str,
+				JsonValue["stVenc"]["stOsd"]["stStr"]["au8Str"].asCString(),
+				strlen(
+						JsonValue["stVenc"]["stOsd"]["stStr"]["au8Str"].asCString()));
+		info.stVenc.stOsd.stStr.u32Color =
+				JsonValue["stVenc"]["stOsd"]["stStr"]["u32Color"].asUInt();
+	}
+
+	info.stVenc.stOsd.enDispMode =
+			(DP_M2S_OSD_DISPLAY_MODE_E) JsonValue["stVenc"]["stOsd"]["enDispMode"].asUInt();
+	info.stVenc.stOsd.stPoint.s32X =
+			JsonValue["stVenc"]["stOsd"]["stPoint"]["s32X"].asInt();
+	info.stVenc.stOsd.stPoint.s32Y =
+			JsonValue["stVenc"]["stOsd"]["stPoint"]["s32Y"].asInt();
 }
 
 void TaskRestore::thirdWindowData2JsonValue(OpenAndMoveWindow_S info,

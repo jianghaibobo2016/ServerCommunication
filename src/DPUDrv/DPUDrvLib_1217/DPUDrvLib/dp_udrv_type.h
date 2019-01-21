@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 /* st type param define */
-typedef signed char			DP_S8;
+typedef signed 	char		DP_S8;
 typedef unsigned char		DP_U8;
 
 typedef short		        DP_S16;

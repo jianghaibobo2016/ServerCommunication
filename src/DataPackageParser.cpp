@@ -18,14 +18,14 @@ DataPackageParser::DataPackageParser() {
 DataPackageParser::~DataPackageParser() {
 }
 
-_E_RemoteCMD DataPackageParser::parserDataPackage(std::string data) {
+_E_RemoteCMD DataPackageParser::parserDataPackage(DP_U32 &count,
+		std::string data) {
 	boost::shared_ptr<_S_DataHeadInfo> dataHeadInfo(new _S_DataHeadInfo);
-	LOG_DEBUG<<"seg test 3";
 	if (!parserDataHead(dataHeadInfo.get(), data)) {
 		LOG_TRACE << "Unvalid package .";
 		return _eButt;
 	}
-	LOG_DEBUG<<"seg test 4";
+	count = dataHeadInfo->u32PackLen;
 	switch (dataHeadInfo->u8CommandID) {
 	case Command_MulticastSearch:
 		return _eSearch;
@@ -47,14 +47,19 @@ _E_RemoteCMD DataPackageParser::parserDataPackage(std::string data) {
 		return _eSetAudio;
 	case Command_ClearTask:
 		return _eClearTask;
+	case Command_GetJsonInfo:
+		return _eGetJsonInfo;
+	case Command_SetJsonInfo:
+		return _eSetJsonInfo;
 	case Command_UnicastSearch:
 		return _eUnicastSearch;
 	case Command_OpenAndMoveWindow:
 		return _eOpenAndMoveWindow;
+	case Command_WindowBatchControl:
+		return _eWindowBatchControl;
 	case Command_UpdateBatch:
 		return _eUpdateBatch;
 	}
-	LOG_DEBUG<<"seg test 5";
 	return _eButt;
 }
 
@@ -67,5 +72,6 @@ bool DataPackageParser::parserDataHead(_S_DataHeadInfo *dataHeadInfo,
 		return false;
 	dataHeadInfo->u8CommandID = headr->stFunctionMsg.u8CommandID;
 	dataHeadInfo->u8PackageType = headr->u8PackageType;
+	dataHeadInfo->u32PackLen = headr->u16PackageLen;
 	return true;
 }

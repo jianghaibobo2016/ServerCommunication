@@ -21,6 +21,7 @@ typedef struct _S_DataHeadInfo_ {
 	DP_U32 u32RequestID; ///<命令请求ID，自增字段
 	DP_U8 u8PackageType; ///<0:request data 1:reply data
 	DP_U8 u8CommandID;
+	DP_U32 u32PackLen;
 } _S_DataHeadInfo;
 #pragma pack(pop)
 
@@ -35,8 +36,11 @@ typedef enum _E_RemoteCMD_ {
 	_eCloseAudio,
 	_eSetAudio,
 	_eClearTask = 0x0b,
+	_eGetJsonInfo = 0x20,
+	_eSetJsonInfo = 0x21,
 	_eUnicastSearch = 0xf1,
 	_eOpenAndMoveWindow = 0xf2,
+	_eWindowBatchControl = 0xf3,
 	_eUpdateBatch = 0xfa,
 	_eButt
 } _E_RemoteCMD;
@@ -46,7 +50,7 @@ public:
 	DataPackageParser();
 	~DataPackageParser();
 
-	static _E_RemoteCMD parserDataPackage(std::string data);
+	static _E_RemoteCMD parserDataPackage(DP_U32 &count, std::string data);
 
 private:
 

@@ -176,6 +176,7 @@ DP_S32 NodeInfo::batchGetAVInfoFromCodec(VecCodecTaskID taskID,
 	//batch get
 	DP_U32 count = taskID.size();
 	if (count == 0) {
+		LOG_DEBUG << "Task id vector is empty.";
 		return DP_ERR_TASK_PARAM_ILLEGAL;
 	}
 	DP_U32 packageLen = sizeof(DP_M2S_INF_PROT_HEAD_S)
@@ -189,7 +190,7 @@ DP_S32 NodeInfo::batchGetAVInfoFromCodec(VecCodecTaskID taskID,
 	for (VecCodecTaskID::iterator it = taskID.begin(); it != taskID.end();
 			it++) {
 		aTaskID = *it;
-		LOG_INFO << "Set task id : " << aTaskID;
+		LOG_INFO << "Get task id : " << aTaskID;
 		buffSend.append(&aTaskID, sizeof(aTaskID));
 	}
 	DP_S32 retResult = 0;

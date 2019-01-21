@@ -106,7 +106,7 @@ DP_BOOL NodeInfo::initOutAVEnc() {
 #if (OutputDevice)
 	VctrAVENCGetInfoPtr AVEncInfo = getAVEncGetInfo();
 	LOG_INFO
-	<< "[ out ] ###################### [ init ] [ 1 ] [ set avenc ]  ###################";
+			<< "[ out ] ###################### [ init ] [ 1 ] [ set avenc ]  ###################";
 
 	boost::shared_ptr<DP_M2S_AVBIND_ATTR_S> avBind(new DP_M2S_AVBIND_ATTR_S);
 	avBind->enBindType = DP_M2S_AVBIND_VI2VENC;
@@ -140,7 +140,7 @@ DP_BOOL NodeInfo::initOutAVEnc() {
 
 	boost::shared_ptr<DP_M2S_RTSP_SERVER_ATTR_S> streamServer(
 			new DP_M2S_RTSP_SERVER_ATTR_S);
-	DP_CHAR url[DP_M2S_URL_LEN] = {0};
+	DP_CHAR url[DP_M2S_URL_LEN] = { 0 };
 	const DP_CHAR*ip = _netInfo.getNetConfStruct().ipAddr.c_str();
 	LOG_DEBUG << "IP::::::::::::::::::::::: " << ip;
 	DP_U32 len1 = strlen("rtsp://");
@@ -167,9 +167,9 @@ DP_BOOL NodeInfo::initOutAVEnc() {
 	AVEncInfo->push_back(*avEnc.get());
 
 	updateAVEncGetInfo(AVEncInfo);
-	printAVENC(avEnc.get());
+//	printAVENC(avEnc.get());
 	if (setAVInfoToCodec<VctrAVENCGetInfo, DP_M2S_CMD_AVENC_SETINFO_S>(
-					AVEncInfo, DP_M2S_CMD_AVENC_SET) != DP_TRUE) {
+			AVEncInfo, DP_M2S_CMD_AVENC_SET) != DP_TRUE) {
 		LOG_ERROR << "Set avEnc failed !";
 		return DP_FALSE;
 	}
@@ -201,7 +201,7 @@ DP_BOOL NodeInfo::openOutAVEnc() {
 DP_BOOL NodeInfo::initOutAVDec() {
 #if (OutputDevice)
 	LOG_INFO
-	<< "[ out ] ###################### [ init ] [ 2 ] [ set avdec ]  ###################";
+			<< "[ out ] ###################### [ init ] [ 2 ] [ set avdec ]  ###################";
 	DP_S32 taskID = 0;
 	DP_U32 chnID = 0;
 	VctrAVDECGetInfoPtr AVDecInfo = getAVDecGetInfo();
@@ -222,24 +222,25 @@ DP_BOOL NodeInfo::initOutAVDec() {
 
 	LOG_DEBUG << "********************Set av dec";
 	if (setAVInfoToCodec<VctrAVDECGetInfo, DP_M2S_CMD_AVDEC_SETINFO_S>(
-					AVDecInfo, DP_M2S_CMD_AVDEC_SET) != DP_TRUE) {
+			AVDecInfo, DP_M2S_CMD_AVDEC_SET) != DP_TRUE) {
 		LOG_ERROR << "Set av Dec failed !";
 		return DP_FALSE;
 		// jhbnote will restart prog or not ?
 	} else {
 		if (RecoverTask) {
+
 			LOG_DEBUG << "*************************Recover av dec !";
 			muduo::Singleton<TaskRestore>::instance().getAVDecJson(AVDecInfo);
 			LOG_DEBUG << "*************************Recover set av dec !";
 			if (setAVInfoToCodec<VctrAVDECGetInfo, DP_M2S_CMD_AVDEC_SETINFO_S>(
-							AVDecInfo, DP_M2S_CMD_AVDEC_SET) != DP_TRUE) {
+					AVDecInfo, DP_M2S_CMD_AVDEC_SET) != DP_TRUE) {
 				LOG_ERROR << "Recover setting failed !";
 				return DP_FALSE;
 			}
 			//
 			LOG_DEBUG << "******************Recover third task !";
 			MapThirdIDSrcVideoInfoPtr thirdIDSrcVideo =
-			getThirdIDSrcVideoInfo();
+					getThirdIDSrcVideoInfo();
 			MapOutThirdCodecTaskIDPtr thirdCodecID = getOutThirdCodecTaskID();
 			MapAODevIDCodecIDPtr aoIDCodecID = getAODevIDCodecID();
 
@@ -253,11 +254,9 @@ DP_BOOL NodeInfo::initOutAVDec() {
 //			}
 //		}
 		setOutputTaskIDInMap(AVDecInfo);
-
 	}
-
 	updateAVDecGetInfo(AVDecInfo);
-
+#if 0
 	//re get avdec for checking avdec setting is correct or not.
 	vector<DP_S32> codecID;
 	VctrOutCodecTaskID::iterator it;
@@ -273,6 +272,7 @@ DP_BOOL NodeInfo::initOutAVDec() {
 
 	getAVInfoFromCodec<VctrAVDECGetInfo, DP_M2S_CMD_AVDEC_SETINFO_S>(codecID,
 			DP_M2S_CMD_AVDEC_GET);
+#endif
 
 #endif
 	return DP_TRUE;
@@ -281,16 +281,16 @@ DP_BOOL NodeInfo::initOutAVDec() {
 DP_BOOL NodeInfo::initOutGetVO() {
 #if (OutputDevice)
 	LOG_INFO
-	<< "[ out ] ###################### [ init ] [ 3 ] [ get VO ]  ###################";
+			<< "[ out ] ###################### [ init ] [ 3 ] [ get VO ]  ###################";
 	// 获取视频输出信息
 	VecVODEV voDev;
 	voDev.push_back(DP_M2S_VO_DEV_HDMI0_HI3536);
 	VctrVOGetInfoPtr VOInfo = getVOGetInfo();
 
 	getAOVOInfoFromCodec<VctrVOGetInfoPtr, DP_M2S_CMD_VO_GETINFO_S, VecVODEV,
-	DP_M2S_CMD_VO_GETINFO_ACK_S>(VOInfo, DP_M2S_CMD_VO_GET, voDev);
+			DP_M2S_CMD_VO_GETINFO_ACK_S>(VOInfo, DP_M2S_CMD_VO_GET, voDev);
 
-	for_each(VOInfo->begin(), VOInfo->end(), print_DP_M2S_VO_GET_INFO_S_);
+//	for_each(VOInfo->begin(), VOInfo->end(), print_DP_M2S_VO_GET_INFO_S_);
 	LOG_INFO << "Get aovo size获取视频输出信息 : " << VOInfo->size();
 	updateVOGetInfo(VOInfo);
 #endif
@@ -299,14 +299,14 @@ DP_BOOL NodeInfo::initOutGetVO() {
 DP_BOOL NodeInfo::initOutGetAO() {
 #if (OutputDevice)
 	LOG_INFO
-	<< "[ out ] ###################### [ init ] [ 4 ] [ get AO ]  ###################";
+			<< "[ out ] ###################### [ init ] [ 4 ] [ get AO ]  ###################";
 	//	//// 说明： 获取音频输出信息
 	VecAODEV aoDev;
 	aoDev.push_back(DP_M2S_AO_DEV_LINEOUT0_HI3536);
 	aoDev.push_back(DP_M2S_AO_DEV_HDMI0_HI3536);
 	VctrAOGetInfoPtr AOInfo = getAOGetInfo();
 	getAOVOInfoFromCodec<VctrAOGetInfoPtr, DP_M2S_CMD_AO_GETINFO_S, VecAODEV,
-	DP_M2S_CMD_AO_GETINFO_ACK_S>(AOInfo, DP_M2S_CMD_AO_GET, aoDev);
+			DP_M2S_CMD_AO_GETINFO_ACK_S>(AOInfo, DP_M2S_CMD_AO_GET, aoDev);
 	LOG_INFO << "Get aovo size获取音频输出信息 : " << AOInfo->size();
 	updateAOGetInfo(AOInfo);
 #endif
@@ -316,10 +316,10 @@ DP_BOOL NodeInfo::initOutGetAO() {
 DP_BOOL NodeInfo::initInAVEnc() {
 #if (InputDevice)
 	VecCodecTaskID vTaskID;
-	LOG_INFO
-			<< "[ input ] ###################### [ init ] [ 1 ] [ set AEnc ]  ###################";
 	boost::shared_ptr<DP_M2S_AVENC_INFO_S> aEnc(new DP_M2S_AVENC_INFO_S);
 	VctrAVENCGetInfoPtr AVEncInfo = getAVEncGetInfo();
+	LOG_INFO
+			<< "[ input ] ###################### [ init ] [ 1 ] [ set AEnc ]  ###################";
 	AVEncInfo->clear();
 	cmd_set_aenc_default(aEnc.get(), 0, 0, 0, 0, 0);
 	vTaskID.push_back(0);
@@ -342,6 +342,7 @@ DP_BOOL NodeInfo::initInAVEnc() {
 	cmd_set_avenc_default(aEnc.get(), 1281, 1920, 1080, 20000, 2, 1);
 	vTaskID.push_back(1281);
 	AVEncInfo->push_back(*aEnc.get());
+//	}
 
 	if (setAVInfoToCodec<VctrAVENCGetInfo, DP_M2S_CMD_AVENC_SETINFO_S>(
 			AVEncInfo, DP_M2S_CMD_AVENC_SET) != DP_TRUE) {
@@ -352,8 +353,22 @@ DP_BOOL NodeInfo::initInAVEnc() {
 		DP_S32 ret = batchGetAVInfoFromCodec<DP_M2S_AVENC_INFO_S>(vTaskID,
 				DP_M2S_CMD_AVENC_GET_BATCH, AVEncInfo);
 		if (ret == 0) {
+			if (RecoverTask) {
+				LOG_INFO
+						<< "[ input ] ###################### [ init ] [ * ] [ Restore ] [ set AVEnc ]  ###################";
+				muduo::Singleton<TaskRestore>::instance().getAVEncJson(
+						AVEncInfo);
+				if (setAVInfoToCodec<VctrAVENCGetInfo,
+						DP_M2S_CMD_AVENC_SETINFO_S>(AVEncInfo,
+						DP_M2S_CMD_AVENC_SET) != DP_TRUE) {
+					LOG_ERROR << "Set AV Enc in recover failed !";
+					return DP_FALSE;
+					// jhbnote will restart prog or not ?
+				} else {
+				}
+			}
 			updateAVEncGetInfo(AVEncInfo);
-			for_each(AVEncInfo->begin(), AVEncInfo->end(), print_avenc_attr);
+//			for_each(AVEncInfo->begin(), AVEncInfo->end(), print_avenc_attr);
 		}
 	}
 #if 0
@@ -419,11 +434,11 @@ DP_BOOL NodeInfo::initInGetAO() {
 	LOG_INFO
 			<< "[ input ] ###################### [ init ] [ 7 ] [ get AO ]  ###################";
 	//获取输入节点的音频输出的通道信息
-	VctrAOGetInfoPtr aoInfo= getAOGetInfo();
+	VctrAOGetInfoPtr aoInfo = getAOGetInfo();
 	VecAODEV aoDev;
 	aoDev.push_back(DP_M2S_AO_DEV_LINEOUT0_HI3536);
 	getAOVOInfoFromCodec<VctrAOGetInfoPtr, DP_M2S_CMD_AO_GETINFO_S, VecAODEV,
-	DP_M2S_CMD_AO_GETINFO_ACK_S>(aoInfo, DP_M2S_CMD_AO_GET, aoDev);
+			DP_M2S_CMD_AO_GETINFO_ACK_S>(aoInfo, DP_M2S_CMD_AO_GET, aoDev);
 	LOG_INFO << "Get aovo size获取输入节点的音频输出的通道信息 : " << aoInfo->size();
 	updateAOGetInfo(aoInfo);
 #endif
@@ -477,16 +492,19 @@ DP_S32 NodeInfo::getNewCodecTaskID(DP_U32 thirdId, TaskObjectType_E taskType) {
 	DP_S32 codecID;
 	switch (taskType) {
 	case _eAudioTask:
+		LOG_DEBUG<<"Switch Audio task.";
 		codecID = findNewID(thirdId, _vAudioTaskID);
 		return codecID;
 		break;
 	case _eVideoTask:
+		LOG_DEBUG<<"Switch Video task.";
 		codecID = findNewID(thirdId, _vVideoTaskID);
 		LOG_DEBUG << "getNewCodecTaskID _vVideoTaskID: " << _vVideoTaskID.size()
 				<< " and codecID: " << codecID;
 		return codecID;
 		break;
 	case _eAudioAndVideoTask:
+		LOG_DEBUG<<"Switch Video & Audio task.";
 		codecID = findNewID(thirdId, _vAuViTaskID);
 		return codecID;
 		break;
@@ -513,6 +531,7 @@ DP_S32 NodeInfo::findNewID(DP_U32 thirdId, VctrOutCodecTaskID TaskID) {
 		return DP_ERR_FULL_CODEC_TASK_ID; //error for full !!!!!! 51970
 	else {
 		muduo::MutexLockGuard lock(_mutexForUsedID);
+
 		for (VctrOutCodecTaskID::iterator it = TaskID.begin();
 				it != TaskID.end(); it++) {
 			if (find(_vAllUseCodecTaskID.begin(), _vAllUseCodecTaskID.end(),
@@ -558,6 +577,7 @@ void NodeInfo::removeCodecTaskID(DP_U32 thirdId) {
 	else {
 		LOG_ERROR << "Can not find third task id!: " << thirdId << " tid: "
 				<< muduo::CurrentThread::tid();
+		////////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
 		return;
 	}
 	if (id >= 256 && id < 512)
@@ -858,14 +878,19 @@ void NodeInfo::setOutputTaskIDInMap(VctrAVDECGetInfoPtr avDecInfo) {
 			_allCodecTaskIDCount++;
 			if (it->stStream._rtsp.stRtspClient.s8Open != 0) {
 				_vAllUseCodecTaskID.push_back(it->s32TskId);
-				audioVideoCount++;
+				videoCount++;
 			}
 		} else if (bindType == DP_M2S_AVBIND_ADEC2AO_VDEC2VO) {
 			_vAuViTaskID.push_back(it->s32TskId);
+
+			for (VctrOutCodecTaskID::iterator it = _vAuViTaskID.begin();
+					it != _vAuViTaskID.end(); it++) {
+			}
+
 			_allCodecTaskIDCount++;
 			if (it->stStream._rtsp.stRtspClient.s8Open != 0) {
 				_vAllUseCodecTaskID.push_back(it->s32TskId);
-				videoCount++;
+				audioVideoCount++;
 			}
 		} else {
 			LOG_WARN << "Another bind type: " << bindType;
@@ -960,7 +985,7 @@ DP_U32 NodeInfo::batchSetting(DP_M2S_CMD_ID_E cmd, VecCodecTaskID &vTaskID,
 	for (VecCodecTaskID::iterator it = vTaskID.begin(); it != vTaskID.end();
 			it++) {
 		taskID = *it;
-		LOG_INFO << "Set task id : " << taskID;
+//		LOG_INFO << "Set task id : " << taskID;
 		buffSend.append(&taskID, sizeof(taskID));
 	}
 	DP_S32 retResult = 0;

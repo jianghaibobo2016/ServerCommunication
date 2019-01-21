@@ -54,9 +54,24 @@ void LogFile::append_unlocked(const char* logline, int len) {
 //			<< "roolsie: " << rollSize_ << " basename_ : " << basename_
 //			<< std::endl;
 	if (file_->writtenBytes() > rollSize_) {
+//		std::cout
+//				<< "(file_->writtenBytes() > rollSize_(file_->writtenBytes() > rollSize_(file_->writtenBytes!!!!!"
+//				<< std::endl;
+
+//		LOG_DEBUG << "Log file will clean -> 0";
+
+//		std::cout << "cleannnnnnnnnnn!!!!!" << std::endl;
 		file_->cleanFile();
+//		std::cout << "Cleaned file !" << std::endl;
+//		LOG_DEBUG << "Log file cleaned .";
+
 //		rollFile();
 	} else {
+
+//		std::cout
+//				<< "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<!!!!!file_->writtenBytes(): "
+//				<< file_->writtenBytes() << "rollSize_: " << rollSize_
+//				<< std::endl;
 //		++count_;
 //		if (count_ >= checkEveryN_) {
 //			count_ = 0;

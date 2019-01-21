@@ -11,6 +11,11 @@
 #include <muduo/net/TcpServer.h>
 //#include "../muduo/net/TcpServer.h"
 #include <boost/noncopyable.hpp>
+#include <muduo/base/Logging.h>
+#include <boost/weak_ptr.hpp>
+//#include <memory>
+//#include <iostream>
+#include <list>
 using namespace muduo;
 using namespace muduo::net;
 
@@ -24,7 +29,8 @@ public:
 //		int count;
 //	} _Msg_S;
 //#pragma pack(pop)
-	BaseServerHandle(EventLoop *loop, const InetAddress &listenAddr);
+	BaseServerHandle(EventLoop *loop, const InetAddress &listenAddr,
+			int idleSeconds);
 	virtual ~BaseServerHandle();
 
 //	TcpServer &getTcpServer() {
@@ -33,15 +39,30 @@ public:
 
 	void startServerHandle(int numThreads = 0);
 
-private:
+protected:
 
 	virtual void onConnection(const TcpConnectionPtr &connPtr)=0;
 
 	virtual void onMessage(const TcpConnectionPtr &connPtr, Buffer *buff,
 			Timestamp time) = 0;
 
-private:
+protected:
+
+	void onTimer();
+
+	void dumpConnectionList() const;
+
+	typedef boost::weak_ptr<TcpConnection> WeakTcpConnectionPtr;
+	typedef std::list<WeakTcpConnectionPtr> WeakConnectionList;
+
+	struct Node: public muduo::copyable {
+		Timestamp lastReceiveTime;
+		WeakConnectionList::iterator position;
+	};
+
+	int _idleSeconds;
 	TcpServer _server;
+	WeakConnectionList connectionList_;
 };
 
 #endif /* BASESERVERHANDLE_H_ */

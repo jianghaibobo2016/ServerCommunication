@@ -38,18 +38,22 @@ typedef enum _CloseThirdTask_E {
 } CloseThirdTask_E;
 
 #if (InputDevice)
-static const DP_CHAR *CODEC_AVDEC_JSON_PATH = "./json/InCodec_AVDec.json";
-static const DP_CHAR *THIRD_WINDOW_TASK_JSON_PATH="./json/InThirdWindowTaskInfo.json";
-static const DP_CHAR *THIRD_AUDIO_TASK_JSON_PATH="./json/InThirdAudioTaskInfo.json";
-#elif (OutputDevice)
-static const DP_CHAR *CODEC_AVDEC_JSON_PATH = "./json/OutCodec_AVDec.json";
+static const DP_CHAR *CODEC_AVCODEC_JSON_PATH = "./json/InCodec_AVEnc.json";
 static const DP_CHAR *THIRD_WINDOW_TASK_JSON_PATH =
-		"./json/OutThirdWindowTaskInfo.json";
+		"./json/InThirdWindowTaskInfo.json";
 static const DP_CHAR *THIRD_AUDIO_TASK_JSON_PATH =
-		"./json/OutThirdAudioTaskInfo.json";
+		"./json/InThirdAudioTaskInfo.json";
+#define CODEC_AVCODEC_TITLE "Codec AV Enc"
+
+#elif (OutputDevice)
+static const DP_CHAR *CODEC_AVCODEC_JSON_PATH = "./json/OutCodec_AVDec.json";
+static const DP_CHAR *THIRD_WINDOW_TASK_JSON_PATH =
+"./json/OutThirdWindowTaskInfo.json";
+static const DP_CHAR *THIRD_AUDIO_TASK_JSON_PATH =
+"./json/OutThirdAudioTaskInfo.json";
+#define CODEC_AVCODEC_TITLE "Codec AV Dec"
 #endif
 
-#define CODEC_AVDEC_TITLE "Codec AV Dec"
 #define THIRD_WINDOW_TITLE "Third Window"
 #define THIRD_AUDIO_TITLE "Third Audio"
 
@@ -69,18 +73,22 @@ public:
 
 	void setDataToJson(DP_M2S_AVENC_INFO_S data) {
 		_threadPool.run(
-				boost::bind(&TaskRestore::setAVEncInfoToJson, this, &data));
+				boost::bind(
+						&TaskRestore::setAVDecEncInfoToJson<DP_M2S_AVENC_INFO_S>,
+						this, data));
 	}
 
 	void setDataToJson(DP_M2S_AVDEC_INFO_S data) {
 		_threadPool.run(
-				boost::bind(&TaskRestore::setAVDecInfoToJson, this, data));
+				boost::bind(
+						&TaskRestore::setAVDecEncInfoToJson<DP_M2S_AVDEC_INFO_S>,
+						this, data));
 	}
 
-	void setDataToJson(OpenAndMoveWindow_S data) {
-		_threadPool.run(
-				boost::bind(&TaskRestore::setWindowInfoToJson, this, &data));
-	}
+//	void setDataToJson(OpenAndMoveWindow_S data) {
+//		_threadPool.run(
+//				boost::bind(&TaskRestore::setWindowInfoToJson, this, &data));
+//	}
 	void setDataToJson(_sRemote_OpenAudio data) {
 		_threadPool.run(
 				boost::bind(&TaskRestore::setOpenAudioInfoToJson, this, &data));
@@ -100,6 +108,8 @@ public:
 	}
 
 	void setDataToJson(CloseThirdTask_E enClose, DP_U32 thirdID) {
+		LOG_DEBUG << "to set data to json task id:::::::2222	it_ID->first "
+						<< thirdID;
 		_threadPool.run(
 				boost::bind(&TaskRestore::removeThirdTask, this, enClose,
 						thirdID));
@@ -109,6 +119,12 @@ public:
 	DP_BOOL getThirdInfo(NodeInfo::MapThirdIDSrcVideoInfoPtr &thirdIDSrcVideo,
 			NodeInfo::MapOutThirdCodecTaskIDPtr &thirdCodecID,
 			NodeInfo::MapAODevIDCodecIDPtr &aoIDCodecID);
+
+	DP_BOOL getAVEncJson(NodeInfo::VctrAVENCGetInfoPtr &AVEncInfo);
+
+//	void avDECENC2JsonValue(DP_M2S_AVENC_INFO_S &info, Json::Value &value);
+	static void jsonValue2AVEnc(Json::Value JsonValue,
+			DP_M2S_AVENC_INFO_S &info);
 
 private:
 
@@ -121,10 +137,9 @@ private:
 	MapDataInfoPtr _mDataInfo;
 	MapStringInfoPtr _mStrInfo;
 //
-	void setAVEncInfoToJson(DP_M2S_AVENC_INFO_S *info);
-	void setAVDecInfoToJson(DP_M2S_AVDEC_INFO_S info);
+	template<typename T>
+	void setAVDecEncInfoToJson(T info);
 
-	void setWindowInfoToJson(OpenAndMoveWindow_S *info);
 
 	void setThirdWindowTaskToJson(OpenAndMoveWindow_S info, DP_S32 codecID);
 
@@ -135,9 +150,12 @@ private:
 
 	void setOpenAudioInfoToJson(_sRemote_OpenAudio *info);
 
-	void avDec2JsonValue(DP_M2S_AVDEC_INFO_S &info, Json::Value &value);
+	void avDECENC2JsonValue(DP_M2S_AVDEC_INFO_S &info, Json::Value &value);
+	void avDECENC2JsonValue(DP_M2S_AVENC_INFO_S &info, Json::Value &value);
 	void jsonValue2AVDec(Json::Value JsonValue,
 			NodeInfo::VctrAVDECGetInfoPtr &AVDecInfo);
+	void jsonValue2AVEnc(Json::Value JsonValue,
+			NodeInfo::VctrAVENCGetInfoPtr &AVEncInfo);
 	void thirdWindowData2JsonValue(OpenAndMoveWindow_S info, DP_S32 codecID,
 			Json::Value &value);
 	void thirdAudioData2JsonValue(DP_U32 thirdID, DP_S32 codecID,
@@ -149,5 +167,6 @@ private:
 //	void thirdDataCastToMap();
 
 };
+#include "TaskRestore.hpp"
 
 #endif /* SRC_TASKRESTORE_H_ */

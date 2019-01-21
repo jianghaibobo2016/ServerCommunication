@@ -341,8 +341,11 @@ typedef enum _eRemoteCommand {
 	Command_CloseAudio,
 	Command_SetAudio,
 	Command_ClearTask = 0x0b,
+	Command_GetJsonInfo = 0x20,
+	Command_SetJsonInfo = 0x21,
 	Command_UnicastSearch = 0XF1, //20181203 add
 	Command_OpenAndMoveWindow = 0XF2, //20181220 add
+	Command_WindowBatchControl = 0XF3,
 	Command_UpdateBatch = 0XFA //20181224 add
 } eRemoteCommand;
 
@@ -909,6 +912,13 @@ typedef struct _sRemote_JsonGetInfo_tag {
 	//本机运行性能
 	//本机运行模式（矩阵、拼接屏、KVM）
 
+	/*	new
+	 * 	"Codec AV Enc"  ->array
+	 * 		AVENC ->struct
+	 * 		AVENC
+	 * 		...
+	 * 	*/
+
 	//##输入节点 10
 	//输入编码信息->数组 视频编码通道
 	//				  AI音量LINEIN0
@@ -929,6 +939,7 @@ typedef struct _sRemote_JsonGetInfo_tag {
 	//				  OSD坐标Y
 	//				  输入帧率
 	//				  输入码率(单位Kb)
+	//				  I帧间隔GOP  ->值范围:(0,120]
 	//				  单组播  (0->单播,1->组播) |第二个
 	//视频编码通道
 	//采集设备id
@@ -941,7 +952,6 @@ typedef struct _sRemote_JsonGetInfo_tag {
 	//输出总带宽
 	//rtsp接入数量（正在拉取流的rtsp客户端数量）
 	//rtsp客户端详情->数组 Rtsp地址，客户端ip，客户端ip|Rtsp地址，客户端ip，客户端ip
-
 	//##输出节点 6
 	//视频通道1窗口详情->数组  源Rtsp、分辨率(Width,Height)、帧率、码率(单位Kb)|源Rtsp、分辨率、帧率、码率(单位Kb)
 	//视频通道2窗口详情
@@ -953,6 +963,7 @@ typedef struct _sRemote_JsonGetInfo_tag {
 } sRemote_JsonGetInfo_tag;
 
 typedef struct _sRemote_Reply_JsonGetInfo_tag {
+
 	_sRemote_Header header;
 	DP_U32 u32Success;
 //	DP_U8* pu8JsonString;	//所有的json字符串
@@ -991,12 +1002,12 @@ typedef struct _sRemote_Reply_JsonSetInfo_tag {
 	}
 	_sRemote_Header header;
 	DP_U8 au8KeyCount;
-//	DP_U8* pau8Key[64];
+//	DP_U8* pau8Key[64]; //models 1 model 1 result
 //	DP_U32 *pu32Result;
 //	DP_U8* pau8Result; //remove
 } sRemote_Reply_JsonSetInfo_tag;
 
-////////////////////////////////////////////////////0x Command_OpenAndMoveWindow ///////////////////////////////////////////////////
+////////////////////////////////////////////////////0xf2 Command_OpenAndMoveWindow ///////////////////////////////////////////////////
 //Command_OpenAndMoveWindow
 typedef struct _OpenAndMoveWindow_S {
 	_sRemote_Header header;  // sizeof 20
@@ -1013,6 +1024,42 @@ typedef struct _OpenAndMoveWindow_S {
 	_sDstVideoInfo dstVideoInfo;	  ///<显示目标信息 \a _sDstVideoInfo
 	_sPhyScreenInfo phyScreenInfo;	///<物理屏幕，用于视频像素对齐，暂时保留 //add 2018.10.22
 } OpenAndMoveWindow_S;
+
+////////////////////////////////////////////////////0xf3.批量开移关窗命令 Command_WindowBatchControl ///////////////////////////////////////////////////
+/// @defgroup 开窗命令
+/// @{
+//输出节点需要实现
+typedef struct _sRemote_BatchControlWindow_tag {
+	_sRemote_Header header;
+	DP_U8 u8OpenMoveCount;
+	DP_U8 u8CloseCount;
+	typedef struct _sOpenMoveWindow_tag {
+		DP_U32 u32TaskID;		///<见任务ID注释
+		DP_U8 au8RtspURL[DP_URL_LEN];		///< 标准RTSP地址 //add 2018.10.23
+		DP_U8 u8AudioIn;	///<音频通道是否有声音 //add 2018.10.26
+		DP_U8 au8DstDevID[DP_DEV_ID_LEN];	///<输出节点ID
+		DP_U8 u8VoChnID;		///<显示通道ID \a eDeviceVideoChannelID
+		_sSrcVideoInfo srcVideoInfo;///<视频源信息，如果输入信息为第三方标准RTSP，则此数据结构无效\a _sSrcVideoInfo
+		_sDstVideoInfo dstVideoInfo;                ///<显示目标信息 \a _sDstVideoInfo
+		_sPhyScreenInfo phyScreenInfo;	///<物理屏幕，用于视频像素对齐，暂时保留 //add 2018.10.22
+	} _sOpenMoveWindow;
+	typedef struct _sCloseWindow_tag {
+		DP_U8 au8DevID[DP_DEV_ID_LEN];	///<输出节点ID
+		DP_U32 u32TaskID;		///<见任务ID注释
+		DP_U8 u8VoChnID;		///<显示通道ID  @see eDeviceVideoChannelID
+	} _sCloseWindow;
+
+} _sRemote_BatchControlWindow;
+
+typedef struct _sRemote_Reply_BatchControlWindow_tag {
+	_sRemote_Header header;
+	DP_U8 au8DevID[DP_DEV_ID_LEN];	///<节点ID
+	DP_U32 u32Success; 		///<0成功 其他失败，含错误码
+	DP_U32 u32ErrTaskCount;
+	//DP_U32 u32ErrTaskID[u32Eu32ErrTaskCount];
+	//DP_U32 u32ErrCode[u32Eu32ErrTaskCount];
+
+} _sRemote_Reply_BatchControlWindow;
 
 //use to update batch
 typedef struct _UpdateInfo_S {

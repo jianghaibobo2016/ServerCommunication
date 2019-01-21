@@ -12,6 +12,12 @@
 /* IN
  *	v0.0.0.10 :
  *		Add set input info:resolution,framerate,bitrate.
+ *	v0.0.0.11 :
+ *		Add set info.
+ *	v0.0.0.12 :
+ *		Modify set info, add restore task.
+ *	v0.0.0.13 :
+ *		Fixed bugs.
  *
  */
 

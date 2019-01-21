@@ -13,6 +13,7 @@
 #include <boost/bind.hpp>
 #include <muduo/base/LogFile.h>
 #include <muduo/base/FileUtil.h>
+//#include <CurrentThread.h>
 #include <signal.h>
 #include <stdlib.h>
 
@@ -28,8 +29,8 @@
 #include "LogicHandle.h"
 #include "TaskRestore.h"
 //led & lcd
-//#include "dp_udrv_led.h"
-//#include "dp_udrv_lcd.h"
+#include "dp_udrv_led.h"
+#include "dp_udrv_lcd.h"
 #include "LightDisplay.h"
 
 //#include "testhead.h"
@@ -79,23 +80,32 @@ void signalCB(int sig) {
 void signalHandle() {
 	//jhbnote deinit free
 	signal(SIGPIPE, SIG_IGN);
-	signal(SIGSEGV, signalCB);
-	signal(SIGINT, signalCB);
-	signal(SIGILL, signalCB);
-	signal(SIGKILL, signalCB);
-	signal(SIGABRT, signalCB);
+//	signal(SIGSEGV, signalCB);
+//	signal(SIGINT, signalCB);
+//	signal(SIGILL, signalCB);
+//	signal(SIGKILL, signalCB);
+//	signal(SIGABRT, signalCB);
 }
 
 int main() {
+
+//	EventLoop planLoop;
+//	EventLoopThreadPool pool(&planLoop,"fff");
+//	pool.setThreadNum(3);
+//	pool.start();
+//	pool.getNextLoop();
+
+//	setvbuf(stdout, (char *) NULL, _IOLBF, 0);
 	//logging setting
-	g_logFile.reset(new muduo::LogFile(LogFileName, g_LogFileMaxSize));
-	muduo::Logger::setOutput(outputFunc);
-	muduo::Logger::setFlush(flushFunc);
+//	g_logFile.reset(new muduo::LogFile(LogFileName, g_LogFileMaxSize));
+//	muduo::Logger::setOutput(outputFunc);
+//	muduo::Logger::setFlush(flushFunc);
 	muduo::Logger::setLogLevel(muduo::Logger::TRACE);
 	LOG_TRACE << "Build time : " << BuildTime;
 	LOG_TRACE << "Software Version : " << SoftVersion;
 	LOG_TRACE
 			<< "===========ServerCommunication program starting !==============";
+//	muduo::Logger::setLogLevel(muduo::Logger::ERROR);
 	muduo::Logger::setLogLevel(muduo::Logger::DEBUG);
 	setvbuf(stdout, (char *) NULL, _IOLBF, 0);
 //	print(&loop);
@@ -103,12 +113,10 @@ int main() {
 #if 1
 	signalHandle();
 	//init
-	sleep(2);
 	muduo::Singleton<NodeInfo>::instance();
 	muduo::Singleton<LogicHandle>::instance();
 	GlobalProfile::getInstance();
 	muduo::Singleton<TaskRestore>::instance().startRunning(32, 2);
-
 #if 0
 	DP_UDRV_LCD_Init();
 	const DP_CHAR *ip =
@@ -127,46 +135,45 @@ int main() {
 #if 0 // led
 	DP_UDRV_LED_Init();
 //
-//	LOG_INFO<<"close all ";
-//	DP_UDRV_LED_SetValue(DP_UDRV_LED_ALL, 0);
-//	sleep(2);
-//	LOG_INFO<<"open all ";
-//	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX0, 1);
-//	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX1, 1);
-//	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX2, 1);
-//	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX3, 1);
-//	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX4, 1);
-//	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX5, 1);
-//
-//	sleep(2);
-//	LOG_INFO<<"close all ";
-//	DP_UDRV_LED_SetValue(DP_UDRV_LED_ALL, 0);
-//	sleep(2);
-//	LOG_INFO<<"open all ";
-//	DP_UDRV_LED_SetValue(DP_UDRV_LED_ALL, 1);
+	LOG_INFO<<"close all ";
+	DP_UDRV_LED_SetValue(DP_UDRV_LED_ALL, 0);
+	sleep(2);
+	LOG_INFO<<"open all ";
+	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX0, 1);
+	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX1, 1);
+	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX2, 1);
+	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX3, 1);
+	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX4, 1);
+	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX5, 1);
 
-//	sleep(2);
-//	LOG_INFO<<"close all ";
-//	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX0, 0);
-//	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX1, 0);
-//	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX2, 0);
-//	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX3, 0);
-//	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX4, 0);
-//	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX5, 0);
+	sleep(2);
+	LOG_INFO<<"close all ";
+	DP_UDRV_LED_SetValue(DP_UDRV_LED_ALL, 0);
+	sleep(2);
+	LOG_INFO<<"open all ";
+	DP_UDRV_LED_SetValue(DP_UDRV_LED_ALL, 1);
+
+	sleep(2);
+	LOG_INFO<<"close all ";
+	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX0, 0);
+	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX1, 0);
+	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX2, 0);
+	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX3, 0);
+	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX4, 0);
+	DP_UDRV_LED_SetValue(DP_UDRV_LED_IDX5, 0);
 //
 //	return 0;
 #endif
 
 	EventLoop loop; // one loop shared by multiple servers
-	ServerHandle tcpServer(&loop, InetAddress(5010));
-	tcpServer.startServerHandle(4);
+	ServerHandle tcpServer(&loop, InetAddress(5010), 8);
+	tcpServer.startServerHandle(2);
 	//jhbnote one thread try?
-	tcpServer.startHandle(20, 1);
+	tcpServer.startHandle(60, 1);
 
 	EventLoopThread UDPServer;
 	UDPServerHandle udpServer(UDPServer.startLoop());
 	udpServer.startListen();
-
 	EventLoopThread lightThread;
 	EventLoop *lightLoop = lightThread.startLoop();
 	lightLoop->runInLoop(lightDisplay);

@@ -64,16 +64,29 @@ void FileUtil::AppendFile::flush() {
 }
 
 void FileUtil::AppendFile::cleanFile() {
-	struct stat statbuff;
-	stat(_filename.c_str(), &statbuff);
+#if 0
+//	struct stat statbuff;
 //	int ret = stat(_filename.c_str(), &statbuff);
 //	std::cout << "size:: " << statbuff.st_size << " ret: " << ret
 //			<< "_filename.c_str():: " << _filename.c_str() << std::endl;
+//	std::cout << "Open file ..." << std::endl;
 	std::fstream fout(_filename.c_str(), std::ios::out | std::ios::trunc);
-	fout.close();
+//	std::cout << "Open file ?" << std::endl;
+	if (fout.is_open()) {
+//		std::cout << "Open file !" << std::endl;
+		fout.close();
+//		std::cout << "Close file !" << std::endl;
+	} else {
+//		std::cout << "Can not open file !" << std::endl;
+		abort();
+//		exit(0);
+//		LOG_FATAL << "Can not open file: " << _filename.c_str()
+//				<< " and abort!";
+	}
 
-//	sleep(5);
+//	sleep(50);
 //	exit(1);
+#endif
 	writtenBytes_ = 0;
 }
 

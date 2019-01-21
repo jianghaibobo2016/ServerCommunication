@@ -10,15 +10,21 @@
 
 #include "interactivepro.h"
 #include "dp_sd_type.h"
-//
+
 //#define OutputDevice 1
 //#define InputDevice  0
-//
-#define OutputDevice 0
+
+#define OutputDevice 1
 #define InputDevice  1
 
+#ifdef OUT
+#undef InputDevice
+#elif IN
+#undef OutputDevice
+#endif
+
 #if (InputDevice)
-static const DP_CHAR *SoftVersion = "V0.0.0.10";
+static const DP_CHAR *SoftVersion = "V0.0.0.14";
 static const eDeviceType g_DevType = Type_DeviceInput;
 static const DP_CHAR *LogFileName = "/root/APPDIR/Server/In/InputNodeServer";
 static const DP_CHAR *Welcome = "DSPPA IDMS4K IN";
@@ -26,11 +32,11 @@ static const DP_BOOL RecoverTask = DP_TRUE;
 #endif
 
 #if (OutputDevice)
-static const DP_CHAR *SoftVersion = "V0.0.0.13";
+static const DP_CHAR *SoftVersion = "V0.0.0.14";
 static const eDeviceType g_DevType = Type_DeviceOutput;
 static const DP_CHAR *LogFileName = "/root/APPDIR/Server/Out/OutNodeServer";
 static const DP_CHAR *Welcome = "DSPPA IDMS4K OUT";
-static const DP_BOOL RecoverTask = DP_FALSE;
+static const DP_BOOL RecoverTask = DP_TRUE;
 #endif
 
 static const DP_CHAR *Working = "WORKING";
@@ -53,7 +59,8 @@ static const DP_CHAR *INIFILE = "./NET_CONF.ini";
 static const DP_CHAR *g_IFNAMEDEV = "bond0";
 //static const DP_CHAR *IFNAMEDEV = "ens33";
 
-static const DP_U32 g_LogFileMaxSize = 4 * 1024 * 1024;
+//static const DP_U32 g_LogFileMaxSize = 4 * 1024 * 1024;
+static const DP_U32 g_LogFileMaxSize =   102400;
 
 const int BUFFER_SIZE_PIPESOCKET = 1024 * 1024;
 

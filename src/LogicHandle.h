@@ -50,7 +50,12 @@ public:
 			std::string data);
 	void openAndMoveWindow(const muduo::net::TcpConnectionPtr connPtr,
 			std::string data);
-
+	void windowBatchControl(const muduo::net::TcpConnectionPtr connPtr,
+			std::string data);
+	void getJsonInfo(const muduo::net::TcpConnectionPtr connPtr,
+			std::string data);
+	void setJsonInfo(const muduo::net::TcpConnectionPtr connPtr,
+			std::string data);
 	//
 	void updateBatch(const muduo::net::TcpConnectionPtr connPtr,
 			std::string data);
@@ -63,18 +68,16 @@ private:
 	}
 
 	inline void updateIsClearTask(DP_BOOL newData) {
-		LOG_DEBUG << "test ABORT error 1";
 		muduo::MutexLockGuard lock(Mutex);
-		LOG_DEBUG << "test ABORT error 2";
 		_isClearTasking = newData;
-		LOG_DEBUG << "test ABORT error 3";
 	}
 
 private:
+	//mutex
 	muduo::MutexLock Mutex;
 	muduo::MutexLock _mutex;
 	muduo::MutexLock _prioMutex;
-//	pthread_mutex_t _mutex;
+
 	DP_BOOL _isClearTasking;
 
 	typedef boost::shared_ptr<muduo::CountDownLatch> CountDownLatchPtr;
@@ -107,8 +110,12 @@ private:
 	void replySetInfoToThird(const muduo::net::TcpConnectionPtr connPtr,
 			vector<string> &vKey, vector<DP_U32> &result);
 
+	DP_U32 setAVEncInfoByJson(Json::Value JsonValue);
+
+	//useless
 	DP_BOOL parseJsonData(Json::Value &JsonValue, vector<string> &vKey,
 			vector<DP_U32> &result);
+
 	DP_U32 setInfo_AVENCToCodec(DP_M2S_AVENC_INFO_S &avEncInfo);
 
 //	template<typename S, typename T>
@@ -150,11 +157,11 @@ public:
 		}
 	};
 private:
-	struct findAVDecInfoByCodecID: public std::binary_function<
-			DP_M2S_AVDEC_INFO_S, DP_U32, bool> {
-		bool operator()(const DP_M2S_AVDEC_INFO_S &avDec,
-				const DP_S32 &codecID) const {
-			if (avDec.s32TskId == codecID)
+	template<typename S>
+	struct findAVDecEncInfoByCodecID: public std::binary_function<S, DP_U32,
+			bool> {
+		bool operator()(const S &avInfo, const DP_S32 &codecID) const {
+			if (avInfo.s32TskId == codecID)
 				return true;
 			else
 				return false;
@@ -203,52 +210,8 @@ private:
 #pragma pack(push)
 #pragma pack(1)
 
-typedef struct _SET_AVENC_INFO_S {
-	DP_U32 _u32VideoVencCh;
-	DP_U32 _u32AILINE0Volume;
-	DP_U32 _u32AIHDMI0Volume;
-	DP_U32 _u32AOVolume;
-	DP_U32 _u32CropX;
-	DP_U32 _u32CropY;
-	DP_U32 _u32CropWidth;
-	DP_U32 _u32CropHeight;
-	DP_U32 _u32ZoomWidth;
-	DP_U32 _u32ZoomHeight;
-	DP_U32 _u32OSDType; //union
-	DP_U8 _pu8OSDStr[DP_M2S_OSD_STRING_LEN];
-	DP_U32 _u32OSDStrColor;
-	DP_U8 _pu8OSDPic[DP_M2S_OSD_PIC_PATH_LEN];
-	DP_U32 _u32OSDPresentModel;
-	DP_U32 _u32OSDPointX;
-	DP_U32 _u32OSDPointY;
-	DP_U32 _u32FrameRate;
-	DP_U32 _u32BitRate;
-	DP_U32 _u32Cast;
-} SET_AVENC_INFO_S;
-
 #pragma pack(pop)
 
-static const DP_CHAR *Input_Enc_Info_Str = "输入编码信息";
-static const DP_CHAR *Input_Enc_VencCh_Str = "视频编码通道";
-static const DP_CHAR *Input_Enc_AILINEIN0Volume_Str = "AI音量LINEIN0";
-static const DP_CHAR *Input_Enc_AIHDMI0Volume_Str = " AI音量HDMI0";
-static const DP_CHAR *Input_Enc_AOVolume_Str = "音量AO";
-static const DP_CHAR *Input_Enc_CropX_Str = "裁剪X";
-static const DP_CHAR *Input_Enc_CropY_Str = " 裁剪Y";
-static const DP_CHAR *Input_Enc_CropWidth_Str = "裁剪Width";
-static const DP_CHAR *Input_Enc_CropHeight_Str = "裁剪Height";
-static const DP_CHAR *Input_Enc_ZOOMWidth_Str = "缩放Width";
-static const DP_CHAR *Input_Enc_ZOOMHeight_Str = "缩放Height";
-static const DP_CHAR *Input_Enc_OSDType_Str = "OSD类型";
-static const DP_CHAR *Input_Enc_OSDStr_Str = "OSD字符串";
-static const DP_CHAR *Input_Enc_OSDStrColor_Str = "OSD字符串颜色";
-static const DP_CHAR *Input_Enc_OSDPic_Str = "OSD图片";
-static const DP_CHAR *Input_Enc_OSDPresentModel_Str = "OSD显示模式";
-static const DP_CHAR *Input_Enc_OSDPointX_Str = "OSD坐标X";
-static const DP_CHAR *Input_Enc_OSDPointY_Str = "OSD坐标Y";
-static const DP_CHAR *Input_Enc_FrameRate_Str = "输入帧率";
-static const DP_CHAR *Input_Enc_BitRate_Str = "输入码率";
-static const DP_CHAR *Input_Enc_Cast_Str = "单组播";
 
 #include "LogicHandle.hpp"
 #endif /* SRC_LOGICHANDLE_H_ */

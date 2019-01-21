@@ -64,7 +64,7 @@ DP_S32 DP_UDRV_UART_SendData(DP_S32 port,DP_U8 *sendData,DP_U32 sendDataLen);
 DP_S32 DP_UDRV_UART_RecvData(DP_S32 port,DP_U8 *rcvData,DP_U32 rcvDataLen);
 
 //
-DP_S32 DP_UDRV_UART_DataSendRcvAndWaitForRes(DP_S32 port,DP_U8 mode,DP_UDRV_UART_CMD_S sendCmd,DP_U32 timeOutMs);
+DP_S32 DP_UDRV_UART_DataSendRcvAndWaitForRes(DP_S32 port,DP_U8 mode,DP_UDRV_UART_CMD_S sendCmd,DP_U32 timeOutMs,DP_UDRV_UART_CMD_S* readBuf = NULL);
 
 
 

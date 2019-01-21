@@ -95,6 +95,7 @@ void LogicHandle::setInfo(const muduo::net::TcpConnectionPtr connPtr,
 	}
 #endif
 
+#if 0
 	const DP_CHAR *jsonInfo = data.c_str();
 	jsonInfo += sizeof(sRemote_JsonSetInfo_tag);
 	vector<string> vKey;
@@ -107,6 +108,7 @@ void LogicHandle::setInfo(const muduo::net::TcpConnectionPtr connPtr,
 	} else {
 		LOG_ERROR << "Can not parse json to string in setInfo!";
 	}
+#endif
 }
 
 void LogicHandle::createWindow(const muduo::net::TcpConnectionPtr connPtr,
@@ -150,7 +152,8 @@ void LogicHandle::createWindow(const muduo::net::TcpConnectionPtr connPtr,
 		NodeInfo::VctrAVDECGetInfoPtr vAVDecInfo =
 				muduo::Singleton<NodeInfo>::instance().getAVDecGetInfo();
 		NodeInfo::VctrAVDECGetInfo::iterator it = find_if(vAVDecInfo->begin(),
-				vAVDecInfo->end(), bind2nd(findAVDecInfoByCodecID(), id));
+				vAVDecInfo->end(),
+				bind2nd(findAVDecEncInfoByCodecID<DP_M2S_AVDEC_INFO_S>(), id));
 		if (it == vAVDecInfo->end()) {
 			success = DP_ERR_TASK_ID_NOTEXIST;
 			LOG_ERROR << "Can not find a AVDec info by codec task ID: " << id;
@@ -323,7 +326,6 @@ void LogicHandle::createWindow(const muduo::net::TcpConnectionPtr connPtr,
 void LogicHandle::openAndMoveWindow(const muduo::net::TcpConnectionPtr connPtr,
 		std::string data) {
 	OpenAndMoveWindow_S *winData = (OpenAndMoveWindow_S*) data.c_str();
-
 	if (getIsClearTask()) {
 		LOG_DEBUG << "Clear task ing. Latch has reset 1 and wait ! "
 				<< _latch->getCount();
@@ -332,7 +334,7 @@ void LogicHandle::openAndMoveWindow(const muduo::net::TcpConnectionPtr connPtr,
 
 	LOG_WARN << "winData cmd...u32RequestID: " << winData->header.u32RequestID
 			<< " tid: " << CurrentThread::tid();
-	LOG_INFO << " winData->au8RtspURL: " << winData->au8RtspURL;
+//	LOG_INFO << " winData->au8RtspURL: " << winData->au8RtspURL;
 	DP_BOOL openCMD = DP_TRUE;
 	DP_U32 success = 0;
 	do {
@@ -349,8 +351,6 @@ void LogicHandle::openAndMoveWindow(const muduo::net::TcpConnectionPtr connPtr,
 					<< itThCodID->second;
 		}
 
-//		itThCodID = find_if(thirdCodecID->begin(), thirdCodecID->end(),
-//				bind2nd(findThirdIDByCodecID(), winData->u32TaskID));
 		itThCodID = thirdCodecID->find(winData->u32TaskID);
 
 		if (itThCodID != thirdCodecID->end()) {
@@ -364,9 +364,11 @@ void LogicHandle::openAndMoveWindow(const muduo::net::TcpConnectionPtr connPtr,
 		if (openCMD) {
 			if (winData->u8AudioIn == 0x00) {
 				//jhbnote _eVideoTask is no audio task
-				id = getNewCodecTaskID(winData->u32TaskID, _eAudioAndVideoTask);
+				id = muduo::Singleton<NodeInfo>::instance().getNewCodecTaskID(
+						winData->u32TaskID, _eAudioAndVideoTask);
 			} else if (winData->u8AudioIn == 0x01)
-				id = getNewCodecTaskID(winData->u32TaskID, _eAudioAndVideoTask);
+				id = muduo::Singleton<NodeInfo>::instance().getNewCodecTaskID(
+						winData->u32TaskID, _eAudioAndVideoTask);
 			else {
 				success = DP_ERR_TASK_PARAM_ILLEGAL;
 				break;
@@ -401,7 +403,8 @@ void LogicHandle::openAndMoveWindow(const muduo::net::TcpConnectionPtr connPtr,
 		NodeInfo::VctrAVDECGetInfoPtr vAVDecInfo =
 				muduo::Singleton<NodeInfo>::instance().getAVDecGetInfo();
 		NodeInfo::VctrAVDECGetInfo::iterator it = find_if(vAVDecInfo->begin(),
-				vAVDecInfo->end(), bind2nd(findAVDecInfoByCodecID(), id));
+				vAVDecInfo->end(),
+				bind2nd(findAVDecEncInfoByCodecID<DP_M2S_AVDEC_INFO_S>(), id));
 		if (it == vAVDecInfo->end()) {
 			success = DP_ERR_TASK_ID_NOTEXIST;
 			LOG_ERROR << "Can not find a AVDec info by codec task ID: " << id;
@@ -410,6 +413,9 @@ void LogicHandle::openAndMoveWindow(const muduo::net::TcpConnectionPtr connPtr,
 					winData->u32TaskID);
 			break;
 		}
+
+		LOG_INFO << "test it -> swms chn: " << it->s32TskId << " : "
+				<< it->stVdec.stSwms.u32SwmsChn;
 
 		//crop -- src video
 		it->stVdec.stAlg.enAlg = DP_M2S_ALG_H264_DEC;
@@ -464,6 +470,8 @@ void LogicHandle::openAndMoveWindow(const muduo::net::TcpConnectionPtr connPtr,
 					winData->u32TaskID);
 			break;
 		}
+		LOG_INFO << "test 222 it -> swms chn: " << it->s32TskId << " : "
+				<< it->stVdec.stSwms.u32SwmsChn;
 
 //		it->stStream.enType = DP_M2S_STREAM_RTSP_CLIENT;
 //		it->stStream._rtsp.stRtspClient.bMulticast = DP_FALSE;
@@ -485,6 +493,8 @@ void LogicHandle::openAndMoveWindow(const muduo::net::TcpConnectionPtr connPtr,
 		} else {
 		}
 
+		LOG_INFO << "test 3333it -> swms chn: " << it->s32TskId << " : "
+				<< it->stVdec.stSwms.u32SwmsChn;
 		memset(it->stStream._rtsp.stRtspClient.au8Url, 0, DP_M2S_URL_LEN);
 		strcpy((DP_CHAR*) it->stStream._rtsp.stRtspClient.au8Url,
 				(DP_CHAR*) winData->au8RtspURL);
@@ -503,6 +513,8 @@ void LogicHandle::openAndMoveWindow(const muduo::net::TcpConnectionPtr connPtr,
 		LOG_INFO << "rect x: y: u32Height: u32Width: " << rect.s32X << " "
 				<< rect.s32Y << " " << rect.u32Height << " " << rect.u32Width;
 
+		LOG_INFO << "test4444444 it -> swms chn: " << it->s32TskId << " : "
+				<< it->stVdec.stSwms.u32SwmsChn;
 		///priority
 		DP_U32 originPriority = 0;
 		DP_U32 newPriority = 0;
@@ -541,6 +553,10 @@ void LogicHandle::openAndMoveWindow(const muduo::net::TcpConnectionPtr connPtr,
 			}
 
 		}
+//		LOG_ERROR << "it->stVdec.stSwms.u32Priority: "
+//				<< it->stVdec.stSwms.u32Priority;
+		LOG_INFO << "test5555555555 it -> swms chn: " << it->s32TskId << " : "
+				<< it->stVdec.stSwms.u32SwmsChn;
 		if (openCMD) {
 			muduo::MutexLockGuard lock(_prioMutex);
 			NodeInfo::VctrWindowPriorityPtr winPriority = muduo::Singleton<
@@ -562,6 +578,8 @@ void LogicHandle::openAndMoveWindow(const muduo::net::TcpConnectionPtr connPtr,
 		DP_S32 ret = NodeInfo::sendCodecAVEncDecInfo<DP_M2S_AVDEC_INFO_S,
 				DP_M2S_CMD_AVDEC_SETINFO_S>((DP_M2S_AVDEC_INFO_S) (*it),
 				g_NeedReply, DP_M2S_CMD_AVDEC_SET);
+		LOG_INFO << "test666666666 it -> swms chn: " << it->s32TskId << " : "
+				<< it->stVdec.stSwms.u32SwmsChn;
 
 		if (openCMD) {
 			if (ret != 0) {
@@ -607,6 +625,7 @@ void LogicHandle::openAndMoveWindow(const muduo::net::TcpConnectionPtr connPtr,
 						&& itP != it) {
 					itP->stVdec.stSwms.u32Priority -= 1;
 					itP->stStream._rtsp.stRtspClient.bUDP = DP_TRUE;
+
 					//jhbnote test send only instead of waiting recv.
 					NodeInfo::sendCodecAVEncDecInfo<DP_M2S_AVDEC_INFO_S,
 							DP_M2S_CMD_AVDEC_SETINFO_S>(
@@ -614,6 +633,13 @@ void LogicHandle::openAndMoveWindow(const muduo::net::TcpConnectionPtr connPtr,
 							DP_M2S_CMD_AVDEC_SET);
 				}
 			}
+
+//			for (NodeInfo::VctrAVDECGetInfo::iterator itP = vAVDecInfo->begin();
+//					itP != vAVDecInfo->end(); itP++) {
+//				LOG_ERROR << "it2222 task id: " << itP->s32TskId << " pri: "
+//						<< itP->stVdec.stSwms.u32Priority;
+//			}
+
 		}
 		//
 		if (RecoverTask) {
@@ -655,6 +681,78 @@ void LogicHandle::openAndMoveWindow(const muduo::net::TcpConnectionPtr connPtr,
 	return;
 }
 
+void LogicHandle::windowBatchControl(const muduo::net::TcpConnectionPtr connPtr,
+		std::string data) {
+	_sRemote_BatchControlWindow *winData =
+			(_sRemote_BatchControlWindow*) data.c_str();
+	LOG_WARN << "Move win cmd.....u32RequestID: "
+			<< winData->header.u32RequestID;
+
+	typedef _sRemote_BatchControlWindow::_sOpenMoveWindow OpenMoveWindow_S;
+	typedef _sRemote_BatchControlWindow::_sCloseWindow CloseWindow_S;
+
+	//get data
+	DP_U32 opMvCount = winData->u8OpenMoveCount;
+	DP_U32 closeCount = winData->u8CloseCount;
+	DP_U32 offset = sizeof(_sRemote_Header) + sizeof(DP_U8) << 1;
+	DP_U32 opMvDataLen = opMvCount * sizeof(OpenMoveWindow_S);
+	DP_U32 closeDataLen = closeCount * sizeof(CloseWindow_S);
+
+	std::string opMvData = data.substr(offset, opMvDataLen);
+	if (opMvData.size() != opMvDataLen) {
+		LOG_ERROR << "Data is not enough! opMvData.size(): " << opMvData.size()
+				<< " opMvDataLen : " << opMvDataLen << " opMvCount: "
+				<< opMvCount;
+		return;
+	}
+	offset += opMvDataLen;
+	std::string closeData = data.substr(offset, closeDataLen);
+	if (closeData.size() != closeDataLen) {
+		LOG_ERROR << "Data is not enough! closeData.size(): "
+				<< closeData.size() << " closeDataLen : " << closeDataLen
+				<< " closeCount: " << closeCount;
+		return;
+	}
+
+	//handle data
+	//codec task id
+	if (getIsClearTask()) {
+		LOG_DEBUG << "Clear task ing. Latch has reset 1 and wait ! "
+				<< _latch->getCount();
+		_latch->wait();
+	}
+
+	do {
+		DP_S32 id = 0;
+
+		//judge open or move window
+		NodeInfo::MapOutThirdCodecTaskIDPtr thirdCodecID = muduo::Singleton<
+				NodeInfo>::instance().getOutThirdCodecTaskID();
+		NodeInfo::MapOutThirdCodecTaskID::iterator itThCodID;
+		for (itThCodID = thirdCodecID->begin();
+				itThCodID != thirdCodecID->end(); itThCodID++) {
+			LOG_DEBUG << "first: " << itThCodID->first << " second: "
+					<< itThCodID->second;
+		}
+//		updateThirdTaskIDCodecTaskid.
+
+//		itThCodID = thirdCodecID->find(winData->u32TaskID);
+//
+//		if (itThCodID != thirdCodecID->end()) {
+//			LOG_INFO << "Move win cmd !";
+//			openCMD = DP_FALSE;
+//		} else {
+//			LOG_INFO << "Open win cmd !";
+//			openCMD = DP_TRUE;
+//		}
+	} while (0);
+
+	{
+
+	}
+
+}
+
 void LogicHandle::moveWindow(const muduo::net::TcpConnectionPtr connPtr,
 		std::string data) {
 	_sRemote_MoveWindow *moveWinData = (_sRemote_MoveWindow*) data.c_str();
@@ -679,7 +777,8 @@ void LogicHandle::moveWindow(const muduo::net::TcpConnectionPtr connPtr,
 		}
 
 		NodeInfo::VctrAVDECGetInfo::iterator it = find_if(vAVDecInfo->begin(),
-				vAVDecInfo->end(), bind2nd(findAVDecInfoByCodecID(), id));
+				vAVDecInfo->end(),
+				bind2nd(findAVDecEncInfoByCodecID<DP_M2S_AVDEC_INFO_S>(), id));
 		if (it == vAVDecInfo->end()) {
 			LOG_ERROR << "Can not find a AVDec info by codec task ID: " << id;
 			success = DP_ERR_TASK_ID_NOTEXIST;
@@ -828,7 +927,8 @@ void LogicHandle::closeWindow(const muduo::net::TcpConnectionPtr connPtr,
 //		muduo::Singleton<NodeInfo>::instance().removeCodecTaskID(
 //				closeWinData->u32TaskID);
 		NodeInfo::VctrAVDECGetInfo::iterator it = find_if(vAVDecInfo->begin(),
-				vAVDecInfo->end(), bind2nd(findAVDecInfoByCodecID(), id));
+				vAVDecInfo->end(),
+				bind2nd(findAVDecEncInfoByCodecID<DP_M2S_AVDEC_INFO_S>(), id));
 		if (it == vAVDecInfo->end()) {
 			LOG_ERROR << "Can not find a AVDec info by codec task ID: " << id
 					<< " u32RequestID: " << closeWinData->hedader.u32RequestID
@@ -936,9 +1036,7 @@ void LogicHandle::clearAllTask(const muduo::net::TcpConnectionPtr connPtr,
 
 	LOG_DEBUG << "isClearTasking is true";
 	updateIsClearTask(DP_TRUE);
-	LOG_DEBUG << "test ABORT error 4";
 	_latch.reset(new muduo::CountDownLatch(1));
-	LOG_DEBUG << "test ABORT error 5";
 	LOG_DEBUG << "Latch will reset 1 ! " << _latch->getCount();
 
 	NodeInfo::VctrAVDECGetInfoPtr vAVDecInfo =
@@ -979,18 +1077,21 @@ void LogicHandle::clearAllTask(const muduo::net::TcpConnectionPtr connPtr,
 		} else {
 			task = _eCloseWindow;
 		}
+		it->stVdec.bSwms = DP_FALSE;
 		it->stStream._rtsp.stRtspClient.s8Open = 0x00;
 		// batch close avdec
 		vTaskID.push_back(it->s32TskId);
 		it_ID = std::find_if(thirdCodecID->begin(), thirdCodecID->end(),
 				bind2nd(findThirdIDByCodecID(), it->s32TskId));
+		LOG_DEBUG << "Find it->s32TskId: " << it->s32TskId << " in third id ";
 		if (it_ID != thirdCodecID->end()) {
 			errThirdiD.push_back(it_ID->first);
-			muduo::Singleton<NodeInfo>::instance().removeCodecTaskID(
-					it_ID->first);
+//			muduo::Singleton<NodeInfo>::instance().removeCodecTaskID(
+//					it_ID->first);
 		} else {
 			LOG_ERROR << "Can not find codec task id: " << it_ID->first
 					<< " in thirdCodecID.";
+			///////////////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 			replyClearToThird(DP_ERR_STATE_ABNORMAL, errThirdiD, errInfo,
 					connPtr);
 			return;
@@ -1015,6 +1116,7 @@ void LogicHandle::clearAllTask(const muduo::net::TcpConnectionPtr connPtr,
 //				winPriority);
 		LOG_DEBUG << "Clear third task id : " << it_ID->first
 				<< " with codec id : " << it->s32TskId;
+		muduo::Singleton<NodeInfo>::instance().removeCodecTaskID(it_ID->first);
 	}
 
 	LOG_DEBUG << "Clear task over !";
@@ -1048,8 +1150,12 @@ void LogicHandle::clearAllTask(const muduo::net::TcpConnectionPtr connPtr,
 				failedID.push_back(vTaskID[inx]);
 			} else {
 				//erase swmschn
-				itDec = find_if(vAVDecInfo->begin(), vAVDecInfo->end(),
-						bind2nd(findAVDecInfoByCodecID(), vTaskID[inx]));
+				itDec =
+						find_if(vAVDecInfo->begin(), vAVDecInfo->end(),
+								bind2nd(
+										findAVDecEncInfoByCodecID<
+												DP_M2S_AVDEC_INFO_S>(),
+										vTaskID[inx]));
 				if (itDec != vAVDecInfo->end()) {
 					swmsChn.push_back(itDec->stVdec.stSwms.u32SwmsChn);
 				} else {
@@ -1063,7 +1169,12 @@ void LogicHandle::clearAllTask(const muduo::net::TcpConnectionPtr connPtr,
 			}
 		}
 	}
-	if (!swmsChn.empty()) {
+//	muduo::Singleton<NodeInfo>::instance().removeCodecTaskID(
+//			it_ID->first);
+	muduo::Singleton<NodeInfo>::instance().updateMapOutThirdCodecTaskID(
+			thirdCodecID);
+	if (!swmsDecInfo->empty()) {
+		LOG_DEBUG << "Clear swms ID! size: " << swmsDecInfo->size();
 		//jhbnote seg fault
 		swmsDecInfo->clear();
 #if 0
@@ -1116,17 +1227,17 @@ void LogicHandle::openAudio(const muduo::net::TcpConnectionPtr connPtr,
 #if (OutputDevice)
 	_sRemote_OpenAudio *openAudioData = (_sRemote_OpenAudio*) data.c_str();
 	LOG_WARN << "OpenAudio cmd...u32RequestID: "
-	<< openAudioData->header.u32RequestID << " tid: "
-	<< CurrentThread::tid();
+			<< openAudioData->header.u32RequestID << " tid: "
+			<< CurrentThread::tid();
 
 	LOG_DEBUG << "third task id: " << openAudioData->u32TaskID << " URL: "
-	<< openAudioData->au8RtspURL << " ao: " << openAudioData->u8AoChnID;
+			<< openAudioData->au8RtspURL << " ao: " << openAudioData->u8AoChnID;
 
 	DP_S32 success = 0;
 	DP_S32 id = 0;
 //check is shift audio or not
 	NodeInfo::MapOutThirdCodecTaskIDPtr thirdCodecID =
-	muduo::Singleton<NodeInfo>::instance().getOutThirdCodecTaskID();
+			muduo::Singleton<NodeInfo>::instance().getOutThirdCodecTaskID();
 	DP_BOOL thirdIDExisted = DP_FALSE;
 	do {
 		if (thirdCodecID->find(openAudioData->u32TaskID)
@@ -1134,12 +1245,12 @@ void LogicHandle::openAudio(const muduo::net::TcpConnectionPtr connPtr,
 			thirdIDExisted = DP_TRUE;
 			id = thirdCodecID->operator [](openAudioData->u32TaskID);
 			LOG_INFO << "Find third task ID: " << openAudioData->u32TaskID
-			<< " with codec id: " << id;
+					<< " with codec id: " << id;
 			break;
 		}
 
 		NodeInfo::VctrAVDECGetInfoPtr vAVDecInfo =
-		muduo::Singleton<NodeInfo>::instance().getAVDecGetInfo();
+				muduo::Singleton<NodeInfo>::instance().getAVDecGetInfo();
 		DP_M2S_AO_DEV_E AOChnID;
 
 		if (openAudioData->u8AoChnID == ID_AO_CHN_VIDEOOUT1) {
@@ -1152,51 +1263,51 @@ void LogicHandle::openAudio(const muduo::net::TcpConnectionPtr connPtr,
 			break;
 		}
 		LOG_DEBUG << "Open Audio on chn : " << AOChnID
-		<< " with thirdopen audio ch : " << openAudioData->u8AoChnID;
+				<< " with thirdopen audio ch : " << openAudioData->u8AoChnID;
 
 		DP_S32 closeAudioTaskID = 0;
 //shift or open audio
 		NodeInfo::MapAODevIDCodecIDPtr AODevCodecID =
-		muduo::Singleton<NodeInfo>::instance().getAODevIDCodecID();
+				muduo::Singleton<NodeInfo>::instance().getAODevIDCodecID();
 		NodeInfo::VctrAVDECGetInfo::iterator itAudio;
 		if (AODevCodecID->find(AOChnID) != AODevCodecID->end()) {
 			//shift audio!
 			closeAudioTaskID = AODevCodecID->operator [](AOChnID);
 			// new third task id
 			if (((itAudio = find_if(vAVDecInfo->begin(), vAVDecInfo->end(),
-											bind2nd(findAVDecInfoByCodecID(), closeAudioTaskID)))
-							!= vAVDecInfo->end())) {
+					bind2nd(findAVDecEncInfoByCodecID<DP_M2S_AVDEC_INFO_S>(),
+							closeAudioTaskID))) != vAVDecInfo->end())) {
 				itAudio->stStream._rtsp.stRtspClient.s8Open = 0x00;
 				LOG_DEBUG << "Close and shift AO devID: " << AOChnID
-				<< "with old codecID: " << closeAudioTaskID;
+						<< "with old codecID: " << closeAudioTaskID;
 
 				DP_S32 ret = NodeInfo::sendCodecAVEncDecInfo<
-				DP_M2S_AVDEC_INFO_S, DP_M2S_CMD_AVDEC_SETINFO_S>(
+						DP_M2S_AVDEC_INFO_S, DP_M2S_CMD_AVDEC_SETINFO_S>(
 						(DP_M2S_AVDEC_INFO_S) (*itAudio), g_NeedReply,
 						DP_M2S_CMD_AVDEC_SET);
 				if (ret != 0) {
 					LOG_ERROR
-					<< "Send to codec return false in shift audio func!";
+							<< "Send to codec return false in shift audio func!";
 					success = DP_ERR_COMMUNICATE_ABNORMAL_INNER;
 					break;
 				}
 
 			} else {
 				LOG_ERROR << "Can not find closeAudioTaskID: "
-				<< closeAudioTaskID << " in vAVDecInfo";
+						<< closeAudioTaskID << " in vAVDecInfo";
 				success = DP_ERR_TASK_ID_NOTEXIST;
 				break;
 			}
 			memset(itAudio->stStream._rtsp.stRtspClient.au8Url, 0,
-					DP_M2S_URL_LEN);
+			DP_M2S_URL_LEN);
 			strcpy((DP_CHAR*) itAudio->stStream._rtsp.stRtspClient.au8Url,
 					(DP_CHAR*) openAudioData->au8RtspURL);
 			if (itAudio->AvBindAttr.enBindType == DP_M2S_AVBIND_ADEC2AO)
-			itAudio->stStream._rtsp.stRtspClient.s8Open = 1;
+				itAudio->stStream._rtsp.stRtspClient.s8Open = 1;
 			itAudio->AvBindAttr.stAudio.stOut.u32DevId = AOChnID;
 
 			DP_S32 ret = NodeInfo::sendCodecAVEncDecInfo<DP_M2S_AVDEC_INFO_S,
-			DP_M2S_CMD_AVDEC_SETINFO_S>(
+					DP_M2S_CMD_AVDEC_SETINFO_S>(
 					(DP_M2S_AVDEC_INFO_S) (*itAudio), g_NeedReply,
 					DP_M2S_CMD_AVDEC_SET);
 			if (ret != 0) {
@@ -1213,29 +1324,31 @@ void LogicHandle::openAudio(const muduo::net::TcpConnectionPtr connPtr,
 			//new open audio!
 			id = getNewCodecTaskID(openAudioData->u32TaskID, _eAudioTask);
 			LOG_INFO << "Open Audio third task ID: " << openAudioData->u32TaskID
-			<< " codec ID: " << id;
+					<< " codec ID: " << id;
 			if (id > 1792) {
 				success = id;
 				break;
 			}
 			itAudio = find_if(vAVDecInfo->begin(), vAVDecInfo->end(),
-					bind2nd(findAVDecInfoByCodecID(), id));
+					bind2nd(findAVDecEncInfoByCodecID<DP_M2S_AVDEC_INFO_S>(),
+							id));
 			if (itAudio != vAVDecInfo->end()) {
 				memset(itAudio->stStream._rtsp.stRtspClient.au8Url, 0,
-						DP_M2S_URL_LEN);
+				DP_M2S_URL_LEN);
 				strcpy((DP_CHAR*) itAudio->stStream._rtsp.stRtspClient.au8Url,
 						(DP_CHAR*) openAudioData->au8RtspURL);
 //				if (itAudio->AvBindAttr.enBindType == DP_M2S_AVBIND_ADEC2AO)
 				itAudio->stStream._rtsp.stRtspClient.s8Open = 1;
+				itAudio->stStream._rtsp.stRtspClient.bUDP = DP_TRUE;
 				itAudio->AvBindAttr.stAudio.stOut.u32DevId = AOChnID;
 //				NodeInfo::printAVDEC(&(*itAudio));
 				DP_S32 ret = NodeInfo::sendCodecAVEncDecInfo<
-				DP_M2S_AVDEC_INFO_S, DP_M2S_CMD_AVDEC_SETINFO_S>(
+						DP_M2S_AVDEC_INFO_S, DP_M2S_CMD_AVDEC_SETINFO_S>(
 						(DP_M2S_AVDEC_INFO_S) (*itAudio), g_NeedReply,
 						DP_M2S_CMD_AVDEC_SET);
 				if (ret != 0) {
 					LOG_ERROR
-					<< "Send to codec return false in  Open new audio func!";
+							<< "Send to codec return false in  Open new audio func!";
 					success = DP_ERR_COMMUNICATE_ABNORMAL_INNER;
 					break;
 				} else {
@@ -1259,9 +1372,9 @@ void LogicHandle::openAudio(const muduo::net::TcpConnectionPtr connPtr,
 
 //jhbnote not be taken effect without update
 		muduo::Singleton<NodeInfo>::instance().updateAVDecGetInfo(vAVDecInfo);
-	}while (0);
+	} while (0);
 	LOG_DEBUG << "OpenAudio cmd...u32RequestID: "
-	<< openAudioData->header.u32RequestID;
+			<< openAudioData->header.u32RequestID;
 	commonReplyToThird(Command_OpenAudio, openAudioData->u32TaskID, success,
 			connPtr);
 #endif
@@ -1272,17 +1385,17 @@ void LogicHandle::closeAudio(const muduo::net::TcpConnectionPtr connPtr,
 #if (OutputDevice)
 	_sRemote_CloseAudio *closeAudio = (_sRemote_CloseAudio*) data.c_str();
 	LOG_WARN << "CloseAudio cmd...u32RequestID: "
-	<< closeAudio->header.u32RequestID;
+			<< closeAudio->header.u32RequestID;
 	DP_U32 id = muduo::Singleton<NodeInfo>::instance().setServerTaskID(
 			closeAudio->u32TaskID);
 //get avdec
 	NodeInfo::VctrAVDECGetInfoPtr vAVDecInfo =
-	muduo::Singleton<NodeInfo>::instance().getAVDecGetInfo();
+			muduo::Singleton<NodeInfo>::instance().getAVDecGetInfo();
 	DP_S32 success = 0;
 	do {
 		if (id == DP_ERR_TASK_ID_NOTEXIST) {
 			LOG_ERROR << "Did not find a codec task ID by third task ID :"
-			<< closeAudio->u32TaskID << " codec ID: " << id;
+					<< closeAudio->u32TaskID << " codec ID: " << id;
 			success = DP_ERR_TASK_ID_NOTEXIST;
 			break;
 		} else {
@@ -1290,7 +1403,8 @@ void LogicHandle::closeAudio(const muduo::net::TcpConnectionPtr connPtr,
 		}
 
 		NodeInfo::VctrAVDECGetInfo::iterator it = find_if(vAVDecInfo->begin(),
-				vAVDecInfo->end(), bind2nd(findAVDecInfoByCodecID(), id));
+				vAVDecInfo->end(),
+				bind2nd(findAVDecEncInfoByCodecID<DP_M2S_AVDEC_INFO_S>(), id));
 		if (it == vAVDecInfo->end()) {
 			LOG_ERROR << "Can not find a AVDec info by codec task ID: " << id;
 //			success = DP_ERR_TASK_ID_NOTEXIST;
@@ -1300,7 +1414,7 @@ void LogicHandle::closeAudio(const muduo::net::TcpConnectionPtr connPtr,
 
 		if (it->AvBindAttr.enBindType == DP_M2S_AVBIND_ADEC2AO_VDEC2VO) {
 			LOG_DEBUG
-			<< "it->AvBindAttr.enBindType == DP_M2S_AVBIND_ADEC2AO_VDEC2VO";
+					<< "it->AvBindAttr.enBindType == DP_M2S_AVBIND_ADEC2AO_VDEC2VO";
 			it->stStream._rtsp.stRtspClient.s8Open = 0x02;
 		} else if (it->AvBindAttr.enBindType == DP_M2S_AVBIND_ADEC2AO) {
 			LOG_DEBUG << "it->AvBindAttr.enBindType == DP_M2S_AVBIND_ADEC2AO";
@@ -1309,7 +1423,7 @@ void LogicHandle::closeAudio(const muduo::net::TcpConnectionPtr connPtr,
 
 //		NodeInfo::printAVDEC(&(*it));
 		DP_S32 ret = NodeInfo::sendCodecAVEncDecInfo<DP_M2S_AVDEC_INFO_S,
-		DP_M2S_CMD_AVDEC_SETINFO_S>((DP_M2S_AVDEC_INFO_S) (*it),
+				DP_M2S_CMD_AVDEC_SETINFO_S>((DP_M2S_AVDEC_INFO_S) (*it),
 				g_NeedReply, DP_M2S_CMD_AVDEC_SET);
 		if (ret != 0) {
 			LOG_ERROR << "Send to codec return false in close audio func!";
@@ -1319,7 +1433,7 @@ void LogicHandle::closeAudio(const muduo::net::TcpConnectionPtr connPtr,
 			//remove audio codec id
 			if (it->AvBindAttr.enBindType == DP_M2S_AVBIND_ADEC2AO) {
 				LOG_DEBUG
-				<< "it->AvBindAttr.enBindType == DP_M2S_AVBIND_ADEC2AO";
+						<< "it->AvBindAttr.enBindType == DP_M2S_AVBIND_ADEC2AO";
 				it->stStream._rtsp.stRtspClient.s8Open = 0x00;
 				muduo::Singleton<NodeInfo>::instance().removeCodecTaskID(
 						closeAudio->u32TaskID);
@@ -1338,7 +1452,7 @@ void LogicHandle::closeAudio(const muduo::net::TcpConnectionPtr connPtr,
 			AOChnID = DP_M2S_AO_DEV_LINEOUT0_HI3536;
 		}
 		NodeInfo::MapAODevIDCodecIDPtr AODevCodecID =
-		muduo::Singleton<NodeInfo>::instance().getAODevIDCodecID();
+				muduo::Singleton<NodeInfo>::instance().getAODevIDCodecID();
 		NodeInfo::MapAODevIDCodecID::iterator iter;
 		if ((iter = AODevCodecID->find(AOChnID)) != AODevCodecID->end()) {
 			AODevCodecID->erase(iter);
@@ -1350,9 +1464,9 @@ void LogicHandle::closeAudio(const muduo::net::TcpConnectionPtr connPtr,
 			success = 0;
 			break;
 		}
-	}while (0);
+	} while (0);
 	LOG_DEBUG << "CloseAudio cmd...u32RequestID: "
-	<< closeAudio->header.u32RequestID;
+			<< closeAudio->header.u32RequestID;
 	commonReplyToThird(Command_CloseAudio, closeAudio->u32TaskID, success,
 			connPtr);
 #endif
@@ -1373,10 +1487,10 @@ void LogicHandle::setAudioInfo(const muduo::net::TcpConnectionPtr connPtr,
 
 	_sRemote_SetAudio *setAudio = (_sRemote_SetAudio*) data.c_str();
 	LOG_WARN << "SetAudio cmd...u32RequestID: "
-	<< setAudio->header.u32RequestID;
+			<< setAudio->header.u32RequestID;
 
 	NodeInfo::MapMapAODevAudioInfoPtr aoAudioInfo =
-	muduo::Singleton<NodeInfo>::instance().AODevAudioInfo();
+			muduo::Singleton<NodeInfo>::instance().AODevAudioInfo();
 
 	muduo::Singleton<NodeInfo>::instance().updateAODevAudioInfo(aoAudioInfo);
 
@@ -1553,8 +1667,8 @@ void LogicHandle::Get_VideoChnVencInfo(
 //	DP_U8 avEncChCount = vAVEncInNodeInfo->size();
 	LOG_DEBUG << "vencCount: " << vencCount;
 
-	for_each(vAVEncInNodeInfo->begin(), vAVEncInNodeInfo->end(),
-			print_avenc_attr);
+//	for_each(vAVEncInNodeInfo->begin(), vAVEncInNodeInfo->end(),
+//			print_avenc_attr);
 
 	_sAllVencChnInfo allAiChInfo(viInfo->size(), vencCount);
 
@@ -1582,17 +1696,18 @@ void LogicHandle::Get_VideoChnVencInfo(
 		boost::shared_ptr<_sAllVencChnInfo::_sSingleVencChnInfo> singleVencCh(
 				new _sAllVencChnInfo::_sSingleVencChnInfo(viCh,
 						VENCIDID_ORIGINAL_SINAGL, 0x0000,
-						it->stVenc.stCrop.u32Width, it->stVenc.stCrop.u32Height,
+						it->stVenc.stAlg.stH264Enc.stSize.u32Width,
+						it->stVenc.stAlg.stH264Enc.stSize.u32Height,
 						it->stVenc.stCrop.s32X, it->stVenc.stCrop.s32Y,
 						it->stStream._rtsp.stRtspServer.au8Url,
 						DP_M2S_URL_LEN, audioIn, _sSrcAudioInfo()));
 
 		LOG_DEBUG
-				<< "it->stVenc.stCrop.u32Width, it->stVenc.stCrop.u32Height,it->stVenc.stCrop.s32X, it->stVenc.stCrop.s32Y,it->stStream._rtsp.stRtspServer.au8Url: "
-				<< it->stVenc.stCrop.u32Width << " "
-				<< it->stVenc.stCrop.u32Height << " " << it->stVenc.stCrop.s32X
-				<< " " << it->stVenc.stCrop.s32Y << " "
-				<< it->stStream._rtsp.stRtspServer.au8Url;
+				<< "it->stVenc.stAlg.stH264Enc.stSize.u32Width,it->stVenc.stAlg.stH264Enc.stSize.u32Height,it->stVenc.stCrop.s32X, it->stVenc.stCrop.s32Y,it->stStream._rtsp.stRtspServer.au8Url: "
+				<< it->stVenc.stAlg.stH264Enc.stSize.u32Width << " "
+				<< it->stVenc.stAlg.stH264Enc.stSize.u32Height << " "
+				<< it->stVenc.stCrop.s32X << " " << it->stVenc.stCrop.s32Y
+				<< " " << it->stStream._rtsp.stRtspServer.au8Url;
 
 		if (it->stAvBind.enBindType == DP_M2S_AVBIND_VI2VENC) {
 			singleVencCh->u8AudioIn = 0;
@@ -1654,9 +1769,9 @@ void LogicHandle::Get_OutputVideoChnInfo(
 #if (OutputDevice)
 	LOG_DEBUG << "Get_OutputVideoChnInfo requestID: " << requestID;
 	LOG_INFO << "Get 'Property_Get_OutputVideoChnInfo' cmd from "
-	<< connPtr->peerAddress().toIpPort();
+			<< connPtr->peerAddress().toIpPort();
 	NodeInfo::VctrVOGetInfoPtr VOInfo =
-	muduo::Singleton<NodeInfo>::instance().getVOGetInfo();
+			muduo::Singleton<NodeInfo>::instance().getVOGetInfo();
 	muduo::net::Buffer buffSend;
 	if (VOInfo->empty()) {
 		replyGetInfoToThird(Property_Get_OutputVideoChnInfo,
@@ -1665,17 +1780,17 @@ void LogicHandle::Get_OutputVideoChnInfo(
 	}
 	DP_U32 voCount = VOInfo->size();
 	NodeInfo::MapOutSWMSChCodecDecInfoPtr swmsChInfo =
-	muduo::Singleton<NodeInfo>::instance().getOutSWMSChCodecDecInfo();
+			muduo::Singleton<NodeInfo>::instance().getOutSWMSChCodecDecInfo();
 	DP_U32 taskCount = swmsChInfo->size();
 
 	_sAllVoChnInfo allVOChInfo(voCount, taskCount);
 
 	buffSend.append(&allVOChInfo, sizeof(_sAllVoChnInfo));
 	NodeInfo::VctrAVENCGetInfoPtr AVEncInfo =
-	muduo::Singleton<NodeInfo>::instance().getAVEncGetInfo();
+			muduo::Singleton<NodeInfo>::instance().getAVEncGetInfo();
 	NodeInfo::VctrAVENCGetInfo::iterator iter_AVEnc;
 	NodeInfo::MapMapAODevAudioInfoPtr aoAudioInfo =
-	muduo::Singleton<NodeInfo>::instance().AODevAudioInfo();
+			muduo::Singleton<NodeInfo>::instance().AODevAudioInfo();
 
 //append _sSingleVoChnInfo
 	DP_U32 voRealCount = 0;
@@ -1687,7 +1802,7 @@ void LogicHandle::Get_OutputVideoChnInfo(
 		if (it->enDevId == DP_M2S_VO_DEV_HDMI0_HI3536) {
 			boost::shared_ptr<_sSingleVoChnInfo> singleVoInfo(
 					new _sSingleVoChnInfo(it->bEnable, ID_VO_CHN_VIDEOOUT1,
-							NULL, 0, ID_AO_CHN_VIDEOOUT1, 0, 0));
+					NULL, 0, ID_AO_CHN_VIDEOOUT1, 0, 0));
 			if (iter_AVEnc != AVEncInfo->end()) {
 				memset(singleVoInfo->au8PreviewRtspURL, 0, DP_URL_LEN);
 				strcpy((DP_CHAR*) singleVoInfo->au8PreviewRtspURL,
@@ -1702,17 +1817,17 @@ void LogicHandle::Get_OutputVideoChnInfo(
 				}
 			} else {
 				LOG_ERROR << "Can not find devid: " << it->enDevId
-				<< " in avenc!";
+						<< " in avenc!";
 			}
 			buffSend.append(singleVoInfo.get(), sizeof(_sSingleVoChnInfo));
 			voRealCount++;
 			LOG_DEBUG << "singleVoInfo attr: u8VoChnOpenStatus: "
-			<< singleVoInfo->u8VoChnOpenStatus << " VOchiD : "
-			<< singleVoInfo->u8VoChnID << " URL : "
-			<< singleVoInfo->au8PreviewRtspURL << " ao chid : "
-			<< singleVoInfo->u8RelateAoChnID << " ao mute : "
-			<< singleVoInfo->u8AoChnMute << " ao volume : "
-			<< singleVoInfo->u8AoChnVolume;
+					<< singleVoInfo->u8VoChnOpenStatus << " VOchiD : "
+					<< singleVoInfo->u8VoChnID << " URL : "
+					<< singleVoInfo->au8PreviewRtspURL << " ao chid : "
+					<< singleVoInfo->u8RelateAoChnID << " ao mute : "
+					<< singleVoInfo->u8AoChnMute << " ao volume : "
+					<< singleVoInfo->u8AoChnVolume;
 		} else {
 			LOG_ERROR << "Error dev id : " << it->enDevId;
 			replyGetInfoToThird(Property_Get_OutputVideoChnInfo,
@@ -1723,7 +1838,7 @@ void LogicHandle::Get_OutputVideoChnInfo(
 /// judge vo count num voCount == voRealCount?
 	if (voRealCount != voCount) {
 		LOG_ERROR << "Send vo count conflicted voRealCount : " << voRealCount
-		<< " voCount: " << voCount;
+				<< " voCount: " << voCount;
 		replyGetInfoToThird(Property_Get_OutputVideoChnInfo, DP_ERR_VO_OPERATE,
 				buffSend, connPtr);
 		return;
@@ -1732,7 +1847,7 @@ void LogicHandle::Get_OutputVideoChnInfo(
 //video task info //append pVideoTaskInfo
 	boost::shared_ptr<_sVideoTaskInfo> videoInfo(new _sVideoTaskInfo);
 	NodeInfo::MapOutThirdCodecTaskIDPtr thirdCodecID =
-	muduo::Singleton<NodeInfo>::instance().getOutThirdCodecTaskID();
+			muduo::Singleton<NodeInfo>::instance().getOutThirdCodecTaskID();
 	DP_U32 codecTaskID = 0;
 	NodeInfo::MapOutThirdCodecTaskID::iterator it_ID;
 	LOG_DEBUG << "swmsChInfo size :: " << swmsChInfo->size();
@@ -1750,10 +1865,10 @@ void LogicHandle::Get_OutputVideoChnInfo(
 		if (it_ID != thirdCodecID->end()) {
 			videoInfo->u32TaskID = it_ID->first;
 			LOG_DEBUG << " third task ID: " << videoInfo->u32TaskID
-			<< " codec task ID: " << codecTaskID;
+					<< " codec task ID: " << codecTaskID;
 		} else {
 			LOG_ERROR << "Can not find third task id by codec task id: "
-			<< codecTaskID;
+					<< codecTaskID;
 			replyGetInfoToThird(Property_Get_OutputVideoChnInfo,
 					DP_ERR_TASK_ID_NOTEXIST, buffSend, connPtr);
 			return;
@@ -1764,52 +1879,52 @@ void LogicHandle::Get_OutputVideoChnInfo(
 				videoInfo->u8VoChnID = ID_VO_CHN_VIDEOOUT1;
 			} else {
 				LOG_ERROR << "Error dev id : "
-				<< it->second.stVdec.stSwms.enVoDevId;
+						<< it->second.stVdec.stSwms.enVoDevId;
 				replyGetInfoToThird(Property_Get_OutputVideoChnInfo,
 						DP_ERR_VO_ID_INVALID, buffSend, connPtr);
 				return;
 			}
 			videoInfo->u8WinZIndex = it->second.stVdec.stSwms.u32Priority;
 			videoInfo->dstVideoInfo.u16StartX =
-			it->second.stVdec.stSwms.stRect.s32X;
+					it->second.stVdec.stSwms.stRect.s32X;
 			videoInfo->dstVideoInfo.u16StartY =
-			it->second.stVdec.stSwms.stRect.s32Y;
+					it->second.stVdec.stSwms.stRect.s32Y;
 			videoInfo->dstVideoInfo.u16VideoHeight =
-			it->second.stVdec.stSwms.stRect.u32Height;
+					it->second.stVdec.stSwms.stRect.u32Height;
 			videoInfo->dstVideoInfo.u16VideoWidth =
-			it->second.stVdec.stSwms.stRect.u32Width;
+					it->second.stVdec.stSwms.stRect.u32Width;
 			LOG_INFO << "Dst video info:: x: y: W: H: "
-			<< videoInfo->dstVideoInfo.u16StartX << " "
-			<< videoInfo->dstVideoInfo.u16StartY << " "
-			<< videoInfo->dstVideoInfo.u16VideoWidth << " "
-			<< videoInfo->dstVideoInfo.u16VideoHeight;
+					<< videoInfo->dstVideoInfo.u16StartX << " "
+					<< videoInfo->dstVideoInfo.u16StartY << " "
+					<< videoInfo->dstVideoInfo.u16VideoWidth << " "
+					<< videoInfo->dstVideoInfo.u16VideoHeight;
 		}
 
 		memset(videoInfo->au8InputRtspURL, 0, DP_URL_LEN);
 		strcpy((DP_CHAR*) videoInfo->au8InputRtspURL,
 				(DP_CHAR*) it->second.stStream._rtsp.stRtspClient.au8Url);
 		LOG_INFO << "videoInfo->au8InputRtspURL: " << videoInfo->au8InputRtspURL
-		<< " from : " << it->second.stStream._rtsp.stRtspClient.au8Url;
+				<< " from : " << it->second.stStream._rtsp.stRtspClient.au8Url;
 
 		NodeInfo::MapThirdIDSrcVideoInfoPtr srcVideoInfo = muduo::Singleton<
-		NodeInfo>::instance().getThirdIDSrcVideoInfo();
+				NodeInfo>::instance().getThirdIDSrcVideoInfo();
 
 		if (!srcVideoInfo->empty()) {
 			NodeInfo::MapThirdIDSrcVideoInfo::iterator iter =
-			srcVideoInfo->find(videoInfo->u32TaskID);
+					srcVideoInfo->find(videoInfo->u32TaskID);
 			if (iter != srcVideoInfo->end()) {
 				videoInfo->srcVideoInfo = iter->second;
 				//jhbnote error src info occasionally
 				LOG_INFO << "srcVideoInfo size: " << srcVideoInfo->size()
-				<< "src video width : "
-				<< videoInfo->srcVideoInfo.u16VideoWidth
-				<< " infoHeight: "
-				<< videoInfo->srcVideoInfo.u16VideoHeight;
+						<< "src video width : "
+						<< videoInfo->srcVideoInfo.u16VideoWidth
+						<< " infoHeight: "
+						<< videoInfo->srcVideoInfo.u16VideoHeight;
 				LOG_INFO << "src video start: x: y: end: x: y:  "
-				<< videoInfo->srcVideoInfo.u16StartX << " "
-				<< videoInfo->srcVideoInfo.u16StartY << " "
-				<< videoInfo->srcVideoInfo.u16EndX << " "
-				<< videoInfo->srcVideoInfo.u16EndY;
+						<< videoInfo->srcVideoInfo.u16StartX << " "
+						<< videoInfo->srcVideoInfo.u16StartY << " "
+						<< videoInfo->srcVideoInfo.u16EndX << " "
+						<< videoInfo->srcVideoInfo.u16EndY;
 			}
 		}
 		buffSend.append(videoInfo.get(), sizeof(_sVideoTaskInfo));
@@ -1818,7 +1933,7 @@ void LogicHandle::Get_OutputVideoChnInfo(
 
 	if (realVideoCount != taskCount) {
 		LOG_ERROR << "Send video task count conflicted realVideoCount : "
-		<< realVideoCount << " taskCount: " << taskCount;
+				<< realVideoCount << " taskCount: " << taskCount;
 		replyGetInfoToThird(Property_Get_OutputVideoChnInfo,
 				DP_ERR_TASK_OPERATE, buffSend, connPtr);
 		return;
@@ -1834,9 +1949,9 @@ void LogicHandle::Get_OutputAudioChnInfo(
 #if (OutputDevice)
 	LOG_DEBUG << "Get_OutputAudioChnInfo requestID: " << requestID;
 	LOG_INFO << "Get 'Property_Get_OutputAudioChnInfo' cmd from "
-	<< connPtr->peerAddress().toIpPort();
+			<< connPtr->peerAddress().toIpPort();
 	NodeInfo::VctrAOGetInfoPtr AOInfo =
-	muduo::Singleton<NodeInfo>::instance().getAOGetInfo();
+			muduo::Singleton<NodeInfo>::instance().getAOGetInfo();
 	muduo::net::Buffer buffSend;
 	if (AOInfo->empty()) {
 		replyGetInfoToThird(Property_Get_OutputAudioChnInfo,
@@ -1850,11 +1965,11 @@ void LogicHandle::Get_OutputAudioChnInfo(
 	LOG_INFO << "audioCount size: " << audioCount;
 	DP_U32 codecID = 0;
 	NodeInfo::MapAODevIDCodecIDPtr AODEVCodecID =
-	muduo::Singleton<NodeInfo>::instance().getAODevIDCodecID();
+			muduo::Singleton<NodeInfo>::instance().getAODevIDCodecID();
 	NodeInfo::VctrAVDECGetInfoPtr vAVDecInfo =
-	muduo::Singleton<NodeInfo>::instance().getAVDecGetInfo();
+			muduo::Singleton<NodeInfo>::instance().getAVDecGetInfo();
 	NodeInfo::MapOutThirdCodecTaskIDPtr thirdCodecID =
-	muduo::Singleton<NodeInfo>::instance().getOutThirdCodecTaskID();
+			muduo::Singleton<NodeInfo>::instance().getOutThirdCodecTaskID();
 	NodeInfo::MapOutThirdCodecTaskID::iterator it_ID;
 
 	eDeviceAudioChannelID AOChnID;
@@ -1895,11 +2010,13 @@ void LogicHandle::Get_OutputAudioChnInfo(
 
 			NodeInfo::VctrAVDECGetInfo::iterator itAVDec = find_if(
 					vAVDecInfo->begin(), vAVDecInfo->end(),
-					std::bind2nd(findAVDecInfoByCodecID(), codecID));
+					std::bind2nd(
+							findAVDecEncInfoByCodecID<DP_M2S_AVDEC_INFO_S>(),
+							codecID));
 
 			if (itAVDec == vAVDecInfo->end()) {
 				LOG_ERROR << "Can not find avDec by codec id : " << codecID
-				<< " in prog.";
+						<< " in prog.";
 				buffSend.append(singleAO.get(),
 						sizeof(_sAllAoChnInfo::_sSingleAoChnInfo));
 				realCount++;
@@ -1916,7 +2033,7 @@ void LogicHandle::Get_OutputAudioChnInfo(
 						bind2nd(findThirdIDByCodecID(), codecID));
 				if (it_ID == thirdCodecID->end()) {
 					LOG_ERROR << "Can not find third task id  by codec id : "
-					<< codecID << " in prog.";
+							<< codecID << " in prog.";
 					buffSend.append(singleAO.get(),
 							sizeof(_sAllAoChnInfo::_sSingleAoChnInfo));
 					realCount++;
@@ -1955,7 +2072,7 @@ void LogicHandle::Get_OutputAudioChnInfo(
 
 	if (realCount != audioCount) {
 		LOG_ERROR << "Send audio task count conflicted realCount : "
-		<< realCount << " audioCount: " << audioCount;
+				<< realCount << " audioCount: " << audioCount;
 		replyGetInfoToThird(Property_Get_OutputAudioChnInfo,
 				DP_ERR_TASK_OPERATE, buffSend, connPtr);
 		return;
@@ -1983,7 +2100,7 @@ void LogicHandle::commonReplyToThird(eRemoteCommand cmd, DP_U32 taskID,
 	connPtr->send(&sendBuff);
 	LOG_DEBUG << "Test seg fault 1 !";
 	//seg fault modify
-	CurrentThread::sleepUsec(300 * 1000);
+//	CurrentThread::sleepUsec(300 * 1000);
 	LOG_DEBUG << "Test seg fault 2 !";
 }
 
@@ -2032,7 +2149,7 @@ void LogicHandle::replyClearToThird(DP_U32 success,
 	connPtr->send(&sendBuff);
 	LOG_DEBUG << "Test seg fault 3 !";
 	//seg fault modify
-	CurrentThread::sleepUsec(300 * 1000);
+//	CurrentThread::sleepUsec(300 * 1000);
 	LOG_DEBUG << "Test seg fault 4 !";
 }
 
@@ -2069,47 +2186,115 @@ void LogicHandle::replyGetInfoToThird(eRemotePropertyName proterty,
 	connPtr->send(&buff);
 	LOG_DEBUG << "Test seg fault 5 !";
 	//seg fault modify
-	CurrentThread::sleepUsec(300 * 1000);
+//	CurrentThread::sleepUsec(300 * 1000);
 	LOG_DEBUG << "Test seg fault 6 !";
 }
 
 void LogicHandle::replySetInfoToThird(
 		const muduo::net::TcpConnectionPtr connPtr, vector<string> &vKey,
 		vector<DP_U32> &result) {
+	for (DP_U32 i = 0; i < vKey.size(); i++) {
+		LOG_DEBUG << "vKey[]: " << vKey[i];
+	}
+	for (DP_U32 i = 0; i < result.size(); i++) {
+		LOG_DEBUG << "result[]: " << result[i];
+	}
 	DP_U16 cmdLen = sizeof(DP_U8) + 64 * sizeof(DP_U8) * vKey.size()
 			+ sizeof(DP_U32) * vKey.size();
 	DP_U16 packageLen = cmdLen + sizeof(_sRemote_Header);
+	LOG_DEBUG << "Test seg fault a !";
 	sRemote_Reply_JsonSetInfo_tag reply(
 			muduo::Singleton<NodeInfo>::instance().getNetInfo().ip2U32(),
 			g_DevType, 0x01, packageLen, Command_SetInfo, cmdLen, vKey.size());
 	muduo::net::Buffer buffSend;
+	LOG_DEBUG << "Test seg fault b !";
 	buffSend.append(&reply, sizeof(sRemote_Reply_JsonSetInfo_tag));
 	DP_U8 key[64] = { 0 };
+	LOG_DEBUG << "Test seg fault c !";
 	for (DP_U32 i = 0; i < vKey.size(); i++) {
 		memset(key, 0, 64);
 		memcpy(key, vKey[i].c_str(), strlen(vKey[i].c_str()));
 		buffSend.append(key, 64);
 	}
+	LOG_DEBUG << "Test seg fault d !";
 	for (DP_U32 i = 0; i < result.size(); i++) {
 		buffSend.append(&result[i], sizeof(DP_U32));
 	}
 	LOG_INFO << "Set info send to remote: " << buffSend.readableBytes();
 	connPtr->send(&buffSend);
-	LOG_DEBUG << "Test seg fault 7 !";
-	//seg fault modify
-	CurrentThread::sleepUsec(300 * 1000);
-	LOG_DEBUG << "Test seg fault 8 !";
+}
+
+DP_U32 LogicHandle::setAVEncInfoByJson(Json::Value JsonValue) {
+	DP_U32 ret = 0;
+	DP_U32 encCount = JsonValue[CODEC_AVCODEC_TITLE].size();
+	boost::shared_ptr<DP_M2S_AVENC_INFO_S> avEnc(new DP_M2S_AVENC_INFO_S);
+	NodeInfo::VctrAVENCGetInfoPtr vAVEnc(new NodeInfo::VctrAVENCGetInfo);
+	vAVEnc->clear();
+	NodeInfo::VecCodecTaskID vTaskID;
+	NodeInfo::VctrAVENCGetInfoPtr vGetEnc =
+			muduo::Singleton<NodeInfo>::instance().getAVEncGetInfo();
+	while (encCount--) {
+		memset(avEnc.get(), 0, sizeof(DP_M2S_AVENC_INFO_S));
+		TaskRestore::jsonValue2AVEnc(JsonValue[CODEC_AVCODEC_TITLE][encCount],
+				*avEnc.get());
+		vAVEnc->push_back(*avEnc.get());
+	}
+	if (muduo::Singleton<NodeInfo>::instance().setAVInfoToCodec<
+			NodeInfo::VctrAVENCGetInfo, DP_M2S_CMD_AVENC_SETINFO_S>(vAVEnc,
+			DP_M2S_CMD_AVENC_SET) != DP_TRUE) {
+		LOG_ERROR << "Set AV Enc failed !";
+		ret = DP_ERR_TASK_OPERATE;
+		// jhbnote will restart prog or not ?
+	} else {
+		for (NodeInfo::VctrAVENCGetInfo::iterator it = vAVEnc->begin();
+				it != vAVEnc->end(); it++) {
+			NodeInfo::VctrAVENCGetInfo::iterator iter = find_if(
+					vGetEnc->begin(), vGetEnc->end(),
+					bind2nd(findAVDecEncInfoByCodecID<DP_M2S_AVENC_INFO_S>(),
+							it->s32TskId));
+			if (iter != vGetEnc->end()) {
+				vGetEnc->erase(iter);
+				vGetEnc->push_back(*it);
+//				muduo::Singleton<TaskRestore>::instance().setDataToJson(*it);
+			} else {
+				LOG_ERROR << "Can not find a task id: " << it->s32TskId
+						<< " from setting in AVENC!";
+			}
+		}
+		for (NodeInfo::VctrAVENCGetInfo::iterator it = vGetEnc->begin();
+				it != vGetEnc->end(); it++) {
+			vTaskID.push_back(it->s32TskId);
+		}
+		ret = muduo::Singleton<NodeInfo>::instance().batchGetAVInfoFromCodec<
+				DP_M2S_AVENC_INFO_S>(vTaskID, DP_M2S_CMD_AVENC_GET_BATCH,
+				vGetEnc);
+		if (ret == 0) {
+			for (NodeInfo::VctrAVENCGetInfo::iterator it = vGetEnc->begin();
+					it != vGetEnc->end(); it++) {
+				muduo::Singleton<TaskRestore>::instance().setDataToJson(*it);
+//				LOG_INFO << "Set data to Json task id : " << it->s32TskId
+//						<< " bitrate : "
+//						<< it->stVenc.stAlg.stH264Enc.u32Bitrate;
+			}
+
+			muduo::Singleton<NodeInfo>::instance().updateAVEncGetInfo(vGetEnc);
+		} else {
+		}
+
+	}
+	return ret;
 }
 
 DP_BOOL LogicHandle::parseJsonData(Json::Value &JsonValue, vector<string> &vKey,
 		vector<DP_U32> &result) {
+	DP_BOOL retParse = DP_TRUE;
+#if 0
 	vKey.clear();
 	result.clear();
 	boost::shared_ptr<SET_AVENC_INFO_S> avEncInfo(new SET_AVENC_INFO_S);
 	vector<SET_AVENC_INFO_S> vEncInfo;
 	DP_U32 count = 0;
 	DP_U32 retHandle = 0;
-	DP_BOOL retParse = DP_TRUE;
 	if (JsonValue.isMember(Input_Enc_Info_Str)) {
 		vKey.push_back(Input_Enc_Info_Str);
 		do {
@@ -2118,85 +2303,85 @@ DP_BOOL LogicHandle::parseJsonData(Json::Value &JsonValue, vector<string> &vKey,
 			while (count--) {
 				memset(avEncInfo.get(), 0, sizeof(SET_AVENC_INFO_S));
 				if (JsonValue[Input_Enc_Info_Str][count].isMember(
-						Input_Enc_VencCh_Str)) {
+								Input_Enc_VencCh_Str)) {
 					avEncInfo->_u32VideoVencCh =
-							atoi(
-									JsonValue[Input_Enc_Info_Str][count][Input_Enc_VencCh_Str].asCString());
+					atoi(
+							JsonValue[Input_Enc_Info_Str][count][Input_Enc_VencCh_Str].asCString());
 				} else {
 				}
 				if (JsonValue[Input_Enc_Info_Str][count].isMember(
-						Input_Enc_AILINEIN0Volume_Str)) {
+								Input_Enc_AILINEIN0Volume_Str)) {
 					avEncInfo->_u32AILINE0Volume =
-							atoi(
-									JsonValue[Input_Enc_Info_Str][count][Input_Enc_AILINEIN0Volume_Str].asCString());
+					atoi(
+							JsonValue[Input_Enc_Info_Str][count][Input_Enc_AILINEIN0Volume_Str].asCString());
 				} else {
 				}
 				if (JsonValue[Input_Enc_Info_Str][count].isMember(
-						Input_Enc_AIHDMI0Volume_Str)) {
+								Input_Enc_AIHDMI0Volume_Str)) {
 					avEncInfo->_u32AIHDMI0Volume =
-							atoi(
-									JsonValue[Input_Enc_Info_Str][count][Input_Enc_AIHDMI0Volume_Str].asCString());
+					atoi(
+							JsonValue[Input_Enc_Info_Str][count][Input_Enc_AIHDMI0Volume_Str].asCString());
 				} else {
 				}
 				if (JsonValue[Input_Enc_Info_Str][count].isMember(
-						Input_Enc_AOVolume_Str)) {
+								Input_Enc_AOVolume_Str)) {
 					avEncInfo->_u32AOVolume =
-							atoi(
-									JsonValue[Input_Enc_Info_Str][count][Input_Enc_AOVolume_Str].asCString());
+					atoi(
+							JsonValue[Input_Enc_Info_Str][count][Input_Enc_AOVolume_Str].asCString());
 				} else {
 				}
 
 				if (JsonValue[Input_Enc_CropX_Str][count].isMember(
-						Input_Enc_CropX_Str)) {
+								Input_Enc_CropX_Str)) {
 					avEncInfo->_u32CropX =
-							atoi(
-									JsonValue[Input_Enc_Info_Str][count][Input_Enc_CropX_Str].asCString());
+					atoi(
+							JsonValue[Input_Enc_Info_Str][count][Input_Enc_CropX_Str].asCString());
 				} else {
 				}
 				if (JsonValue[Input_Enc_Info_Str][count].isMember(
-						Input_Enc_CropY_Str)) {
+								Input_Enc_CropY_Str)) {
 					avEncInfo->_u32CropY =
-							atoi(
-									JsonValue[Input_Enc_Info_Str][count][Input_Enc_CropY_Str].asCString());
+					atoi(
+							JsonValue[Input_Enc_Info_Str][count][Input_Enc_CropY_Str].asCString());
 				} else {
 				}
 				if (JsonValue[Input_Enc_Info_Str][count].isMember(
-						Input_Enc_CropWidth_Str)) {
+								Input_Enc_CropWidth_Str)) {
 					avEncInfo->_u32CropWidth =
-							atoi(
-									JsonValue[Input_Enc_Info_Str][count][Input_Enc_CropWidth_Str].asCString());
+					atoi(
+							JsonValue[Input_Enc_Info_Str][count][Input_Enc_CropWidth_Str].asCString());
 				} else {
 				}
 				if (JsonValue[Input_Enc_Info_Str][count].isMember(
-						Input_Enc_CropHeight_Str)) {
+								Input_Enc_CropHeight_Str)) {
 					avEncInfo->_u32CropHeight =
-							atoi(
-									JsonValue[Input_Enc_Info_Str][count][Input_Enc_CropHeight_Str].asCString());
+					atoi(
+							JsonValue[Input_Enc_Info_Str][count][Input_Enc_CropHeight_Str].asCString());
 				} else {
 				}
 				if (JsonValue[Input_Enc_Info_Str][count].isMember(
-						Input_Enc_ZOOMWidth_Str)) {
+								Input_Enc_ZOOMWidth_Str)) {
 					avEncInfo->_u32ZoomWidth =
-							atoi(
-									JsonValue[Input_Enc_Info_Str][count][Input_Enc_ZOOMWidth_Str].asCString());
+					atoi(
+							JsonValue[Input_Enc_Info_Str][count][Input_Enc_ZOOMWidth_Str].asCString());
 				} else {
 				}
 				if (JsonValue[Input_Enc_Info_Str][count].isMember(
-						Input_Enc_ZOOMHeight_Str)) {
+								Input_Enc_ZOOMHeight_Str)) {
 					avEncInfo->_u32ZoomHeight =
-							atoi(
-									JsonValue[Input_Enc_Info_Str][count][Input_Enc_ZOOMHeight_Str].asCString());
+					atoi(
+							JsonValue[Input_Enc_Info_Str][count][Input_Enc_ZOOMHeight_Str].asCString());
 				} else {
 				}
 				if (JsonValue[Input_Enc_Info_Str][count].isMember(
-						Input_Enc_OSDType_Str)) {
+								Input_Enc_OSDType_Str)) {
 					avEncInfo->_u32OSDType =
-							atoi(
-									JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDType_Str].asCString());
+					atoi(
+							JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDType_Str].asCString());
 				} else {
 				}
 				if (JsonValue[Input_Enc_Info_Str][count].isMember(
-						Input_Enc_OSDStr_Str)) {
+								Input_Enc_OSDStr_Str)) {
 					memcpy(avEncInfo->_pu8OSDStr,
 							JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDStr_Str].asCString(),
 							strlen(
@@ -2204,14 +2389,14 @@ DP_BOOL LogicHandle::parseJsonData(Json::Value &JsonValue, vector<string> &vKey,
 				} else {
 				}
 				if (JsonValue[Input_Enc_Info_Str][count].isMember(
-						Input_Enc_OSDStrColor_Str)) {
+								Input_Enc_OSDStrColor_Str)) {
 					avEncInfo->_u32OSDStrColor =
-							atoi(
-									JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDStrColor_Str].asCString());
+					atoi(
+							JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDStrColor_Str].asCString());
 				} else {
 				}
 				if (JsonValue[Input_Enc_Info_Str][count].isMember(
-						Input_Enc_OSDPic_Str)) {
+								Input_Enc_OSDPic_Str)) {
 					memcpy(avEncInfo->_pu8OSDPic,
 							JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDPic_Str].asCString(),
 							strlen(
@@ -2219,52 +2404,59 @@ DP_BOOL LogicHandle::parseJsonData(Json::Value &JsonValue, vector<string> &vKey,
 				} else {
 				}
 				if (JsonValue[Input_Enc_Info_Str][count].isMember(
-						Input_Enc_OSDPresentModel_Str)) {
+								Input_Enc_OSDPresentModel_Str)) {
 					avEncInfo->_u32OSDPresentModel =
-							atoi(
-									JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDPresentModel_Str].asCString());
+					atoi(
+							JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDPresentModel_Str].asCString());
 				} else {
 				}
 				if (JsonValue[Input_Enc_Info_Str][count].isMember(
-						Input_Enc_OSDPointX_Str)) {
+								Input_Enc_OSDPointX_Str)) {
 					avEncInfo->_u32OSDPointX =
-							atoi(
-									JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDPointX_Str].asCString());
+					atoi(
+							JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDPointX_Str].asCString());
 				} else {
 				}
 				if (JsonValue[Input_Enc_Info_Str][count].isMember(
-						Input_Enc_OSDPointY_Str)) {
+								Input_Enc_OSDPointY_Str)) {
 					avEncInfo->_u32OSDPointY =
-							atoi(
-									JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDPointY_Str].asCString());
+					atoi(
+							JsonValue[Input_Enc_Info_Str][count][Input_Enc_OSDPointY_Str].asCString());
 				} else {
 				}
 				if (JsonValue[Input_Enc_Info_Str][count].isMember(
-						Input_Enc_FrameRate_Str)) {
+								Input_Enc_FrameRate_Str)) {
 					avEncInfo->_u32FrameRate =
-							atoi(
-									JsonValue[Input_Enc_Info_Str][count][Input_Enc_FrameRate_Str].asCString());
+					atoi(
+							JsonValue[Input_Enc_Info_Str][count][Input_Enc_FrameRate_Str].asCString());
 				} else {
 				}
 				if (JsonValue[Input_Enc_Info_Str][count].isMember(
-						Input_Enc_BitRate_Str)) {
+								Input_Enc_BitRate_Str)) {
 					avEncInfo->_u32BitRate =
-							atoi(
-									JsonValue[Input_Enc_Info_Str][count][Input_Enc_BitRate_Str].asCString());
+					atoi(
+							JsonValue[Input_Enc_Info_Str][count][Input_Enc_BitRate_Str].asCString());
 				} else {
 				}
 				if (JsonValue[Input_Enc_Info_Str][count].isMember(
-						Input_Enc_Cast_Str)) {
+								Input_Enc_GOP_Str)) {
+					avEncInfo->_u32GOP =
+					atoi(
+							JsonValue[Input_Enc_Info_Str][count][Input_Enc_GOP_Str].asCString());
+				} else {
+				}
+				if (JsonValue[Input_Enc_Info_Str][count].isMember(
+								Input_Enc_Cast_Str)) {
 					avEncInfo->_u32Cast =
-							atoi(
-									JsonValue[Input_Enc_Info_Str][count][Input_Enc_Cast_Str].asCString());
+					atoi(
+							JsonValue[Input_Enc_Info_Str][count][Input_Enc_Cast_Str].asCString());
 				} else {
 				}
 				vEncInfo.push_back(*avEncInfo.get());
 			}
 
 			NodeInfo::VctrAVENCGetInfoPtr vAVEncInNodeInfo = muduo::Singleton<
-					NodeInfo>::instance().getAVEncGetInfo();
+			NodeInfo>::instance().getAVEncGetInfo();
 			boost::shared_ptr<DP_M2S_AVENC_INFO_S> avEnc_bak(
 					new DP_M2S_AVENC_INFO_S);
 			NodeInfo::VctrAVENCGetInfo::iterator it_cam;
@@ -2286,9 +2478,9 @@ DP_BOOL LogicHandle::parseJsonData(Json::Value &JsonValue, vector<string> &vKey,
 					it_cam->stVenc.stCrop.u32Width = avEncInfo->_u32CropWidth;
 					it_cam->stVenc.stCrop.u32Height = avEncInfo->_u32CropHeight;
 					it_cam->stVenc.stZoom.stRect.u32Width =
-							avEncInfo->_u32ZoomWidth;
+					avEncInfo->_u32ZoomWidth;
 					it_cam->stVenc.stZoom.stRect.u32Height =
-							avEncInfo->_u32ZoomHeight;
+					avEncInfo->_u32ZoomHeight;
 					if (avEncInfo->_u32OSDType == 0) {
 						it_cam->stVenc.stOsd.enType = DP_M2S_OSD_PIC;
 						memcpy(it_cam->stVenc.stOsd.au8PicPath,
@@ -2300,40 +2492,41 @@ DP_BOOL LogicHandle::parseJsonData(Json::Value &JsonValue, vector<string> &vKey,
 								avEncInfo->_pu8OSDStr,
 								DP_M2S_OSD_STRING_LEN);
 						it_cam->stVenc.stOsd.stStr.u32Color =
-								avEncInfo->_u32OSDStrColor;
+						avEncInfo->_u32OSDStrColor;
 					} else {
 					}
 					if (avEncInfo->_u32OSDPresentModel == 0) {
 						it_cam->stVenc.stOsd.enDispMode =
-								DP_M2S_OSD_DISPLAY_MODE_COORD;
+						DP_M2S_OSD_DISPLAY_MODE_COORD;
 					} else if (avEncInfo->_u32OSDType == 1) {
 						it_cam->stVenc.stOsd.enDispMode =
-								DP_M2S_OSD_DISPLAY_MODE_LTOP;
+						DP_M2S_OSD_DISPLAY_MODE_LTOP;
 					} else if (avEncInfo->_u32OSDType == 2) {
 						it_cam->stVenc.stOsd.enDispMode =
-								DP_M2S_OSD_DISPLAY_MODE_RTOP;
+						DP_M2S_OSD_DISPLAY_MODE_RTOP;
 					} else if (avEncInfo->_u32OSDType == 3) {
 						it_cam->stVenc.stOsd.enDispMode =
-								DP_M2S_OSD_DISPLAY_MODE_LBOTTOM;
+						DP_M2S_OSD_DISPLAY_MODE_LBOTTOM;
 					} else if (avEncInfo->_u32OSDType == 4) {
 						it_cam->stVenc.stOsd.enDispMode =
-								DP_M2S_OSD_DISPLAY_MODE_RBOTTOM;
+						DP_M2S_OSD_DISPLAY_MODE_RBOTTOM;
 					} else {
 					}
 					it_cam->stVenc.stOsd.stPoint.s32X =
-							avEncInfo->_u32OSDPointX;
+					avEncInfo->_u32OSDPointX;
 					it_cam->stVenc.stOsd.stPoint.s32Y =
-							avEncInfo->_u32OSDPointY;
+					avEncInfo->_u32OSDPointY;
 					it_cam->stVenc.stAlg.stH264Enc.u32FrmRate =
-							avEncInfo->_u32FrameRate;
+					avEncInfo->_u32FrameRate;
 					it_cam->stVenc.stAlg.stH264Enc.u32Bitrate =
-							avEncInfo->_u32BitRate;
+					avEncInfo->_u32BitRate;
+					it_cam->stVenc.stAlg.stH264Enc.u32Gop = avEncInfo->_u32GOP;
 					if (avEncInfo->_u32Cast == 0) {
 						it_cam->stStream._rtsp.stRtspServer.bMulticast =
-								DP_FALSE;
+						DP_FALSE;
 					} else if (avEncInfo->_u32Cast == 1) {
 						it_cam->stStream._rtsp.stRtspServer.bMulticast =
-								DP_TRUE;
+						DP_TRUE;
 					} else {
 					}
 
@@ -2361,14 +2554,14 @@ DP_BOOL LogicHandle::parseJsonData(Json::Value &JsonValue, vector<string> &vKey,
 			//no recover
 //			do {
 			NodeInfo::VctrAIGetInfoPtr aiInfo =
-					muduo::Singleton<NodeInfo>::instance().getAIGetInfo();
+			muduo::Singleton<NodeInfo>::instance().getAIGetInfo();
 			NodeInfo::VctrAIGetInfo::iterator it_AI;
 			NodeInfo::VectAISetInfoPtr aiSet(new NodeInfo::VectAISetInfo);
 			aiSet->clear();
 			it_AI = find_if(aiInfo->begin(), aiInfo->end(),
 					bind2nd(
 							findAudioVolume<DP_M2S_AI_GET_INFO_S,
-									DP_M2S_AI_DEV_E>(),
+							DP_M2S_AI_DEV_E>(),
 							DP_M2S_AI_DEV_LINEIN0_HI3536));
 			if (it_AI != aiInfo->end()) {
 				it_AI->u8Vol = avEncInfo->_u32AILINE0Volume;
@@ -2383,7 +2576,7 @@ DP_BOOL LogicHandle::parseJsonData(Json::Value &JsonValue, vector<string> &vKey,
 			it_AI = find_if(aiInfo->begin(), aiInfo->end(),
 					bind2nd(
 							findAudioVolume<DP_M2S_AI_GET_INFO_S,
-									DP_M2S_AI_DEV_E>(),
+							DP_M2S_AI_DEV_E>(),
 							DP_M2S_AI_DEV_HDMI0_ITE6801));
 			if (it_AI == aiInfo->end()) {
 				it_AI->u8Vol = avEncInfo->_u32AIHDMI0Volume;
@@ -2398,7 +2591,7 @@ DP_BOOL LogicHandle::parseJsonData(Json::Value &JsonValue, vector<string> &vKey,
 
 			if (muduo::Singleton<NodeInfo>::instance().setAVInfoToCodec<
 					NodeInfo::VectAISetInfo, DP_M2S_CMD_AI_SETINFO_S>(aiSet,
-					DP_M2S_CMD_AI_SET) == DP_TRUE) {
+							DP_M2S_CMD_AI_SET) == DP_TRUE) {
 				muduo::Singleton<NodeInfo>::instance().updateAIGetInfo(aiInfo);
 			} else {
 				retParse = DP_FALSE;
@@ -2407,13 +2600,13 @@ DP_BOOL LogicHandle::parseJsonData(Json::Value &JsonValue, vector<string> &vKey,
 			}
 
 			NodeInfo::VctrAOGetInfoPtr aoInfo =
-					muduo::Singleton<NodeInfo>::instance().getAOGetInfo();
+			muduo::Singleton<NodeInfo>::instance().getAOGetInfo();
 			NodeInfo::VctrAOGetInfo::iterator it_AO =
-					find_if(aoInfo->begin(), aoInfo->end(),
-							bind2nd(
-									findAudioVolume<DP_M2S_AO_INFO_S,
-											DP_M2S_AO_DEV_E>(),
-									DP_M2S_AO_DEV_LINEOUT0_HI3536));
+			find_if(aoInfo->begin(), aoInfo->end(),
+					bind2nd(
+							findAudioVolume<DP_M2S_AO_INFO_S,
+							DP_M2S_AO_DEV_E>(),
+							DP_M2S_AO_DEV_LINEOUT0_HI3536));
 			if (it_AO != aoInfo->end()) {
 				it_AO->u8Vol = avEncInfo->_u32AOVolume;
 			} else {
@@ -2423,7 +2616,7 @@ DP_BOOL LogicHandle::parseJsonData(Json::Value &JsonValue, vector<string> &vKey,
 			}
 			if (muduo::Singleton<NodeInfo>::instance().setAVInfoToCodec<
 					NodeInfo::VctrAOGetInfo, DP_M2S_CMD_AO_SETINFO_S>(aoInfo,
-					DP_M2S_CMD_AO_SET) == DP_TRUE) {
+							DP_M2S_CMD_AO_SET) == DP_TRUE) {
 				muduo::Singleton<NodeInfo>::instance().updateAOGetInfo(aoInfo);
 			} else {
 				retParse = DP_FALSE;
@@ -2431,10 +2624,10 @@ DP_BOOL LogicHandle::parseJsonData(Json::Value &JsonValue, vector<string> &vKey,
 				break;
 			}
 			result.push_back(0);
-		} while (0);
+		}while (0);
 	} else {
 	}
-
+#endif
 	return retParse;
 }
 
@@ -2487,34 +2680,34 @@ DP_U8 LogicHandle::DP_MediaClient_CheckCropDateIsIegitimate(
 	if (crop.u32Width < DP_M2S_H264D_MIN_WIDTH
 			|| crop.u32Width > DP_M2S_H264D_MAX_WIDTH) {
 		LOG_ERROR
-		<< "crop param check is error,u32Width(%d) < %d || u32Width(%d)>%d "
-		<< crop.u32Width << " " << DP_M2S_H264D_MIN_WIDTH << " "
-		<< crop.u32Width << " " << DP_M2S_H264D_MAX_WIDTH;
+				<< "crop param check is error,u32Width(%d) < %d || u32Width(%d)>%d "
+				<< crop.u32Width << " " << DP_M2S_H264D_MIN_WIDTH << " "
+				<< crop.u32Width << " " << DP_M2S_H264D_MAX_WIDTH;
 		return DP_FALSE;
 	}
 	if (crop.u32Height < DP_M2S_H264D_MIN_HEIGHT
 			|| crop.u32Height > DP_M2S_H264D_MAX_HEIGHT) {
 		LOG_ERROR
-		<< "crop param check is error,u32Height(%d) < %d || u32Height(%d)>%d "
-		<< crop.u32Height << " " << DP_M2S_H264D_MIN_HEIGHT << " "
-		<< crop.u32Height << " " << DP_M2S_H264D_MAX_HEIGHT;
+				<< "crop param check is error,u32Height(%d) < %d || u32Height(%d)>%d "
+				<< crop.u32Height << " " << DP_M2S_H264D_MIN_HEIGHT << " "
+				<< crop.u32Height << " " << DP_M2S_H264D_MAX_HEIGHT;
 		return DP_FALSE;
 	}
 #elif (InputDevice)
 	if (crop.u32Width < DP_M2S_H264E_MIN_WIDTH
 			|| crop.u32Width > DP_M2S_H264E_MAX_WIDTH) {
 		LOG_ERROR
-				<< "crop param check is error,u32Width(%d) < %d || u32Width(%d)>%d "
-				<< crop.u32Width << " " << DP_M2S_H264E_MIN_WIDTH << " "
-				<< crop.u32Width << " " << DP_M2S_H264E_MAX_WIDTH;
+		<< "crop param check is error,u32Width(%d) < %d || u32Width(%d)>%d "
+		<< crop.u32Width << " " << DP_M2S_H264E_MIN_WIDTH << " "
+		<< crop.u32Width << " " << DP_M2S_H264E_MAX_WIDTH;
 		return DP_FALSE;
 	}
 	if (crop.u32Height < DP_M2S_H264E_MIN_HEIGHT
 			|| crop.u32Height > DP_M2S_H264E_MAX_HEIGHT) {
 		LOG_ERROR
-				<< "crop param check is error,u32Height(%d) < %d || u32Height(%d)>%d "
-				<< crop.u32Height << " " << DP_M2S_H264E_MIN_HEIGHT << " "
-				<< crop.u32Height << " " << DP_M2S_H264E_MAX_HEIGHT;
+		<< "crop param check is error,u32Height(%d) < %d || u32Height(%d)>%d "
+		<< crop.u32Height << " " << DP_M2S_H264E_MIN_HEIGHT << " "
+		<< crop.u32Height << " " << DP_M2S_H264E_MAX_HEIGHT;
 		return DP_FALSE;
 	}
 #endif
@@ -2530,6 +2723,42 @@ DP_U8 LogicHandle::DP_MediaClient_CheckCropDateIsIegitimate(
 		return DP_FALSE;
 	}
 	return DP_TRUE;
+}
+
+void LogicHandle::getJsonInfo(const muduo::net::TcpConnectionPtr connPtr,
+		std::string data) {
+	sRemote_JsonGetInfo_tag *jsonInfo = (sRemote_JsonGetInfo_tag*) data.c_str();
+	LOG_WARN << "GetJsonInfo cmd..........u32RequestID: "
+			<< jsonInfo->header.u32RequestID;
+}
+
+void LogicHandle::setJsonInfo(const muduo::net::TcpConnectionPtr connPtr,
+		std::string data) {
+	sRemote_JsonSetInfo_tag *stInfo = (sRemote_JsonSetInfo_tag*) data.c_str();
+	LOG_WARN << "SetJsonInfo cmd..........u32RequestID: "
+			<< stInfo->header.u32RequestID;
+
+	DP_U32 sucess = 0;
+	const DP_CHAR *jsonInfo = data.c_str();
+	jsonInfo += sizeof(sRemote_JsonSetInfo_tag);
+	vector<string> vKey;
+	vector<DP_U32> result;
+	Json::Value JsonValue;
+	Json::Reader JsonReader;
+	if (JsonReader.parse(jsonInfo, JsonValue)) {
+		if (JsonValue.isMember(CODEC_AVCODEC_TITLE)) {
+			vKey.push_back(CODEC_AVCODEC_TITLE);
+			if ((sucess = setAVEncInfoByJson(JsonValue)) != 0) {
+				result.push_back(DP_ERR_TASK_OPERATE);
+			} else {
+				result.push_back(0);
+			}
+		}
+//others
+		replySetInfoToThird(connPtr, vKey, result);
+	} else {
+		LOG_ERROR << "Can not parse json to string in setInfo!";
+	}
 }
 
 void LogicHandle::updateBatch(const muduo::net::TcpConnectionPtr connPtr,

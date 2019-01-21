@@ -52,6 +52,7 @@ void UDPServerHandle::runUdp() {
 		if (ret_recv <= 0) {
 			break;
 		}
+
 		if (FD_ISSET(m_socket, &readfd)) {
 			_loop->runInLoop(
 					boost::bind(&UDPServerHandle::parserDataRecv, this, buffer,
@@ -59,6 +60,7 @@ void UDPServerHandle::runUdp() {
 		}
 	}
 }
+
 void UDPServerHandle::parserDataRecv(DP_U8 *buff, DP_U32 len,
 		struct sockaddr_in recvAddr) {
 	_sRemote_Search * search = (_sRemote_Search*) buff;
@@ -109,7 +111,8 @@ void UDPServerHandle::devSearchHandle(DP_BOOL isMulticast,
 	int ret = 0;
 	ret = sendto(m_socket, sendBuf, localInfo->header.u16PackageLen, 0,
 			(struct sockaddr *) &sendAddr, tmp_server_addr_len);
-	if (ret > 0)
-		LOG_DEBUG << "Dev search ok, return " << ret << " bytes.";
+	if (ret > 0) {
+//		LOG_DEBUG << "Dev search ok, return " << ret << " bytes.";
+	}
 
 }
